@@ -37,14 +37,25 @@ const mockWeightData = [
   { date: '2023-07-13', value: 82.8 },
 ];
 
-const mockBPData = [
-  { date: '2023-06-01', systolic: 124, diastolic: 84 },
-  { date: '2023-06-08', systolic: 122, diastolic: 82 },
-  { date: '2023-06-15', systolic: 120, diastolic: 80 },
-  { date: '2023-06-22', systolic: 118, diastolic: 78 },
-  { date: '2023-06-29', systolic: 120, diastolic: 80 },
-  { date: '2023-07-06', systolic: 122, diastolic: 80 },
-  { date: '2023-07-13', systolic: 120, diastolic: 78 },
+// Changed to include both systolic and diastolic values with 'value' for LineChart compatibility
+const mockBPSystolicData = [
+  { date: '2023-06-01', value: 124, diastolic: 84 },
+  { date: '2023-06-08', value: 122, diastolic: 82 },
+  { date: '2023-06-15', value: 120, diastolic: 80 },
+  { date: '2023-06-22', value: 118, diastolic: 78 },
+  { date: '2023-06-29', value: 120, diastolic: 80 },
+  { date: '2023-07-06', value: 122, diastolic: 80 },
+  { date: '2023-07-13', value: 120, diastolic: 78 },
+];
+
+const mockBPDiastolicData = [
+  { date: '2023-06-01', value: 84, systolic: 124 },
+  { date: '2023-06-08', value: 82, systolic: 122 },
+  { date: '2023-06-15', value: 80, systolic: 120 },
+  { date: '2023-06-22', value: 78, systolic: 118 },
+  { date: '2023-06-29', value: 80, systolic: 120 },
+  { date: '2023-07-06', value: 80, systolic: 122 },
+  { date: '2023-07-13', value: 78, systolic: 120 },
 ];
 
 const mockGlucoseData = [
@@ -137,9 +148,9 @@ const DailyMetrics = () => {
                 
                 <TabsContent value="blood-pressure" className="mt-0">
                   <LineChart 
-                    title="Blood Pressure (mmHg)"
-                    data={mockBPData}
-                    dataKey="systolic"
+                    title="Blood Pressure - Systolic (mmHg)"
+                    data={mockBPSystolicData}
+                    dataKey="value"
                     color="hsl(0, 70%, 60%)"
                     tooltipLabel="Systolic"
                     valueFormatter={(value) => `${value} mmHg`}
