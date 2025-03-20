@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import BloodTests from "./pages/BloodTests";
 import DailyMetrics from "./pages/DailyMetrics";
 import BodyProgress from "./pages/BodyProgress";
+import Supplements from "./pages/Supplements";
+import Targets from "./pages/Targets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/blood-tests" element={<BloodTests />} />
           <Route path="/daily-metrics" element={<DailyMetrics />} />
           <Route path="/body-progress" element={<BodyProgress />} />
+          <Route path="/supplements" element={<Supplements />} />
+          <Route path="/targets" element={<Targets />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

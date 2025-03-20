@@ -8,7 +8,11 @@ import {
   DropletIcon,
   HeartPulseIcon,
   ImageIcon,
-  WeightIcon
+  WeightIcon,
+  PillIcon,
+  TargetIcon,
+  ChevronLeftIcon,
+  MenuIcon
 } from "lucide-react";
 
 const NavItem = ({ 
@@ -43,6 +47,7 @@ const NavItem = ({
 const Navbar = () => {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // This is to prevent hydration mismatch
   useEffect(() => {
@@ -66,9 +71,33 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center gap-1">
             <NavItem 
               to="/" 
-              icon={ActivityIcon} 
+              icon={BarChartIcon}
               label="Dashboard" 
               isActive={location.pathname === '/'} 
+            />
+            <NavItem 
+              to="/daily-metrics" 
+              icon={ActivityIcon} 
+              label="Daily Metrics" 
+              isActive={location.pathname === '/daily-metrics'} 
+            />
+            <NavItem 
+              to="/supplements" 
+              icon={PillIcon} 
+              label="Supplements" 
+              isActive={location.pathname === '/supplements'} 
+            />
+            <NavItem 
+              to="/targets" 
+              icon={TargetIcon} 
+              label="Targets" 
+              isActive={location.pathname === '/targets'} 
+            />
+            <NavItem 
+              to="/body-progress" 
+              icon={ImageIcon} 
+              label="Progress" 
+              isActive={location.pathname === '/body-progress'} 
             />
             <NavItem 
               to="/blood-tests" 
@@ -76,26 +105,60 @@ const Navbar = () => {
               label="Blood Tests" 
               isActive={location.pathname === '/blood-tests'} 
             />
+          </nav>
+
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-muted-foreground"
+          >
+            <MenuIcon className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
+          <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
+            <NavItem 
+              to="/" 
+              icon={BarChartIcon}
+              label="Dashboard" 
+              isActive={location.pathname === '/'} 
+            />
             <NavItem 
               to="/daily-metrics" 
-              icon={BarChartIcon} 
+              icon={ActivityIcon} 
               label="Daily Metrics" 
               isActive={location.pathname === '/daily-metrics'} 
             />
             <NavItem 
+              to="/supplements" 
+              icon={PillIcon} 
+              label="Supplements" 
+              isActive={location.pathname === '/supplements'} 
+            />
+            <NavItem 
+              to="/targets" 
+              icon={TargetIcon} 
+              label="Targets" 
+              isActive={location.pathname === '/targets'} 
+            />
+            <NavItem 
               to="/body-progress" 
               icon={ImageIcon} 
-              label="Body Progress" 
+              label="Progress" 
               isActive={location.pathname === '/body-progress'} 
             />
-          </nav>
-
-          <div className="md:hidden">
-            {/* Mobile menu implementation can go here */}
-            <WeightIcon className="h-6 w-6 text-muted-foreground" />
+            <NavItem 
+              to="/blood-tests" 
+              icon={DropletIcon} 
+              label="Blood Tests" 
+              isActive={location.pathname === '/blood-tests'} 
+            />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
