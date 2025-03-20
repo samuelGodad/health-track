@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { MetricCard } from '@/components/MetricCard';
 import { LineChart } from '@/components/LineChart';
+import MessageCoach from '@/components/MessageCoach';
 import { 
   ActivityIcon, 
   DropletIcon, 
@@ -94,33 +95,41 @@ const Index = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-            <DropletIcon className="h-12 w-12 mb-4 text-primary" />
-            <h3 className="text-lg font-medium mb-2">Blood Tests</h3>
-            <p className="text-muted-foreground mb-4">Upload and track your blood test results over time.</p>
-            <Button className="w-full mt-auto" variant="default" asChild>
-              <a href="/blood-tests">View Blood Tests</a>
-            </Button>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
+                <DropletIcon className="h-12 w-12 mb-4 text-primary" />
+                <h3 className="text-lg font-medium mb-2">Blood Tests</h3>
+                <p className="text-muted-foreground mb-4">Upload and track your blood test results over time.</p>
+                <Button className="w-full mt-auto" variant="default" asChild>
+                  <a href="/blood-tests">View Blood Tests</a>
+                </Button>
+              </Card>
+              
+              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
+                <ActivityIcon className="h-12 w-12 mb-4 text-primary" />
+                <h3 className="text-lg font-medium mb-2">Daily Metrics</h3>
+                <p className="text-muted-foreground mb-4">Record daily health metrics like weight, blood pressure, and more.</p>
+                <Button className="w-full mt-auto" variant="default" asChild>
+                  <a href="/daily-metrics">Record Metrics</a>
+                </Button>
+              </Card>
+              
+              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
+                <WeightIcon className="h-12 w-12 mb-4 text-primary" />
+                <h3 className="text-lg font-medium mb-2">Body Progress</h3>
+                <p className="text-muted-foreground mb-4">Upload photos to visually track your body transformation.</p>
+                <Button className="w-full mt-auto" variant="default" asChild>
+                  <a href="/body-progress">View Progress</a>
+                </Button>
+              </Card>
+            </div>
+          </div>
           
-          <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-            <ActivityIcon className="h-12 w-12 mb-4 text-primary" />
-            <h3 className="text-lg font-medium mb-2">Daily Metrics</h3>
-            <p className="text-muted-foreground mb-4">Record daily health metrics like weight, blood pressure, and more.</p>
-            <Button className="w-full mt-auto" variant="default" asChild>
-              <a href="/daily-metrics">Record Metrics</a>
-            </Button>
-          </Card>
-          
-          <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-            <WeightIcon className="h-12 w-12 mb-4 text-primary" />
-            <h3 className="text-lg font-medium mb-2">Body Progress</h3>
-            <p className="text-muted-foreground mb-4">Upload photos to visually track your body transformation.</p>
-            <Button className="w-full mt-auto" variant="default" asChild>
-              <a href="/body-progress">View Progress</a>
-            </Button>
-          </Card>
+          <div className="lg:col-span-1">
+            <MessageCoach />
+          </div>
         </div>
       </main>
     </div>
