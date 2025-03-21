@@ -3,8 +3,7 @@ import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
