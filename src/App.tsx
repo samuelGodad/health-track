@@ -11,6 +11,9 @@ import BodyProgress from "./pages/BodyProgress";
 import Supplements from "./pages/Supplements";
 import Targets from "./pages/Targets";
 import NotFound from "./pages/NotFound";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import AuthWrapper from "./components/AuthWrapper";
 
 const queryClient = new QueryClient();
 
@@ -21,13 +24,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/blood-tests" element={<BloodTests />} />
-          <Route path="/daily-metrics" element={<DailyMetrics />} />
-          <Route path="/body-progress" element={<BodyProgress />} />
-          <Route path="/supplements" element={<Supplements />} />
-          <Route path="/targets" element={<Targets />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Auth routes */}
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          
+          {/* Protected routes */}
+          <Route path="/" element={<AuthWrapper><Index /></AuthWrapper>} />
+          <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
+          <Route path="/blood-tests" element={<AuthWrapper><BloodTests /></AuthWrapper>} />
+          <Route path="/daily-metrics" element={<AuthWrapper><DailyMetrics /></AuthWrapper>} />
+          <Route path="/body-progress" element={<AuthWrapper><BodyProgress /></AuthWrapper>} />
+          <Route path="/supplements" element={<AuthWrapper><Supplements /></AuthWrapper>} />
+          <Route path="/targets" element={<AuthWrapper><Targets /></AuthWrapper>} />
+          
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
