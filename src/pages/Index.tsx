@@ -1,13 +1,15 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import DashboardPreview from "@/components/DashboardPreview";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex min-h-screen flex-col overflow-hidden">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
             Your Vita Health
@@ -24,28 +26,29 @@ const Index = () => {
       </header>
       
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-background">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Your Vita Health
-                </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                  Mastering Health Through Intelligent Insights
-                </p>
-              </div>
-              <div className="space-y-4">
-                <Button 
-                  className="px-8 py-6 text-lg"
-                  onClick={() => navigate("/sign-up")}
-                >
-                  Sign Up
-                </Button>
-              </div>
+        <ContainerScroll
+          titleComponent={
+            <div className="space-y-2 pt-16 md:pt-24">
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                Your Vita Health
+              </h1>
+              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                Mastering Health Through Intelligent Insights
+              </p>
             </div>
-          </div>
-        </section>
+          }
+        >
+          <DashboardPreview />
+        </ContainerScroll>
+        
+        <div className="flex justify-center -mt-32 md:-mt-48 mb-20 relative z-10">
+          <Button 
+            className="px-8 py-6 text-lg shadow-lg"
+            onClick={() => navigate("/sign-up")}
+          >
+            Sign Up
+          </Button>
+        </div>
         
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
           <div className="container px-4 md:px-6">
