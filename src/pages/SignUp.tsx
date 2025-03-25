@@ -5,12 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeftIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,15 +29,31 @@ const SignUp = () => {
     }
     
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
       });
       
       if (error) throw error;
       
-      // Redirect to email verification view or dashboard
-      navigate("/sign-in");
+      // Update the user's profile with first name and last name
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ first_name: firstName, last_name: lastName })
+          .eq('id', data.user.id);
+        
+        if (profileError) console.error("Error updating profile:", profileError);
+      }
+      
+      // Redirect to onboarding flow
+      navigate("/onboarding");
     } catch (err: any) {
       setError(err.message || "Failed to sign up");
     } finally {
@@ -59,7 +78,12 @@ const SignUp = () => {
         <Card className="overflow-hidden rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm shadow-md">
           <CardContent className="p-6">
             <div className="flex justify-center mb-6">
-              <h1 className="text-2xl font-bold">Create Account</h1>
+              <h1 className="text-2xl font-bold text-primary">Your Vita Health</h1>
+            </div>
+            
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-semibold">Create Account</h2>
+              <p className="text-sm text-muted-foreground mt-1">Join us on your journey to better health</p>
             </div>
             
             {error && (
@@ -69,16 +93,43 @@ const SignUp = () => {
             )}
             
             <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="firstName" className="text-sm font-medium">
+                    First Name
+                  </label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="lastName" className="text-sm font-medium">
+                    Last Name
+                  </label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
                 </label>
-                <input
+                <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
                   required
                 />
               </div>
@@ -87,12 +138,11 @@ const SignUp = () => {
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <input
+                <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
                   required
                 />
               </div>
@@ -101,12 +151,11 @@ const SignUp = () => {
                 <label htmlFor="confirmPassword" className="text-sm font-medium">
                   Confirm Password
                 </label>
-                <input
+                <Input
                   id="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
                   required
                 />
               </div>

@@ -13,6 +13,7 @@ import Targets from "./pages/Targets";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import Onboarding from "./pages/Onboarding";
 import AuthWrapper from "./components/AuthWrapper";
 
 const queryClient = new QueryClient();
@@ -24,12 +25,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Auth routes */}
+          {/* Public routes */}
+          <Route path="/" element={<Index />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           
-          {/* Temporarily make routes accessible without authentication */}
-          <Route path="/" element={<Index />} />
+          {/* Protected routes (will add AuthWrapper later) */}
           <Route path="/dashboard" element={<Index />} />
           <Route path="/blood-tests" element={<BloodTests />} />
           <Route path="/daily-metrics" element={<DailyMetrics />} />

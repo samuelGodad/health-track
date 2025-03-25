@@ -1,136 +1,137 @@
 
-import { useState } from 'react';
-import Navbar from '@/components/Navbar';
-import { MetricCard } from '@/components/MetricCard';
-import { LineChart } from '@/components/LineChart';
-import MessageCoach from '@/components/MessageCoach';
-import { 
-  ActivityIcon, 
-  DropletIcon, 
-  HeartPulseIcon, 
-  WeightIcon,
-  BarChart3Icon,
-  GaugeIcon
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-// Mock data for recent blood test results
-const mockBloodTests = [
-  { date: '2023-01-15', value: 4.2, type: 'Testosterone' },
-  { date: '2023-02-15', value: 4.1, type: 'Testosterone' },
-  { date: '2023-03-15', value: 4.4, type: 'Testosterone' },
-  { date: '2023-04-15', value: 4.5, type: 'Testosterone' },
-  { date: '2023-05-15', value: 4.7, type: 'Testosterone' },
-  { date: '2023-06-15', value: 4.9, type: 'Testosterone' },
-];
-
-// Mock data for weight trend
-const mockWeightData = [
-  { date: '2023-06-01', value: 85 },
-  { date: '2023-06-08', value: 84.5 },
-  { date: '2023-06-15', value: 84.2 },
-  { date: '2023-06-22', value: 83.8 },
-  { date: '2023-06-29', value: 83.5 },
-  { date: '2023-07-06', value: 83.1 },
-  { date: '2023-07-13', value: 82.8 },
-];
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const [animateIn] = useState(true);
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="flex items-center gap-2 font-bold text-xl text-primary">
+            Your Vita Health
+          </div>
+          <div className="flex flex-1 items-center justify-end space-x-2">
+            <Button 
+              variant="ghost"
+              onClick={() => navigate("/sign-in")}
+            >
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </header>
       
-      <main className={`pt-24 pb-16 px-4 md:px-6 max-w-screen-xl mx-auto transition-opacity duration-500 ${animateIn ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="flex flex-col gap-2 mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-muted-foreground">
-            Track your fitness journey and monitor your health metrics
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <MetricCard
-            title="Weight"
-            value="83.1 kg"
-            icon={<WeightIcon className="h-full w-full" />}
-            trend={{ value: 2.3, isPositive: false }}
-          />
-          <MetricCard
-            title="Blood Pressure"
-            value="120/80"
-            icon={<GaugeIcon className="h-full w-full" />}
-          />
-          <MetricCard
-            title="Heart Rate"
-            value="72 bpm"
-            icon={<HeartPulseIcon className="h-full w-full" />}
-            trend={{ value: 1.5, isPositive: true }}
-          />
-          <MetricCard
-            title="Daily Calories"
-            value="2,450"
-            icon={<BarChart3Icon className="h-full w-full" />}
-            trend={{ value: 5, isPositive: true }}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <LineChart 
-            title="Weight Trend (kg)"
-            data={mockWeightData}
-            dataKey="value"
-            tooltipLabel="Weight"
-            valueFormatter={(value) => `${value} kg`}
-          />
-          <LineChart 
-            title="Testosterone Level (ng/mL)"
-            data={mockBloodTests}
-            dataKey="value"
-            color="hsl(250, 60%, 60%)"
-            tooltipLabel="Testosterone"
-            valueFormatter={(value) => `${value} ng/mL`}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-                <DropletIcon className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-lg font-medium mb-2">Blood Tests</h3>
-                <p className="text-muted-foreground mb-4">Upload and track your blood test results over time.</p>
-                <Button className="w-full mt-auto" variant="default" asChild>
-                  <a href="/blood-tests">View Blood Tests</a>
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                  Your Vita Health
+                </h1>
+                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                  Mastering Health Through Intelligent Insights
+                </p>
+              </div>
+              <div className="space-y-4">
+                <Button 
+                  className="px-8 py-6 text-lg"
+                  onClick={() => navigate("/sign-up")}
+                >
+                  Sign Up
                 </Button>
-              </Card>
-              
-              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-                <ActivityIcon className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-lg font-medium mb-2">Daily Metrics</h3>
-                <p className="text-muted-foreground mb-4">Record daily health metrics like weight, blood pressure, and more.</p>
-                <Button className="w-full mt-auto" variant="default" asChild>
-                  <a href="/daily-metrics">Record Metrics</a>
-                </Button>
-              </Card>
-              
-              <Card className="p-6 border border-border/50 bg-card/90 backdrop-blur-sm flex flex-col items-center text-center">
-                <WeightIcon className="h-12 w-12 mb-4 text-primary" />
-                <h3 className="text-lg font-medium mb-2">Body Progress</h3>
-                <p className="text-muted-foreground mb-4">Upload photos to visually track your body transformation.</p>
-                <Button className="w-full mt-auto" variant="default" asChild>
-                  <a href="/body-progress">View Progress</a>
-                </Button>
-              </Card>
+              </div>
             </div>
           </div>
-          
-          <div className="lg:col-span-1">
-            <MessageCoach />
+        </section>
+        
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-3 lg:gap-12 items-start">
+              <div className="space-y-4">
+                <div className="inline-block rounded-lg bg-primary p-2 text-white">
+                  <svg
+                    className=" h-6 w-6"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold">Track Your Progress</h3>
+                <p className="text-muted-foreground">
+                  Monitor all your health metrics in one place, from weight and sleep to blood tests and supplements.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="inline-block rounded-lg bg-primary p-2 text-white">
+                  <svg
+                    className=" h-6 w-6"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" />
+                    <path d="m7 16.5-4.74-2.85" />
+                    <path d="m7 16.5 5-3" />
+                    <path d="M7 16.5V21" />
+                    <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" />
+                    <path d="m17 16.5-5-3" />
+                    <path d="m17 16.5 4.74-2.85" />
+                    <path d="M17 16.5V21" />
+                    <path d="M7.97 5.3A2 2 0 0 1 9.7 4.6l4.3 2.6 4.3-2.6a2 2 0 0 1 1.73-.1l-5 3-2.03-1.2-2.03 1.2-5-3a2 2 0 0 1 1.73.1Z" />
+                    <path d="m12 8-2.03-1.2a2 2 0 0 0-2.03 0l-3 1.8A2 2 0 0 0 4 10.24v.76l5 3 5-3v-.76a2 2 0 0 0-.94-1.64l-3-1.8a2 2 0 0 0-2.06 0" />
+                    <path d="M12 8v2.5" />
+                    <path d="m4 11 5 3" />
+                    <path d="m15 11 5 3" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold">Personalized Insights</h3>
+                <p className="text-muted-foreground">
+                  Get tailored recommendations based on your unique health profile and goals.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="inline-block rounded-lg bg-primary p-2 text-white">
+                  <svg
+                    className=" h-6 w-6"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold">Achieve Your Goals</h3>
+                <p className="text-muted-foreground">
+                  Whether it's weight management, better sleep, or optimizing your health markers, we help you reach your targets.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );

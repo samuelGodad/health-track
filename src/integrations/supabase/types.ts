@@ -24,6 +24,78 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          ethnicity: string | null
+          first_name: string | null
+          gender: string | null
+          height_cm: number | null
+          height_unit: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          weight: number | null
+          weight_unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          ethnicity?: string | null
+          first_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          height_unit?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+          weight?: number | null
+          weight_unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          ethnicity?: string | null
+          first_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
+          height_unit?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          weight?: number | null
+          weight_unit?: string | null
+        }
+        Relationships: []
+      }
+      user_metric_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          tracking_frequency: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          tracking_frequency: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          tracking_frequency?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
