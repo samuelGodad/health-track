@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,35 +17,41 @@ import SignUp from "./pages/SignUp";
 import Onboarding from "./pages/Onboarding";
 import AuthWrapper from "./components/AuthWrapper";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          
-          {/* Protected routes (will add AuthWrapper later) */}
-          <Route path="/dashboard" element={<Index />} />
-          <Route path="/blood-tests" element={<BloodTests />} />
-          <Route path="/daily-metrics" element={<DailyMetrics />} />
-          <Route path="/body-progress" element={<BodyProgress />} />
-          <Route path="/supplements" element={<Supplements />} />
-          <Route path="/targets" element={<Targets />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+// Convert to a function component
+function App() {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              
+              {/* Protected routes (will add AuthWrapper later) */}
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/blood-tests" element={<BloodTests />} />
+              <Route path="/daily-metrics" element={<DailyMetrics />} />
+              <Route path="/body-progress" element={<BodyProgress />} />
+              <Route path="/supplements" element={<Supplements />} />
+              <Route path="/targets" element={<Targets />} />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+}
 
 export default App;
