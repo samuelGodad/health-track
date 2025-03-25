@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import { LineChart } from '@/components/LineChart';
 import { Button } from '@/components/ui/button';
@@ -175,6 +176,24 @@ const TestHistoryCard = ({ record }: { record: TestRecord }) => {
 };
 
 const BloodTests = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setSelectedFile(files[0]);
+      toast.success(`File "${files[0].name}" selected`);
+      // In a real app, you would handle the upload to a server here
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -191,10 +210,17 @@ const BloodTests = () => {
               <DownloadIcon className="h-4 w-4" />
               <span>Export Data</span>
             </Button>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2" onClick={handleUploadClick}>
               <UploadIcon className="h-4 w-4" />
               <span>Upload Test Results</span>
             </Button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept=".pdf,.jpg,.jpeg,.png" 
+              className="hidden" 
+            />
           </div>
         </div>
         
@@ -270,9 +296,14 @@ const BloodTests = () => {
               </p>
               
               <Button className="w-full mb-4">Add Manual Entry</Button>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleUploadClick}>
                 <UploadIcon className="h-4 w-4 mr-2" />
                 <span>Upload Test PDF</span>
+                {selectedFile && (
+                  <span className="ml-2 text-xs opacity-70 truncate max-w-[100px]">
+                    ({selectedFile.name})
+                  </span>
+                )}
               </Button>
             </CardContent>
           </Card>

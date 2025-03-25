@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,14 +14,23 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 // Available metrics for tracking
 const AVAILABLE_METRICS = [
   { id: "weight", name: "Weight" },
-  { id: "sleep", name: "Sleep Quality" },
+  { id: "sleep", name: "Sleep (hours & mins)" },
   { id: "steps", name: "Steps" },
   { id: "water", name: "Water Intake" },
-  { id: "mood", name: "Mood" },
-  { id: "energy", name: "Energy Levels" },
-  { id: "stress", name: "Stress Levels" },
-  { id: "meditation", name: "Meditation Minutes" },
-  { id: "exercise", name: "Exercise Minutes" },
+  { id: "fatigue", name: "Fatigue (1-10)" },
+  { id: "blood_pressure", name: "Blood Pressure" },
+  { id: "blood_glucose", name: "Blood Glucose" },
+  { id: "resting_heart_rate", name: "Resting Heart Rate" },
+  { id: "calories", name: "Calories" },
+  { id: "protein", name: "Protein" },
+  { id: "carbohydrates", name: "Carbohydrates" },
+  { id: "fats", name: "Fats" },
+  { id: "nutrition_quality", name: "Nutrition Quality (1-10)" },
+  { id: "appetite", name: "Appetite (1-10)" },
+  { id: "digestion", name: "Digestion (1-10)" },
+  { id: "training_performance", name: "Training Performance (1-10)" },
+  { id: "motivation", name: "Motivation (1-10)" },
+  { id: "mental_health", name: "Mental Health (1-10)" },
 ];
 
 // Available ethnicities
