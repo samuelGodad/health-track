@@ -28,14 +28,14 @@ const App = () => (
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           
-          {/* Protected routes */}
-          <Route path="/" element={<AuthWrapper><Index /></AuthWrapper>} />
-          <Route path="/dashboard" element={<AuthWrapper><Index /></AuthWrapper>} />
-          <Route path="/blood-tests" element={<AuthWrapper><BloodTests /></AuthWrapper>} />
-          <Route path="/daily-metrics" element={<AuthWrapper><DailyMetrics /></AuthWrapper>} />
-          <Route path="/body-progress" element={<AuthWrapper><BodyProgress /></AuthWrapper>} />
-          <Route path="/supplements" element={<AuthWrapper><Supplements /></AuthWrapper>} />
-          <Route path="/targets" element={<AuthWrapper><Targets /></AuthWrapper>} />
+          {/* Temporarily make routes accessible without authentication */}
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="/blood-tests" element={<BloodTests />} />
+          <Route path="/daily-metrics" element={<DailyMetrics />} />
+          <Route path="/body-progress" element={<BodyProgress />} />
+          <Route path="/supplements" element={<Supplements />} />
+          <Route path="/targets" element={<Targets />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
