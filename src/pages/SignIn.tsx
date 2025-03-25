@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSignIn } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
 
 const SignIn = () => {
@@ -13,22 +13,36 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { signIn, isLoaded: isClerkLoaded } = useSignIn();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isClerkLoaded || !signIn) {
+      setError("Authentication service not available");
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const result = await signIn.create({
+        identifier: email,
         password,
       });
       
-      if (error) throw error;
-      navigate("/dashboard");
+      if (result.status === "complete") {
+        // Auth successful, redirect to dashboard
+        navigate("/dashboard");
+      } else {
+        // This shouldn't happen with email/password auth, but just in case
+        console.error("Unexpected auth state:", result);
+        setError("Authentication failed, please try again");
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to sign in");
+      console.error("Sign in error:", err);
+      setError(err.errors?.[0]?.message || "Failed to sign in");
     } finally {
       setLoading(false);
     }

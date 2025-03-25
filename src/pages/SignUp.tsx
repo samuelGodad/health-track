@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeftIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSignUp } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
 
 const SignUp = () => {
@@ -16,46 +16,45 @@ const SignUp = () => {
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { signUp, isLoaded: isClerkLoaded } = useSignUp();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
     
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
+    if (!isClerkLoaded || !signUp) {
+      setError("Authentication service not available");
       return;
     }
     
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
+      const result = await signUp.create({
+        emailAddress: email,
         password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
+        firstName,
+        lastName,
       });
       
-      if (error) throw error;
-      
-      // Update the user's profile with first name and last name
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ first_name: firstName, last_name: lastName })
-          .eq('id', data.user.id);
+      if (result.status === "complete") {
+        // Auth successful, redirect to onboarding
+        navigate("/onboarding");
+      } else {
+        // Handle any additional steps if needed (verification etc.)
+        console.log("Sign up status:", result.status);
         
-        if (profileError) console.error("Error updating profile:", profileError);
+        // For now we'll just redirect to onboarding
+        navigate("/onboarding");
       }
-      
-      // Redirect to onboarding flow
-      navigate("/onboarding");
     } catch (err: any) {
-      setError(err.message || "Failed to sign up");
+      console.error("Sign up error:", err);
+      setError(err.errors?.[0]?.message || "Failed to sign up");
     } finally {
       setLoading(false);
     }

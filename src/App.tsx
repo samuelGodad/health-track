@@ -34,15 +34,36 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/sign-in" element={<SignIn />} />
               <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/onboarding" element={<Onboarding />} />
               
-              {/* Protected routes (will add AuthWrapper later) */}
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/blood-tests" element={<BloodTests />} />
-              <Route path="/daily-metrics" element={<DailyMetrics />} />
-              <Route path="/body-progress" element={<BodyProgress />} />
-              <Route path="/supplements" element={<Supplements />} />
-              <Route path="/targets" element={<Targets />} />
+              {/* Protected routes with AuthWrapper */}
+              <Route 
+                path="/onboarding" 
+                element={<AuthWrapper><Onboarding /></AuthWrapper>} 
+              />
+              <Route 
+                path="/dashboard" 
+                element={<AuthWrapper><Index /></AuthWrapper>} 
+              />
+              <Route 
+                path="/blood-tests" 
+                element={<AuthWrapper><BloodTests /></AuthWrapper>} 
+              />
+              <Route 
+                path="/daily-metrics" 
+                element={<AuthWrapper><DailyMetrics /></AuthWrapper>} 
+              />
+              <Route 
+                path="/body-progress" 
+                element={<AuthWrapper><BodyProgress /></AuthWrapper>} 
+              />
+              <Route 
+                path="/supplements" 
+                element={<AuthWrapper><Supplements /></AuthWrapper>} 
+              />
+              <Route 
+                path="/targets" 
+                element={<AuthWrapper><Targets /></AuthWrapper>} 
+              />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
