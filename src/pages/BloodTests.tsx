@@ -1,11 +1,25 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import { LineChart } from '@/components/LineChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   ChevronDownIcon,
   ChevronUpIcon,
@@ -14,55 +28,108 @@ import {
   UploadIcon
 } from 'lucide-react';
 
-// Mock blood test data
-const mockTestData = {
-  testosterone: [
-    { date: '2023-01-15', value: 4.2 },
-    { date: '2023-02-15', value: 4.1 },
-    { date: '2023-03-15', value: 4.4 },
-    { date: '2023-04-15', value: 4.5 },
-    { date: '2023-05-15', value: 4.7 },
-    { date: '2023-06-15', value: 4.9 },
+const categories = [
+  { value: 'cardiac', label: 'Cardiac' },
+  { value: 'liver', label: 'Liver' },
+  { value: 'kidney', label: 'Kidney' },
+  { value: 'hormonal', label: 'Hormonal' },
+  { value: 'others', label: 'Others' },
+];
+
+const mockTestResults = {
+  cardiac: [
+    { name: 'Cholesterol (Total)', unit: 'mg/dL', reference: { min: 0, max: 200 }, results: [
+      { date: '2023-01-15', value: 185 },
+      { date: '2023-03-15', value: 178 },
+      { date: '2023-05-15', value: 192 },
+    ]},
+    { name: 'HDL', unit: 'mg/dL', reference: { min: 40, max: 60 }, results: [
+      { date: '2023-01-15', value: 45 },
+      { date: '2023-03-15', value: 48 },
+      { date: '2023-05-15', value: 52 },
+    ]},
+    { name: 'LDL', unit: 'mg/dL', reference: { min: 0, max: 100 }, results: [
+      { date: '2023-01-15', value: 130 },
+      { date: '2023-03-15', value: 118 },
+      { date: '2023-05-15', value: 110 },
+    ]},
+    { name: 'Triglycerides', unit: 'mg/dL', reference: { min: 0, max: 150 }, results: [
+      { date: '2023-01-15', value: 120 },
+      { date: '2023-03-15', value: 115 },
+      { date: '2023-05-15', value: 105 },
+    ]},
   ],
-  estradiol: [
-    { date: '2023-01-15', value: 22 },
-    { date: '2023-02-15', value: 25 },
-    { date: '2023-03-15', value: 24 },
-    { date: '2023-04-15', value: 26 },
-    { date: '2023-05-15', value: 25 },
-    { date: '2023-06-15', value: 23 },
+  liver: [
+    { name: 'ALT', unit: 'U/L', reference: { min: 0, max: 40 }, results: [
+      { date: '2023-01-15', value: 25 },
+      { date: '2023-03-15', value: 28 },
+      { date: '2023-05-15', value: 22 },
+    ]},
+    { name: 'AST', unit: 'U/L', reference: { min: 0, max: 40 }, results: [
+      { date: '2023-01-15', value: 22 },
+      { date: '2023-03-15', value: 24 },
+      { date: '2023-05-15', value: 20 },
+    ]},
+    { name: 'Bilirubin', unit: 'mg/dL', reference: { min: 0, max: 1.2 }, results: [
+      { date: '2023-01-15', value: 0.8 },
+      { date: '2023-03-15', value: 0.7 },
+      { date: '2023-05-15', value: 0.9 },
+    ]},
   ],
-  ldl: [
-    { date: '2023-01-15', value: 130 },
-    { date: '2023-02-15', value: 125 },
-    { date: '2023-03-15', value: 118 },
-    { date: '2023-04-15', value: 115 },
-    { date: '2023-05-15', value: 110 },
-    { date: '2023-06-15', value: 108 },
+  hormonal: [
+    { name: 'Testosterone', unit: 'ng/mL', reference: { min: 2.5, max: 8.0 }, results: [
+      { date: '2023-01-15', value: 4.2 },
+      { date: '2023-03-15', value: 4.4 },
+      { date: '2023-05-15', value: 4.7 },
+    ]},
+    { name: 'Estradiol', unit: 'pg/mL', reference: { min: 10, max: 40 }, results: [
+      { date: '2023-01-15', value: 22 },
+      { date: '2023-03-15', value: 24 },
+      { date: '2023-05-15', value: 25 },
+    ]},
+    { name: 'TSH', unit: 'mIU/L', reference: { min: 0.4, max: 4.0 }, results: [
+      { date: '2023-01-15', value: 1.8 },
+      { date: '2023-03-15', value: 1.9 },
+      { date: '2023-05-15', value: 2.1 },
+    ]},
   ],
-  hdl: [
-    { date: '2023-01-15', value: 45 },
-    { date: '2023-02-15', value: 47 },
-    { date: '2023-03-15', value: 48 },
-    { date: '2023-04-15', value: 50 },
-    { date: '2023-05-15', value: 52 },
-    { date: '2023-06-15', value: 54 },
+  kidney: [
+    { name: 'Creatinine', unit: 'mg/dL', reference: { min: 0.6, max: 1.2 }, results: [
+      { date: '2023-01-15', value: 0.9 },
+      { date: '2023-03-15', value: 0.85 },
+      { date: '2023-05-15', value: 0.88 },
+    ]},
+    { name: 'BUN', unit: 'mg/dL', reference: { min: 7, max: 20 }, results: [
+      { date: '2023-01-15', value: 15 },
+      { date: '2023-03-15', value: 14 },
+      { date: '2023-05-15', value: 16 },
+    ]},
+    { name: 'eGFR', unit: 'mL/min', reference: { min: 90, max: 120 }, results: [
+      { date: '2023-01-15', value: 98 },
+      { date: '2023-03-15', value: 100 },
+      { date: '2023-05-15', value: 97 },
+    ]},
+  ],
+  others: [
+    { name: 'Glucose', unit: 'mg/dL', reference: { min: 70, max: 100 }, results: [
+      { date: '2023-01-15', value: 92 },
+      { date: '2023-03-15', value: 88 },
+      { date: '2023-05-15', value: 94 },
+    ]},
+    { name: 'Hemoglobin', unit: 'g/dL', reference: { min: 13.5, max: 17.5 }, results: [
+      { date: '2023-01-15', value: 15.2 },
+      { date: '2023-03-15', value: 15.0 },
+      { date: '2023-05-15', value: 15.3 },
+    ]},
+    { name: 'Vitamin D', unit: 'ng/mL', reference: { min: 30, max: 100 }, results: [
+      { date: '2023-01-15', value: 28 },
+      { date: '2023-03-15', value: 35 },
+      { date: '2023-05-15', value: 42 },
+    ]},
   ],
 };
 
-interface TestRecord {
-  date: string;
-  name: string;
-  value: number;
-  unit: string;
-  reference: {
-    min: number;
-    max: number;
-  };
-}
-
-// Mock test history
-const mockTestHistory: TestRecord[] = [
+const mockTestHistory = [
   {
     date: '2023-06-15',
     name: 'Testosterone',
@@ -107,15 +174,13 @@ const mockTestHistory: TestRecord[] = [
   },
 ];
 
-const TestHistoryCard = ({ record }: { record: TestRecord }) => {
+const TestHistoryCard = ({ record }: { record: any }) => {
   const [expanded, setExpanded] = useState(false);
   
-  // Determine if the value is within the reference range
   const isNormal = record.value >= record.reference.min && record.value <= record.reference.max;
   const isLow = record.value < record.reference.min;
   const isHigh = record.value > record.reference.max;
   
-  // Set the status color
   const statusColor = isNormal 
     ? "text-emerald-500" 
     : isLow 
@@ -178,6 +243,7 @@ const TestHistoryCard = ({ record }: { record: TestRecord }) => {
 const BloodTests = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('cardiac');
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
@@ -192,6 +258,25 @@ const BloodTests = () => {
       toast.success(`File "${files[0].name}" selected`);
       // In a real app, you would handle the upload to a server here
     }
+  };
+
+  const testDates = useMemo(() => {
+    const dates = new Set<string>();
+    mockTestResults[selectedCategory as keyof typeof mockTestResults].forEach(test => {
+      test.results.forEach(result => dates.add(result.date));
+    });
+    return Array.from(dates).sort();
+  }, [selectedCategory]);
+
+  const getChartData = (testName: string) => {
+    const test = mockTestResults[selectedCategory as keyof typeof mockTestResults].find(t => t.name === testName);
+    return test ? test.results.map(r => ({ date: r.date, value: r.value })) : [];
+  };
+
+  const getCellColor = (value: number, min: number, max: number) => {
+    if (value < min) return "text-amber-500";
+    if (value > max) return "text-rose-500";
+    return "text-emerald-500";
   };
 
   return (
@@ -224,98 +309,108 @@ const BloodTests = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2 border border-border/50 bg-card/90 backdrop-blur-sm">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Test Results by Category</h2>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm mb-8">
             <CardHeader>
-              <CardTitle>Trend Analysis</CardTitle>
+              <CardTitle>{categories.find(c => c.value === selectedCategory)?.label} Test Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="testosterone">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="testosterone">Testosterone</TabsTrigger>
-                  <TabsTrigger value="estradiol">Estradiol</TabsTrigger>
-                  <TabsTrigger value="lipids">Lipids</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="testosterone" className="mt-0">
-                  <LineChart 
-                    title="Testosterone (ng/mL)"
-                    data={mockTestData.testosterone}
-                    dataKey="value"
-                    color="hsl(250, 60%, 60%)"
-                    tooltipLabel="Testosterone"
-                    valueFormatter={(value) => `${value} ng/mL`}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="estradiol" className="mt-0">
-                  <LineChart 
-                    title="Estradiol (pg/mL)"
-                    data={mockTestData.estradiol}
-                    dataKey="value"
-                    color="hsl(340, 60%, 60%)"
-                    tooltipLabel="Estradiol"
-                    valueFormatter={(value) => `${value} pg/mL`}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="lipids" className="mt-0">
-                  <div className="grid grid-cols-1 gap-4">
-                    <LineChart 
-                      title="HDL (mg/dL)"
-                      data={mockTestData.hdl}
-                      dataKey="value"
-                      color="hsl(150, 60%, 50%)"
-                      tooltipLabel="HDL"
-                      valueFormatter={(value) => `${value} mg/dL`}
-                    />
-                    <LineChart 
-                      title="LDL (mg/dL)"
-                      data={mockTestData.ldl}
-                      dataKey="value"
-                      color="hsl(0, 70%, 60%)"
-                      tooltipLabel="LDL"
-                      valueFormatter={(value) => `${value} mg/dL`}
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Test Name</TableHead>
+                      <TableHead className="w-[100px]">Reference Range</TableHead>
+                      {testDates.map(date => (
+                        <TableHead key={date} className="text-center">
+                          {new Date(date).toLocaleDateString()}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockTestResults[selectedCategory as keyof typeof mockTestResults].map((test) => (
+                      <TableRow key={test.name}>
+                        <TableCell className="font-medium">{test.name}</TableCell>
+                        <TableCell>
+                          {test.reference.min}-{test.reference.max} {test.unit}
+                        </TableCell>
+                        {testDates.map(date => {
+                          const result = test.results.find(r => r.date === date);
+                          return (
+                            <TableCell key={date} className="text-center">
+                              {result ? (
+                                <span className={getCellColor(result.value, test.reference.min, test.reference.max)}>
+                                  {result.value}
+                                </span>
+                              ) : "-"}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle>Add New Test</CardTitle>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                <PlusIcon className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm mb-4">
-                Manually add test results or upload lab documents
-              </p>
-              
-              <Button className="w-full mb-4">Add Manual Entry</Button>
-              <Button variant="outline" className="w-full" onClick={handleUploadClick}>
-                <UploadIcon className="h-4 w-4 mr-2" />
-                <span>Upload Test PDF</span>
-                {selectedFile && (
-                  <span className="ml-2 text-xs opacity-70 truncate max-w-[100px]">
-                    ({selectedFile.name})
-                  </span>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+          <h2 className="text-xl font-semibold mb-4">Trend Analysis</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {mockTestResults[selectedCategory as keyof typeof mockTestResults].map((test) => (
+              <LineChart 
+                key={test.name}
+                title={`${test.name} (${test.unit})`}
+                data={getChartData(test.name)}
+                dataKey="value"
+                color="hsl(var(--primary))"
+                tooltipLabel={test.name}
+                valueFormatter={(value) => `${value} ${test.unit}`}
+              />
+            ))}
+          </div>
         </div>
         
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Test History</h2>
-          <div className="space-y-3">
-            {mockTestHistory.map((record, index) => (
-              <TestHistoryCard key={index} record={record} />
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold mb-4">Upload New Results</h2>
+          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <Button className="flex-1" onClick={handleUploadClick}>
+                  <UploadIcon className="h-4 w-4 mr-2" />
+                  <span>Upload Test Results PDF</span>
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  <span>Manual Entry</span>
+                </Button>
+              </div>
+              {selectedFile && (
+                <div className="mt-4 p-3 bg-muted rounded-md">
+                  <p className="text-sm">Selected: {selectedFile.name}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

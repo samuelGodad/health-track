@@ -72,16 +72,13 @@ const UserDropdown = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full bg-secondary/70 p-1 px-3 hover:bg-secondary transition-colors">
+      <DropdownMenuTrigger className="flex items-center rounded-full bg-secondary/70 p-1 hover:bg-secondary transition-colors">
         <Avatar className="h-8 w-8">
           <AvatarImage src="" />
           <AvatarFallback className="bg-primary text-primary-foreground">
             {initials}
           </AvatarFallback>
         </Avatar>
-        <span className="text-sm font-medium hidden md:inline-block">
-          {user?.email || "User"}
-        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
