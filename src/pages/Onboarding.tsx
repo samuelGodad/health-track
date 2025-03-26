@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Available metrics for tracking
 const AVAILABLE_METRICS = [
@@ -48,6 +49,8 @@ const ETHNICITIES = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,9 +95,6 @@ const Onboarding = () => {
     setError(null);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         throw new Error("User not found. Please sign in again.");
       }
@@ -113,6 +113,8 @@ const Onboarding = () => {
           ethnicity,
           weight: parseFloat(weight) || null,
           weight_unit: weightUnit,
+          first_name: user.user_metadata?.first_name,
+          last_name: user.user_metadata?.last_name,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -132,11 +134,21 @@ const Onboarding = () => {
 
       if (metricsError) throw metricsError;
 
+      toast({
+        title: "Profile updated",
+        description: "Your health journey begins now!",
+      });
+
       // Navigate to dashboard
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Error saving onboarding data:", err);
       setError(err.message || "Failed to save your preferences");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to save your preferences",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

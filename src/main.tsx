@@ -2,13 +2,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ClerkAuthProvider } from "./providers/ClerkAuthProvider";
+import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ClerkAuthProvider>
+    <SupabaseAuthProvider>
       <App />
-    </ClerkAuthProvider>
+    </SupabaseAuthProvider>
   </React.StrictMode>
 );

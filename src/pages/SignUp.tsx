@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeftIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSignUp } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useToast } from "@/hooks/use-toast";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -16,15 +17,11 @@ const SignUp = () => {
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signUp, isLoaded: isClerkLoaded } = useSignUp();
+  const { signUp } = useAuth();
+  const { toast } = useToast();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!isClerkLoaded || !signUp) {
-      setError("Authentication service not available");
-      return;
-    }
     
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -35,35 +32,31 @@ const SignUp = () => {
     setError(null);
     
     try {
-      // Create the user without firstName/lastName first
-      const result = await signUp.create({
-        emailAddress: email,
-        password,
-      });
+      const userData = {
+        first_name: firstName,
+        last_name: lastName
+      };
       
-      // If creation successful, attempt to update the user metadata
-      if (result.status === "complete") {
-        try {
-          // Set user metadata after creation if needed
-          await result.setActive({ session: result.createdSessionId });
-          
-          // Redirect to onboarding
-          navigate("/onboarding");
-        } catch (metaErr) {
-          console.error("Error setting user metadata:", metaErr);
-          // Still redirect to onboarding even if metadata setting fails
-          navigate("/onboarding");
-        }
+      const { error: signUpError, user } = await signUp(email, password, userData);
+      
+      if (signUpError) {
+        setError(signUpError.message);
+        toast({
+          title: "Sign up failed",
+          description: signUpError.message,
+          variant: "destructive",
+        });
       } else {
-        // Handle verification steps if required by Clerk
-        console.log("Sign up status:", result.status);
-        
-        // For now, still redirect to onboarding
+        toast({
+          title: "Account created",
+          description: "Welcome to Vita Health!",
+        });
+        // Redirect to onboarding
         navigate("/onboarding");
       }
     } catch (err: any) {
       console.error("Sign up error:", err);
-      setError(err.errors?.[0]?.message || "Failed to sign up");
+      setError(err.message || "Failed to sign up");
     } finally {
       setLoading(false);
     }

@@ -1,17 +1,17 @@
 
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 
 interface AuthWrapperProps {
   children: ReactNode;
 }
 
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
-  const { isLoaded, userId } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // Show loading spinner while Clerk is initializing
-  if (!isLoaded) {
+  // Show loading spinner while Supabase is initializing
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
@@ -20,7 +20,7 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
   }
 
   // Redirect to sign-in if not authenticated
-  if (!userId) {
+  if (!user) {
     return <Navigate to="/sign-in" replace />;
   }
 
