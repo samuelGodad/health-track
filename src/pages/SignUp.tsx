@@ -35,21 +35,30 @@ const SignUp = () => {
     setError(null);
     
     try {
+      // Create the user without firstName/lastName first
       const result = await signUp.create({
         emailAddress: email,
         password,
-        firstName,
-        lastName,
       });
       
+      // If creation successful, attempt to update the user metadata
       if (result.status === "complete") {
-        // Auth successful, redirect to onboarding
-        navigate("/onboarding");
+        try {
+          // Set user metadata after creation if needed
+          await result.setActive({ session: result.createdSessionId });
+          
+          // Redirect to onboarding
+          navigate("/onboarding");
+        } catch (metaErr) {
+          console.error("Error setting user metadata:", metaErr);
+          // Still redirect to onboarding even if metadata setting fails
+          navigate("/onboarding");
+        }
       } else {
-        // Handle any additional steps if needed (verification etc.)
+        // Handle verification steps if required by Clerk
         console.log("Sign up status:", result.status);
         
-        // For now we'll just redirect to onboarding
+        // For now, still redirect to onboarding
         navigate("/onboarding");
       }
     } catch (err: any) {

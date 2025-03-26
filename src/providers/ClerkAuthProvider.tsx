@@ -27,6 +27,11 @@ const SyncSupabaseSession = ({ children }: { children: ReactNode }) => {
     // For this implementation, we're focusing on the client-side auth state only
     
     console.log("Clerk user authenticated:", userId);
+    console.log("User metadata:", {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.primaryEmailAddress?.emailAddress
+    });
     
     // Here you would typically create a Supabase session using custom tokens
     // This requires a backend endpoint that creates JWT tokens for Supabase

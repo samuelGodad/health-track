@@ -33,6 +33,8 @@ const SignIn = () => {
       });
       
       if (result.status === "complete") {
+        // Set the active session before redirecting
+        await result.setActive({ session: result.createdSessionId });
         // Auth successful, redirect to dashboard
         navigate("/dashboard");
       } else {
