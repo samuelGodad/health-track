@@ -1,6 +1,6 @@
 
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 
 interface AuthWrapperProps {
@@ -9,6 +9,15 @@ interface AuthWrapperProps {
 
 const AuthWrapper = ({ children }: AuthWrapperProps) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Redirect logic for authenticated users
+  useEffect(() => {
+    if (user && location.pathname === '/') {
+      navigate('/dashboard');
+    }
+  }, [user, location.pathname, navigate]);
 
   // Show loading spinner while Supabase is initializing
   if (isLoading) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -8,12 +7,25 @@ import {
   DropletIcon,
   HeartPulseIcon,
   ImageIcon,
-  WeightIcon,
   PillIcon,
   TargetIcon,
-  ChevronLeftIcon,
-  MenuIcon
+  MenuIcon,
+  UserIcon,
+  SettingsIcon,
+  MessageSquareIcon,
+  CreditCardIcon,
+  LogOutIcon
 } from "lucide-react";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NavItem = ({ 
   to, 
@@ -44,12 +56,68 @@ const NavItem = ({
   );
 };
 
+const UserDropdown = () => {
+  const { user, signOut } = useAuth();
+  const [initials, setInitials] = useState("U");
+  
+  useEffect(() => {
+    if (user?.email) {
+      setInitials(user.email.charAt(0).toUpperCase());
+    }
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full bg-secondary/70 p-1 px-3 hover:bg-secondary transition-colors">
+        <Avatar className="h-8 w-8">
+          <AvatarImage src="" />
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm font-medium hidden md:inline-block">
+          {user?.email || "User"}
+        </span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <UserIcon className="mr-2 h-4 w-4" />
+          <span>My Details</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <SettingsIcon className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <MessageSquareIcon className="mr-2 h-4 w-4" />
+          <span>Leave Feedback</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <CreditCardIcon className="mr-2 h-4 w-4" />
+          <span>Billing</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut}>
+          <LogOutIcon className="mr-2 h-4 w-4" />
+          <span>Sign Out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const Navbar = () => {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
-  // This is to prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -70,10 +138,10 @@ const Navbar = () => {
 
           <nav className="hidden md:flex items-center gap-1">
             <NavItem 
-              to="/" 
+              to="/dashboard" 
               icon={BarChartIcon}
               label="Dashboard" 
-              isActive={location.pathname === '/'} 
+              isActive={location.pathname === '/dashboard'} 
             />
             <NavItem 
               to="/daily-metrics" 
@@ -107,24 +175,27 @@ const Navbar = () => {
             />
           </nav>
 
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-muted-foreground"
-          >
-            <MenuIcon className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-4">
+            {user && <UserDropdown />}
+            
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-muted-foreground"
+            >
+              <MenuIcon className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
           <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
             <NavItem 
-              to="/" 
+              to="/dashboard" 
               icon={BarChartIcon}
               label="Dashboard" 
-              isActive={location.pathname === '/'} 
+              isActive={location.pathname === '/dashboard'} 
             />
             <NavItem 
               to="/daily-metrics" 
