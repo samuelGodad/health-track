@@ -9,6 +9,78 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      blood_test_results: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          notes: string | null
+          reference_max: number | null
+          reference_min: number | null
+          result: number
+          status: string | null
+          test_date: string
+          test_name: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reference_max?: number | null
+          reference_min?: number | null
+          result: number
+          status?: string | null
+          test_date: string
+          test_name: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reference_max?: number | null
+          reference_min?: number | null
+          result?: number
+          status?: string | null
+          test_date?: string
+          test_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_metrics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          metric_name: string
+          notes: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          metric_name: string
+          notes?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          metric_name?: string
+          notes?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       "Health App": {
         Row: {
           created_at: string
@@ -91,6 +163,36 @@ export type Database = {
           id?: string
           metric_name?: string
           tracking_frequency?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_targets: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          target_name: string
+          target_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          frequency: string
+          id?: string
+          target_name: string
+          target_value: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          target_name?: string
+          target_value?: number
           updated_at?: string
           user_id?: string
         }

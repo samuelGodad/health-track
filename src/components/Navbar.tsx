@@ -58,14 +58,7 @@ const NavItem = ({
 
 const UserDropdown = () => {
   const { user, signOut } = useAuth();
-  const [initials, setInitials] = useState("U");
   
-  useEffect(() => {
-    if (user?.email) {
-      setInitials(user.email.charAt(0).toUpperCase());
-    }
-  }, [user]);
-
   const handleSignOut = async () => {
     await signOut();
   };
@@ -76,7 +69,7 @@ const UserDropdown = () => {
         <Avatar className="h-8 w-8">
           <AvatarImage src="" />
           <AvatarFallback className="bg-primary text-primary-foreground">
-            {initials}
+            {user?.email?.charAt(0).toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
