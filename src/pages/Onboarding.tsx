@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -18,7 +20,6 @@ const AVAILABLE_METRICS = [
   { id: "sleep", name: "Sleep (hours & mins)" },
   { id: "steps", name: "Steps" },
   { id: "water", name: "Water Intake" },
-  { id: "fatigue", name: "Fatigue (1-10)" },
   { id: "blood_pressure", name: "Blood Pressure" },
   { id: "blood_glucose", name: "Blood Glucose" },
   { id: "resting_heart_rate", name: "Resting Heart Rate" },
@@ -26,6 +27,7 @@ const AVAILABLE_METRICS = [
   { id: "protein", name: "Protein" },
   { id: "carbohydrates", name: "Carbohydrates" },
   { id: "fats", name: "Fats" },
+  { id: "fatigue", name: "Fatigue (1-10)" },
   { id: "nutrition_quality", name: "Nutrition Quality (1-10)" },
   { id: "appetite", name: "Appetite (1-10)" },
   { id: "digestion", name: "Digestion (1-10)" },
@@ -47,6 +49,17 @@ const ETHNICITIES = [
   { value: "prefer_not_to_say", label: "Prefer not to say" },
 ];
 
+// Weekday options
+const WEEKDAYS = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
+];
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -55,7 +68,7 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Basic information
+  // Primary Questions - Step 1
   const [gender, setGender] = useState<string>("");
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft_in">("cm");
   const [heightCm, setHeightCm] = useState<string>("");
@@ -65,8 +78,12 @@ const Onboarding = () => {
   const [ethnicity, setEthnicity] = useState<string>("");
   const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
   const [weight, setWeight] = useState<string>("");
+  const [getsBloodsTested, setGetsBloodsTested] = useState<boolean>(false);
+  const [takesSupplement, setTakesSupplement] = useState<boolean>(false);
+  const [takesPeds, setTakesPeds] = useState<boolean>(false);
+  const [weeklyDataDay, setWeeklyDataDay] = useState<string>("");
 
-  // Metric preferences
+  // Metric preferences - Step 2
   const [metricPreferences, setMetricPreferences] = useState<Record<string, string>>(
     Object.fromEntries(AVAILABLE_METRICS.map(metric => [metric.id, "not_tracking"]))
   );
@@ -113,6 +130,10 @@ const Onboarding = () => {
           ethnicity,
           weight: parseFloat(weight) || null,
           weight_unit: weightUnit,
+          gets_bloods_tested: getsBloodsTested,
+          takes_supplements: takesSupplement,
+          takes_peds: takesPeds,
+          weekly_data_day: weeklyDataDay,
           first_name: user.user_metadata?.first_name,
           last_name: user.user_metadata?.last_name,
           updated_at: new Date().toISOString()
@@ -189,24 +210,50 @@ const Onboarding = () => {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <Label>Gender</Label>
-                  <RadioGroup value={gender} onValueChange={setGender} className="flex space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="male" id="gender-male" />
-                      <Label htmlFor="gender-male">Male</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="female" id="gender-female" />
-                      <Label htmlFor="gender-female">Female</Label>
-                    </div>
-                  </RadioGroup>
+                  <ToggleGroup 
+                    type="single" 
+                    value={gender} 
+                    onValueChange={(val) => val && setGender(val)}
+                    variant="outline" 
+                    className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                  >
+                    <ToggleGroupItem 
+                      value="male" 
+                      className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                    >
+                      Male
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="female" 
+                      className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                    >
+                      Female
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
 
                 <div className="space-y-3">
                   <Label>Height</Label>
                   <div className="space-y-2">
-                    <ToggleGroup type="single" value={heightUnit} onValueChange={(val) => val && setHeightUnit(val as "cm" | "ft_in")}>
-                      <ToggleGroupItem value="cm">Centimeters</ToggleGroupItem>
-                      <ToggleGroupItem value="ft_in">Feet/Inches</ToggleGroupItem>
+                    <ToggleGroup 
+                      type="single" 
+                      value={heightUnit} 
+                      onValueChange={(val) => val && setHeightUnit(val as "cm" | "ft_in")}
+                      variant="outline" 
+                      className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                    >
+                      <ToggleGroupItem 
+                        value="cm" 
+                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      >
+                        Centimeters
+                      </ToggleGroupItem>
+                      <ToggleGroupItem 
+                        value="ft_in" 
+                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      >
+                        Feet/Inches
+                      </ToggleGroupItem>
                     </ToggleGroup>
                     
                     {heightUnit === "cm" ? (
@@ -252,6 +299,42 @@ const Onboarding = () => {
                 </div>
 
                 <div className="space-y-3">
+                  <Label>Weight</Label>
+                  <div className="space-y-2">
+                    <ToggleGroup 
+                      type="single" 
+                      value={weightUnit} 
+                      onValueChange={(val) => val && setWeightUnit(val as "kg" | "lb")}
+                      variant="outline" 
+                      className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                    >
+                      <ToggleGroupItem 
+                        value="kg" 
+                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      >
+                        Kilograms
+                      </ToggleGroupItem>
+                      <ToggleGroupItem 
+                        value="lb" 
+                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      >
+                        Pounds
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        placeholder={`Weight in ${weightUnit}`}
+                      />
+                      <span className="text-sm font-medium">{weightUnit}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   <Label>Ethnicity</Label>
                   <Select value={ethnicity} onValueChange={setEthnicity}>
                     <SelectTrigger>
@@ -268,27 +351,52 @@ const Onboarding = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Weight</Label>
-                  <div className="space-y-2">
-                    <ToggleGroup type="single" value={weightUnit} onValueChange={(val) => val && setWeightUnit(val as "kg" | "lb")}>
-                      <ToggleGroupItem value="kg">Kilograms</ToggleGroupItem>
-                      <ToggleGroupItem value="lb">Pounds</ToggleGroupItem>
-                    </ToggleGroup>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        placeholder={`Weight in ${weightUnit}`}
-                      />
-                      <span className="text-sm font-medium">{weightUnit}</span>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="bloodsCheck">Do you get your bloods tested?</Label>
+                    <Switch 
+                      id="bloodsCheck"
+                      checked={getsBloodsTested} 
+                      onCheckedChange={setGetsBloodsTested} 
+                    />
                   </div>
                 </div>
 
-                <div className="text-sm text-muted-foreground italic">
-                  Note: This information is used to provide tailored recommendations based on your background.
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="supplementsCheck">Do you take over the counter supplements?</Label>
+                    <Switch 
+                      id="supplementsCheck"
+                      checked={takesSupplement} 
+                      onCheckedChange={setTakesSupplement} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="pedsCheck">Are you taking any PEDs?</Label>
+                    <Switch 
+                      id="pedsCheck"
+                      checked={takesPeds} 
+                      onCheckedChange={setTakesPeds} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>When would you like to input your weekly data?</Label>
+                  <Select value={weeklyDataDay} onValueChange={setWeeklyDataDay}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select day of week" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {WEEKDAYS.map((day) => (
+                        <SelectItem key={day.value} value={day.value}>
+                          {day.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex justify-end">
@@ -303,7 +411,7 @@ const Onboarding = () => {
             {step === 2 && (
               <div className="space-y-6">
                 <p className="text-sm">
-                  Select how often you'd like to track each metric:
+                  How often would you like to track each metric?
                 </p>
 
                 <div className="space-y-4">
@@ -314,11 +422,27 @@ const Onboarding = () => {
                         type="single" 
                         value={metricPreferences[metric.id]} 
                         onValueChange={(val) => val && handleMetricFrequencyChange(metric.id, val)}
-                        className="gap-1"
+                        variant="outline" 
+                        className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
                       >
-                        <ToggleGroupItem value="daily" size="sm">Daily</ToggleGroupItem>
-                        <ToggleGroupItem value="weekly" size="sm">Weekly</ToggleGroupItem>
-                        <ToggleGroupItem value="not_tracking" size="sm">Not tracking</ToggleGroupItem>
+                        <ToggleGroupItem 
+                          value="daily" 
+                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                        >
+                          Daily
+                        </ToggleGroupItem>
+                        <ToggleGroupItem 
+                          value="weekly" 
+                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                        >
+                          Weekly
+                        </ToggleGroupItem>
+                        <ToggleGroupItem 
+                          value="not_tracking" 
+                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                        >
+                          Not Tracking
+                        </ToggleGroupItem>
                       </ToggleGroup>
                     </div>
                   ))}
