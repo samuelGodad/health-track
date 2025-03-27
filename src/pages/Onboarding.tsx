@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
@@ -66,6 +66,7 @@ const Onboarding = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Primary Questions - Step 1
   const [gender, setGender] = useState<string>("");
@@ -84,11 +85,47 @@ const Onboarding = () => {
 
   // Metric preferences - Step 2
   const [metricPreferences, setMetricPreferences] = useState<Record<string, string>>(
-    Object.fromEntries(AVAILABLE_METRICS.map(metric => [metric.id, "not_tracking"]))
+    Object.fromEntries(AVAILABLE_METRICS.map(metric => [metric.id, ""]))
   );
 
+  const validateStep1 = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!gender) errors.gender = "Please select your gender";
+    if (heightUnit === "cm" && !heightCm) errors.height = "Please enter your height";
+    if (heightUnit === "ft_in" && (!heightFt || !heightIn)) errors.height = "Please enter your height";
+    if (!dob) errors.dob = "Please enter your date of birth";
+    if (!ethnicity) errors.ethnicity = "Please select your ethnicity";
+    if (!weight) errors.weight = "Please enter your weight";
+    if (!weeklyDataDay) errors.weeklyDataDay = "Please select a day for weekly data";
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  const validateStep2 = () => {
+    const errors: Record<string, string> = {};
+    
+    // Check if all metrics have a selection
+    const missingMetrics = Object.entries(metricPreferences).filter(([_, value]) => !value);
+    if (missingMetrics.length > 0) {
+      errors.metrics = "Please select tracking frequency for all metrics";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleNextStep = () => {
-    setStep(step + 1);
+    if (validateStep1()) {
+      setStep(step + 1);
+    } else {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePrevStep = () => {
@@ -107,6 +144,15 @@ const Onboarding = () => {
   };
 
   const handleSubmit = async () => {
+    if (!validateStep2()) {
+      toast({
+        title: "Missing information",
+        description: "Please select tracking frequency for all metrics",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -182,12 +228,12 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 p-4">
       <div className="w-full max-w-2xl">
         <Card className="overflow-hidden rounded-lg border-none bg-white/90 backdrop-blur-sm shadow-lg">
           <CardContent className="p-8">
             <div className="flex justify-center mb-6">
-              <h1 className="text-2xl font-bold text-blue-600">Your Vita Health</h1>
+              <h1 className="text-2xl font-bold text-blue-600">Your Enhanced Health</h1>
             </div>
             
             <div className="text-center mb-8">
@@ -209,6 +255,7 @@ const Onboarding = () => {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <Label className="text-gray-700">Gender</Label>
+                  {formErrors.gender && <p className="text-sm text-red-500">{formErrors.gender}</p>}
                   <ToggleGroup 
                     type="single" 
                     value={gender} 
@@ -233,6 +280,7 @@ const Onboarding = () => {
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">Height</Label>
+                  {formErrors.height && <p className="text-sm text-red-500">{formErrors.height}</p>}
                   <div className="space-y-2">
                     <ToggleGroup 
                       type="single" 
@@ -291,6 +339,7 @@ const Onboarding = () => {
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">Date of Birth</Label>
+                  {formErrors.dob && <p className="text-sm text-red-500">{formErrors.dob}</p>}
                   <Input
                     type="date"
                     value={dob}
@@ -301,6 +350,7 @@ const Onboarding = () => {
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">Weight</Label>
+                  {formErrors.weight && <p className="text-sm text-red-500">{formErrors.weight}</p>}
                   <div className="space-y-2">
                     <ToggleGroup 
                       type="single" 
@@ -338,6 +388,7 @@ const Onboarding = () => {
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">Ethnicity</Label>
+                  {formErrors.ethnicity && <p className="text-sm text-red-500">{formErrors.ethnicity}</p>}
                   <Select value={ethnicity} onValueChange={setEthnicity}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select ethnicity" />
@@ -359,7 +410,7 @@ const Onboarding = () => {
                       id="bloodsCheck"
                       checked={getsBloodsTested} 
                       onCheckedChange={setGetsBloodsTested}
-                      className="data-[state=checked]:bg-blue-500"
+                      className="data-[state=checked]:bg-blue-400"
                     />
                   </div>
                 
@@ -369,7 +420,7 @@ const Onboarding = () => {
                       id="supplementsCheck"
                       checked={takesSupplement} 
                       onCheckedChange={setTakesSupplement}
-                      className="data-[state=checked]:bg-blue-500"
+                      className="data-[state=checked]:bg-blue-400"
                     />
                   </div>
                 
@@ -379,13 +430,14 @@ const Onboarding = () => {
                       id="pedsCheck"
                       checked={takesPeds} 
                       onCheckedChange={setTakesPeds}
-                      className="data-[state=checked]:bg-blue-500" 
+                      className="data-[state=checked]:bg-blue-400" 
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">When would you like to input your weekly data?</Label>
+                  {formErrors.weeklyDataDay && <p className="text-sm text-red-500">{formErrors.weeklyDataDay}</p>}
                   <Select value={weeklyDataDay} onValueChange={setWeeklyDataDay}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select day of week" />
@@ -401,7 +453,7 @@ const Onboarding = () => {
                 </div>
 
                 <div className="flex justify-end mt-8">
-                  <Button onClick={handleNextStep} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                  <Button onClick={handleNextStep} className="bg-blue-500 hover:bg-blue-600 text-white gap-2">
                     Next Step
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -414,6 +466,12 @@ const Onboarding = () => {
                 <p className="text-sm text-gray-500 mb-4">
                   How often would you like to track each metric?
                 </p>
+                
+                {formErrors.metrics && (
+                  <div className="mb-6 p-4 bg-red-50 text-red-500 rounded-lg text-sm">
+                    {formErrors.metrics}
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   {AVAILABLE_METRICS.map((metric) => (
@@ -457,7 +515,7 @@ const Onboarding = () => {
                   <Button 
                     onClick={handleSubmit} 
                     disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     {loading ? "Saving..." : "Complete Setup"}
                   </Button>

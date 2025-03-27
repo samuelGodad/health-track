@@ -35,7 +35,7 @@
     --input: 214 32% 91%;
     --ring: 222 84% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5% 26%;
@@ -148,5 +148,50 @@
   
   .page-transition-exit-active {
     @apply opacity-0 transform -translate-x-6 transition-all duration-300 ease-in-out;
+  }
+  
+  /* New styles to match Figma design */
+  .sidebar {
+    @apply bg-white border-r border-gray-200;
+  }
+  
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md;
+  }
+  
+  .sidebar-link.active {
+    @apply bg-gray-50 text-blue-600 font-medium;
+  }
+  
+  .content-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-6;
+  }
+  
+  .metric-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
+  }
+  
+  .metric-title {
+    @apply text-sm font-medium text-gray-500;
+  }
+  
+  .metric-value {
+    @apply text-2xl font-bold text-gray-900 mt-1;
+  }
+  
+  .metric-trend {
+    @apply text-xs text-gray-500 mt-1;
+  }
+  
+  .section-title {
+    @apply text-lg font-medium text-gray-900 mb-4;
+  }
+  
+  .tab-button {
+    @apply px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300;
+  }
+  
+  .tab-button.active {
+    @apply text-blue-600 border-blue-600;
   }
 }
