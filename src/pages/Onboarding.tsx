@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 // Available metrics for tracking
 const AVAILABLE_METRICS = [
   { id: "weight", name: "Weight" },
-  { id: "sleep", name: "Sleep (hours & mins)" },
+  { id: "sleep", name: "Sleep" },
   { id: "steps", name: "Steps" },
   { id: "water", name: "Water Intake" },
   { id: "blood_pressure", name: "Blood Pressure" },
@@ -27,13 +27,13 @@ const AVAILABLE_METRICS = [
   { id: "protein", name: "Protein" },
   { id: "carbohydrates", name: "Carbohydrates" },
   { id: "fats", name: "Fats" },
-  { id: "fatigue", name: "Fatigue (1-10)" },
-  { id: "nutrition_quality", name: "Nutrition Quality (1-10)" },
-  { id: "appetite", name: "Appetite (1-10)" },
-  { id: "digestion", name: "Digestion (1-10)" },
-  { id: "training_performance", name: "Training Performance (1-10)" },
-  { id: "motivation", name: "Motivation (1-10)" },
-  { id: "mental_health", name: "Mental Health (1-10)" },
+  { id: "fatigue", name: "Fatigue" },
+  { id: "nutrition_quality", name: "Nutrition Quality" },
+  { id: "appetite", name: "Appetite" },
+  { id: "digestion", name: "Digestion" },
+  { id: "training_performance", name: "Training Performance" },
+  { id: "motivation", name: "Motivation" },
+  { id: "mental_health", name: "Mental Health" },
 ];
 
 // Available ethnicities
