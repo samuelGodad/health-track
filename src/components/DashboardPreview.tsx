@@ -4,112 +4,190 @@ import React from "react";
 const DashboardPreview = () => {
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 rounded-xl overflow-hidden">
-      {/* Dashboard Header */}
-      <div className="bg-primary/10 p-4 border-b dark:border-gray-800 flex justify-between items-center">
-        <div className="flex items-center">
-          <div className="text-primary font-bold text-xl">Your Vita Health</div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20"></div>
-        </div>
-      </div>
-      
-      {/* Dashboard Content */}
-      <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Summary Cards */}
-        <div className="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-100 dark:border-green-900">
-            <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-1">Overall Health Score</div>
-            <div className="text-2xl font-bold text-green-700 dark:text-green-300">87/100</div>
+      {/* Dashboard Layout */}
+      <div className="flex h-full">
+        {/* Sidebar */}
+        <div className="w-44 border-r border-gray-200 p-6 flex flex-col">
+          <div className="mb-6">
+            <div className="text-lg font-semibold">Your Enhanced Health</div>
           </div>
-          <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-100 dark:border-blue-900">
-            <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Metrics Tracked</div>
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">8/12</div>
-          </div>
-          <div className="bg-purple-50 dark:bg-purple-950/30 p-4 rounded-lg border border-purple-100 dark:border-purple-900">
-            <div className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Streak</div>
-            <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">14 days</div>
-          </div>
-        </div>
-        
-        {/* Charts and Graphs */}
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 h-60">
-          <div className="text-sm font-medium mb-2">Health Metrics Trend</div>
-          <div className="h-44 flex items-end space-x-2">
-            <div className="h-1/3 w-8 bg-primary/60 rounded-t"></div>
-            <div className="h-1/2 w-8 bg-primary/70 rounded-t"></div>
-            <div className="h-1/4 w-8 bg-primary/60 rounded-t"></div>
-            <div className="h-3/4 w-8 bg-primary/80 rounded-t"></div>
-            <div className="h-2/3 w-8 bg-primary rounded-t"></div>
-            <div className="h-1/2 w-8 bg-primary/90 rounded-t"></div>
-            <div className="h-4/5 w-8 bg-primary rounded-t"></div>
-          </div>
-        </div>
-        
-        {/* Sidebar/Supplements */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm font-medium mb-3">Today's Supplements</div>
-          <div className="space-y-2">
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-              <div className="text-sm">Vitamin D (2000 IU)</div>
+          
+          <div className="mb-6">
+            <p className="text-xs font-medium text-gray-500 mb-2">Discover</p>
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 py-2 text-blue-600 font-medium">
+                <div className="w-4 h-4 rounded-full bg-blue-100"></div>
+                Dashboard
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Daily
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Weekly
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-              <div className="text-sm">Omega-3 (1000mg)</div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-              <div className="text-sm">Magnesium (400mg)</div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-              <div className="text-sm">Zinc (15mg)</div>
+          </div>
+          
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-2">Library</p>
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Bloods
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Progress Photos
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Measurements
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Supplements
+              </div>
+              <div className="flex items-center gap-3 py-2 text-gray-700">
+                <div className="w-4 h-4 rounded-full bg-gray-100"></div>
+                Goals
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Bottom Row */}
-        <div className="col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium mb-2">Recent Blood Test Results</div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="text-sm">Vitamin D</div>
-                <div className="text-sm font-medium text-yellow-600">32 ng/mL</div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm">Cholesterol (Total)</div>
-                <div className="text-sm font-medium text-green-600">185 mg/dL</div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm">HDL</div>
-                <div className="text-sm font-medium text-green-600">58 mg/dL</div>
-              </div>
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Daily Dashboard</h1>
+              <p className="text-gray-500 text-sm">Track your progress and meet your daily targets</p>
+            </div>
+            <div className="bg-black text-white rounded-full px-3 py-1 text-sm">
+              March 13th
             </div>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium mb-2">Body Progress</div>
-            <div className="flex space-x-4 mt-3">
-              <div className="text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">Weight</div>
-                <div className="text-sm font-medium">175 lbs</div>
-                <div className="text-xs text-green-500">-2 lbs</div>
+          
+          {/* Tabs */}
+          <div className="flex space-x-4 mb-6">
+            <div className="px-4 py-1 bg-black text-white rounded-full text-sm">Food</div>
+            <div className="px-4 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">Activity</div>
+            <div className="px-4 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">Health</div>
+          </div>
+          
+          {/* Metrics */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="text-sm text-gray-500 font-medium">Calories</div>
+              <div className="text-3xl font-bold mt-1">3,250</div>
+              <div className="text-xs text-gray-500 mt-1">+8% over the last 30 days</div>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="text-sm text-gray-500 font-medium">Protein</div>
+              <div className="text-3xl font-bold mt-1">200g</div>
+              <div className="text-xs text-gray-500 mt-1">+8% over the last 30 days</div>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="text-sm text-gray-500 font-medium">Carbs</div>
+              <div className="text-3xl font-bold mt-1">500g</div>
+              <div className="text-xs text-gray-500 mt-1">-5% over the last 30 days</div>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="text-sm text-gray-500 font-medium">Fat</div>
+              <div className="text-3xl font-bold mt-1">50g</div>
+              <div className="text-xs text-gray-500 mt-1">-6% over the last 30 days</div>
+            </div>
+          </div>
+          
+          {/* Main content area */}
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2 border border-gray-200 rounded-lg p-4">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Add March 13th's Data</h2>
+              
+              <div className="grid grid-cols-2 mb-2">
+                <div className="text-sm text-gray-500 font-medium">Source</div>
+                <div className="text-sm text-gray-500 font-medium">Input Your Data</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">Body Fat</div>
-                <div className="text-sm font-medium">18%</div>
-                <div className="text-xs text-green-500">-0.5%</div>
+              
+              <div className="space-y-3">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-2 items-center">
+                    <div className="text-sm text-gray-700">test name</div>
+                    <div className="h-9 bg-gray-100 rounded"></div>
+                  </div>
+                ))}
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">Muscle</div>
-                <div className="text-sm font-medium">42%</div>
-                <div className="text-xs text-green-500">+0.3%</div>
+              
+              <h2 className="text-lg font-medium text-gray-900 mt-6 mb-4">Supplements</h2>
+              
+              <div className="grid grid-cols-2 mb-2">
+                <div className="text-sm text-gray-500 font-medium">Source</div>
+                <div className="text-sm text-gray-500 font-medium">Timing & Dosage</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">BMI</div>
-                <div className="text-sm font-medium">24.2</div>
-                <div className="text-xs text-green-500">-0.3</div>
+              
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-2 items-center">
+                    <div className="text-sm text-gray-700">supplement name</div>
+                    <div className="text-sm text-gray-700">Timing & dose</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Weight</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">82.5</p>
+                    <p className="text-sm text-gray-500">kg</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Sleep</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">7.5</p>
+                    <p className="text-sm text-gray-500">hours</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Steps</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">8,547</p>
+                    <p className="text-sm text-gray-500">steps</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Water</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">2.5</p>
+                    <p className="text-sm text-gray-500">liters</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Meal Quality</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">8/10</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-gray-500 text-sm font-medium">Recovery</h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">7/10</p>
+                  </div>
+                </div>
+                
+                <button className="w-full bg-blue-500 text-white py-2 rounded-md mt-4">
+                  Save Today's Data
+                </button>
               </div>
             </div>
           </div>

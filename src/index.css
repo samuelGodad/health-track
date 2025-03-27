@@ -194,4 +194,41 @@
   .tab-button.active {
     @apply text-blue-600 border-blue-600;
   }
+  
+  /* Figma design specific styles */
+  .figma-dashboard {
+    @apply bg-white min-h-screen;
+  }
+  
+  .figma-sidebar {
+    @apply fixed left-0 top-0 h-full w-44 bg-white border-r border-gray-200 flex flex-col py-6;
+  }
+  
+  .figma-content {
+    @apply ml-44 p-6;
+  }
+  
+  .figma-header {
+    @apply flex items-center justify-between mb-6;
+  }
+  
+  .figma-data-card {
+    @apply bg-white rounded-lg border border-gray-200 p-4 mb-4;
+  }
+  
+  .figma-metric-card {
+    @apply bg-white rounded-lg border border-gray-200 p-4;
+  }
+  
+  .figma-tab-group {
+    @apply flex bg-black text-white rounded-full text-sm mb-4 overflow-hidden;
+  }
+  
+  .figma-tab {
+    @apply px-4 py-1;
+  }
+  
+  .figma-tab.active {
+    @apply bg-black;
+  }
 }
