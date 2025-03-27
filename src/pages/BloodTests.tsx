@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import { LineChart } from '@/components/LineChart';
@@ -25,8 +25,11 @@ import {
   ChevronUpIcon,
   DownloadIcon,
   PlusIcon,
-  UploadIcon
+  UploadIcon,
+  FileIcon
 } from 'lucide-react';
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = [
   { value: 'cardiac', label: 'Cardiac' },
@@ -241,9 +244,39 @@ const TestHistoryCard = ({ record }: { record: any }) => {
 };
 
 const BloodTests = () => {
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('cardiac');
+  const [isUploading, setIsUploading] = useState(false);
+  const [bloodTestResults, setBloodTestResults] = useState<any>(mockTestResults);
+
+  useEffect(() => {
+    if (user) {
+      fetchBloodTestResults();
+    }
+  }, [user]);
+
+  const fetchBloodTestResults = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blood_test_results')
+        .select('*')
+        .eq('user_id', user?.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        console.log('Blood test results fetched:', data);
+        // Process data to match our expected format if needed
+      }
+    } catch (error) {
+      console.error('Error fetching blood test results:', error);
+      toast.error('Failed to fetch blood test results');
+    }
+  };
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
@@ -254,9 +287,63 @@ const BloodTests = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      setSelectedFile(files[0]);
-      toast.success(`File "${files[0].name}" selected`);
-      // In a real app, you would handle the upload to a server here
+      const filesArray = Array.from(files);
+      setSelectedFiles(filesArray);
+      toast.success(`${filesArray.length} file(s) selected`);
+    }
+  };
+
+  const uploadFiles = async () => {
+    if (!user) {
+      toast.error('You must be logged in to upload files');
+      return;
+    }
+    
+    if (selectedFiles.length === 0) {
+      toast.error('Please select files to upload');
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      const uploadPromises = selectedFiles.map(async (file) => {
+        const timestamp = new Date().getTime();
+        const filePath = `${user.id}/${timestamp}-${file.name}`;
+        
+        const { data, error } = await supabase.storage
+          .from('blood-tests')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (error) throw error;
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('blood-tests')
+          .getPublicUrl(filePath);
+          
+        return {
+          name: file.name,
+          url: publicUrlData.publicUrl,
+          path: filePath
+        };
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      
+      toast.success(`Successfully uploaded ${results.length} file(s)`);
+      setSelectedFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.error('Failed to upload files. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -304,7 +391,8 @@ const BloodTests = () => {
               ref={fileInputRef} 
               onChange={handleFileChange} 
               accept=".pdf,.jpg,.jpeg,.png" 
-              className="hidden" 
+              className="hidden"
+              multiple
             />
           </div>
         </div>
@@ -395,18 +483,37 @@ const BloodTests = () => {
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
-                <Button className="flex-1" onClick={handleUploadClick}>
+                <Button 
+                  className="flex-1" 
+                  onClick={handleUploadClick}
+                  disabled={isUploading}
+                >
                   <UploadIcon className="h-4 w-4 mr-2" />
-                  <span>Upload Test Results PDF</span>
+                  <span>{isUploading ? "Uploading..." : "Upload Test Results PDF"}</span>
                 </Button>
                 <Button variant="outline" className="flex-1">
                   <PlusIcon className="h-4 w-4 mr-2" />
                   <span>Manual Entry</span>
                 </Button>
               </div>
-              {selectedFile && (
-                <div className="mt-4 p-3 bg-muted rounded-md">
-                  <p className="text-sm">Selected: {selectedFile.name}</p>
+              {selectedFiles.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="p-3 bg-muted rounded-md flex items-center justify-between">
+                      <div className="flex items-center">
+                        <FileIcon className="h-4 w-4 mr-2" />
+                        <p className="text-sm">{file.name}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  ))}
+                  <Button 
+                    onClick={uploadFiles}
+                    disabled={isUploading}
+                    className="w-full mt-2"
+                  >
+                    {isUploading ? "Uploading..." : `Upload ${selectedFiles.length} File(s)`}
+                  </Button>
                 </div>
               )}
             </CardContent>

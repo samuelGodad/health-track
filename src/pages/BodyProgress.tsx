@@ -1,5 +1,4 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,7 +33,6 @@ import { toast } from 'sonner';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 
-// Photo types
 const PHOTO_TYPES = [
   'front relaxed',
   'side relaxed (right)',
@@ -50,7 +48,6 @@ const PHOTO_TYPES = [
   'most muscular'
 ];
 
-// Mock data for progress photos
 const mockPhotos = [
   { 
     id: 1, 
@@ -90,7 +87,6 @@ const mockPhotos = [
   },
 ];
 
-// Mock data for progress videos
 const mockVideos = [
   {
     id: 1,
@@ -108,9 +104,8 @@ const mockVideos = [
   }
 ];
 
-// Group photos by month
 const groupedPhotos = mockPhotos.reduce((acc, photo) => {
-  const month = photo.date.substring(0, 7); // Extract YYYY-MM
+  const month = photo.date.substring(0, 7);
   if (!acc[month]) {
     acc[month] = [];
   }
@@ -118,9 +113,8 @@ const groupedPhotos = mockPhotos.reduce((acc, photo) => {
   return acc;
 }, {} as Record<string, typeof mockPhotos>);
 
-// Group videos by month
 const groupedVideos = mockVideos.reduce((acc, video) => {
-  const month = video.date.substring(0, 7); // Extract YYYY-MM
+  const month = video.date.substring(0, 7);
   if (!acc[month]) {
     acc[month] = [];
   }
@@ -146,6 +140,36 @@ const BodyProgress = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [userPhotos, setUserPhotos] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserPhotos();
+    }
+  }, [user]);
+
+  const fetchUserPhotos = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('progress-images')
+        .list(user.id, {
+          sortBy: { column: 'name', order: 'desc' }
+        });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        console.log('User photos:', data);
+        setUserPhotos(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user photos:', error);
+    }
+  };
 
   const filteredPhotos = selectedPhotoMonth
     ? groupedPhotos[selectedPhotoMonth].filter(photo => photoFilterType === 'all' || photo.type === photoFilterType)
@@ -173,11 +197,9 @@ const BodyProgress = () => {
     if (file) {
       setSelectedFile(file);
       
-      // Create and set preview URL for the selected image
       const objectUrl = URL.createObjectURL(file);
       setLocalImagePreview(objectUrl);
       
-      // Clean up the object URL when component unmounts or file changes
       return () => URL.revokeObjectURL(objectUrl);
     }
   };
@@ -200,7 +222,8 @@ const BodyProgress = () => {
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${user.id}/${formattedDate}/${photoType.replace(/\s/g, '-')}.${fileExt}`;
       
-      // Upload file to Supabase Storage
+      console.log('Uploading to path:', filePath);
+      
       const { data, error } = await supabase.storage
         .from('progress-images')
         .upload(filePath, selectedFile, {
@@ -208,18 +231,23 @@ const BodyProgress = () => {
           upsert: true
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
       
       console.log('Upload successful:', data);
       
-      // Get the public URL for the uploaded file
       const { data: publicUrlData } = supabase.storage
         .from('progress-images')
         .getPublicUrl(filePath);
       
+      console.log('Public URL:', publicUrlData);
+      
       toast.success(`${mediaType === 'photo' ? 'Photo' : 'Video'} uploaded successfully`);
       
-      // Reset form
+      fetchUserPhotos();
+      
       setSelectedFile(null);
       setLocalImagePreview(null);
       if (fileInputRef.current) {
