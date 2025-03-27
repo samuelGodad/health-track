@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -273,20 +274,20 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Navbar />
       
       <main className="pt-24 pb-16 px-4 md:px-6 max-w-screen-xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Daily Dashboard</h1>
-            <p className="text-muted-foreground">Track your progress and meet your daily targets</p>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-800">Daily Dashboard</h1>
+            <p className="text-gray-500">Track your progress and meet your daily targets</p>
           </div>
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
+              <Button variant="outline" className="flex items-center gap-2 border-gray-200 text-gray-700">
+                <CalendarIcon className="h-4 w-4 text-blue-500" />
                 <span>{format(date, 'PPP')}</span>
               </Button>
             </PopoverTrigger>
@@ -302,44 +303,48 @@ const Dashboard = () => {
           </Popover>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
             title="Weight"
             value={dailyMetrics.find(m => m.metric_name === "weight")?.value.toString() + " kg" || "No data"}
-            icon={<WeightIcon className="h-5 w-5" />}
+            icon={<WeightIcon className="h-5 w-5 text-blue-500" />}
             isLoading={loading}
+            className="bg-white shadow-md rounded-xl border-none"
           />
           <MetricCard
             title="Sleep"
             value={dailyMetrics.find(m => m.metric_name === "sleep")?.value.toString() + " hrs" || "No data"}
-            icon={<MoonIcon className="h-5 w-5" />}
+            icon={<MoonIcon className="h-5 w-5 text-blue-500" />}
             isLoading={loading}
+            className="bg-white shadow-md rounded-xl border-none"
           />
           <MetricCard
             title="Calories"
             value={dailyMetrics.find(m => m.metric_name === "calories")?.value.toString() || "No data"}
-            icon={<UtensilsCrossedIcon className="h-5 w-5" />}
+            icon={<UtensilsCrossedIcon className="h-5 w-5 text-blue-500" />}
             isLoading={loading}
+            className="bg-white shadow-md rounded-xl border-none"
           />
           <MetricCard
             title="Water"
             value={dailyMetrics.find(m => m.metric_name === "water")?.value.toString() + " L" || "No data"}
-            icon={<DropletIcon className="h-5 w-5" />}
+            icon={<DropletIcon className="h-5 w-5 text-blue-500" />}
             isLoading={loading}
+            className="bg-white shadow-md rounded-xl border-none"
           />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm md:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Add {getFormattedDateForTitle(date)} Data</CardTitle>
-              <PlusIcon className="h-5 w-5 text-primary" />
+          <Card className="md:col-span-2 border-none bg-white shadow-md rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xl font-semibold text-gray-800">Add {getFormattedDateForTitle(date)} Data</CardTitle>
+              <PlusIcon className="h-5 w-5 text-blue-500" />
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="weight" className="flex items-center gap-1 text-sm">
-                    <WeightIcon className="h-3.5 w-3.5" />
+                  <Label htmlFor="weight" className="flex items-center gap-1 text-sm text-gray-600">
+                    <WeightIcon className="h-3.5 w-3.5 text-blue-500" />
                     Weight (kg)
                   </Label>
                   <Input 
@@ -350,12 +355,13 @@ const Dashboard = () => {
                     step="0.1"
                     value={newMetric.weight}
                     onChange={handleMetricChange}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <Label htmlFor="sleep" className="flex items-center gap-1 text-sm">
-                    <MoonIcon className="h-3.5 w-3.5" />
+                  <Label htmlFor="sleep" className="flex items-center gap-1 text-sm text-gray-600">
+                    <MoonIcon className="h-3.5 w-3.5 text-blue-500" />
                     Sleep (hours)
                   </Label>
                   <Input 
@@ -366,12 +372,13 @@ const Dashboard = () => {
                     step="0.1"
                     value={newMetric.sleep}
                     onChange={handleMetricChange}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <Label htmlFor="calories" className="flex items-center gap-1 text-sm">
-                    <UtensilsCrossedIcon className="h-3.5 w-3.5" />
+                  <Label htmlFor="calories" className="flex items-center gap-1 text-sm text-gray-600">
+                    <UtensilsCrossedIcon className="h-3.5 w-3.5 text-blue-500" />
                     Calories
                   </Label>
                   <Input 
@@ -381,12 +388,13 @@ const Dashboard = () => {
                     placeholder="0" 
                     value={newMetric.calories}
                     onChange={handleMetricChange}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <Label htmlFor="water" className="flex items-center gap-1 text-sm">
-                    <DropletIcon className="h-3.5 w-3.5" />
+                  <Label htmlFor="water" className="flex items-center gap-1 text-sm text-gray-600">
+                    <DropletIcon className="h-3.5 w-3.5 text-blue-500" />
                     Water (liters)
                   </Label>
                   <Input 
@@ -397,12 +405,13 @@ const Dashboard = () => {
                     step="0.1"
                     value={newMetric.water}
                     onChange={handleMetricChange}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <Label htmlFor="steps" className="flex items-center gap-1 text-sm">
-                    <FootprintsIcon className="h-3.5 w-3.5" />
+                  <Label htmlFor="steps" className="flex items-center gap-1 text-sm text-gray-600">
+                    <FootprintsIcon className="h-3.5 w-3.5 text-blue-500" />
                     Steps
                   </Label>
                   <Input 
@@ -412,12 +421,13 @@ const Dashboard = () => {
                     placeholder="0" 
                     value={newMetric.steps}
                     onChange={handleMetricChange}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
               
               <Button 
-                className="w-full" 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2" 
                 onClick={handleSaveMetrics}
                 disabled={loading}
               >
@@ -427,49 +437,49 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Today's Targets</CardTitle>
-              <TargetIcon className="h-5 w-5 text-primary" />
+          <Card className="border-none bg-white shadow-md rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xl font-semibold text-gray-800">Today's Targets</CardTitle>
+              <TargetIcon className="h-5 w-5 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               {getDailyTargetsSummary()}
             </CardContent>
           </Card>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Recent Progress</CardTitle>
-              <TrendingUpIcon className="h-5 w-5 text-primary" />
+          <Card className="border-none bg-white shadow-md rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xl font-semibold text-gray-800">Recent Progress</CardTitle>
+              <TrendingUpIcon className="h-5 w-5 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <WeightIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Weight</span>
+                    <WeightIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Weight</span>
                   </div>
                   <div className="text-sm font-medium text-emerald-500">↓ 1.2 kg</div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <HeartPulseIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Resting HR</span>
+                    <HeartPulseIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Resting HR</span>
                   </div>
                   <div className="text-sm font-medium text-emerald-500">↓ 2 bpm</div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <ActivityIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Activity</span>
+                    <ActivityIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Activity</span>
                   </div>
                   <div className="text-sm font-medium text-emerald-500">↑ 15%</div>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full mt-2"
+                  className="w-full mt-2 border-gray-200 text-gray-700 hover:bg-gray-100"
                   onClick={() => navigate("/daily-metrics")}
                 >
                   View All Metrics
@@ -478,37 +488,37 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Weekly Summary</CardTitle>
-              <ListChecksIcon className="h-5 w-5 text-primary" />
+          <Card className="border-none bg-white shadow-md rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xl font-semibold text-gray-800">Weekly Summary</CardTitle>
+              <ListChecksIcon className="h-5 w-5 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <WeightIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Avg. Weight</span>
+                    <WeightIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Avg. Weight</span>
                   </div>
-                  <div>78.5 kg</div>
+                  <div className="text-gray-700">78.5 kg</div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <MoonIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Avg. Sleep</span>
+                    <MoonIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Avg. Sleep</span>
                   </div>
-                  <div>7.2 hrs</div>
+                  <div className="text-gray-700">7.2 hrs</div>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <UtensilsCrossedIcon className="h-4 w-4 mr-2 text-primary" />
-                    <span>Avg. Calories</span>
+                    <UtensilsCrossedIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-gray-700">Avg. Calories</span>
                   </div>
-                  <div>2,250 kcal</div>
+                  <div className="text-gray-700">2,250 kcal</div>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full mt-2"
+                  className="w-full mt-2 border-gray-200 text-gray-700 hover:bg-gray-100"
                   onClick={() => navigate("/daily-metrics")}
                 >
                   View Weekly Details
@@ -517,28 +527,28 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Training Log</CardTitle>
-              <DumbbellIcon className="h-5 w-5 text-primary" />
+          <Card className="border-none bg-white shadow-md rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xl font-semibold text-gray-800">Training Log</CardTitle>
+              <DumbbellIcon className="h-5 w-5 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               <div className="space-y-2">
-                <div className="border-b pb-2">
-                  <div className="font-medium">Yesterday</div>
-                  <div className="text-sm text-muted-foreground">Upper Body</div>
+                <div className="pb-2 border-b border-gray-100">
+                  <div className="font-medium text-gray-800">Yesterday</div>
+                  <div className="text-sm text-gray-500">Upper Body</div>
                 </div>
-                <div className="border-b pb-2">
-                  <div className="font-medium">2 days ago</div>
-                  <div className="text-sm text-muted-foreground">Lower Body</div>
+                <div className="pb-2 border-b border-gray-100">
+                  <div className="font-medium text-gray-800">2 days ago</div>
+                  <div className="text-sm text-gray-500">Lower Body</div>
                 </div>
-                <div className="border-b pb-2">
-                  <div className="font-medium">3 days ago</div>
-                  <div className="text-sm text-muted-foreground">Cardio (30 min)</div>
+                <div className="pb-2 border-b border-gray-100">
+                  <div className="font-medium text-gray-800">3 days ago</div>
+                  <div className="text-sm text-gray-500">Cardio (30 min)</div>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-4 border-gray-200 text-gray-700 hover:bg-gray-100"
                 >
                   Log Workout
                 </Button>

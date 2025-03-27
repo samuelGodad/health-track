@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Label } from "@/components/ui/label";
@@ -183,17 +182,17 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 p-4">
       <div className="w-full max-w-2xl">
-        <Card className="overflow-hidden rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm shadow-md">
-          <CardContent className="p-6">
+        <Card className="overflow-hidden rounded-lg border-none bg-white/90 backdrop-blur-sm shadow-lg">
+          <CardContent className="p-8">
             <div className="flex justify-center mb-6">
-              <h1 className="text-2xl font-bold text-primary">Your Vita Health</h1>
+              <h1 className="text-2xl font-bold text-blue-600">Your Vita Health</h1>
             </div>
             
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-semibold">Welcome, let's customize your dashboard for you</h2>
-              <p className="text-sm text-muted-foreground mt-1">
+            <div className="text-center mb-8">
+              <h2 className="text-xl font-semibold text-gray-800">Welcome, let's customize your dashboard for you</h2>
+              <p className="text-sm text-gray-500 mt-2">
                 {step === 1 
                   ? "First, we'll collect some basic information to personalize your experience" 
                   : "Next, let's set up which metrics you'd like to track and how often"}
@@ -201,7 +200,7 @@ const Onboarding = () => {
             </div>
             
             {error && (
-              <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -209,23 +208,23 @@ const Onboarding = () => {
             {step === 1 && (
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <Label>Gender</Label>
+                  <Label className="text-gray-700">Gender</Label>
                   <ToggleGroup 
                     type="single" 
                     value={gender} 
                     onValueChange={(val) => val && setGender(val)}
                     variant="outline" 
-                    className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                    className="inline-flex w-full gap-0 rounded-lg shadow-sm bg-background"
                   >
                     <ToggleGroupItem 
                       value="male" 
-                      className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      className="flex-1 rounded-l-lg rounded-r-none"
                     >
                       Male
                     </ToggleGroupItem>
                     <ToggleGroupItem 
                       value="female" 
-                      className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                      className="flex-1 rounded-l-none rounded-r-lg"
                     >
                       Female
                     </ToggleGroupItem>
@@ -233,24 +232,24 @@ const Onboarding = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Height</Label>
+                  <Label className="text-gray-700">Height</Label>
                   <div className="space-y-2">
                     <ToggleGroup 
                       type="single" 
                       value={heightUnit} 
                       onValueChange={(val) => val && setHeightUnit(val as "cm" | "ft_in")}
                       variant="outline" 
-                      className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                      className="inline-flex w-full gap-0 rounded-lg shadow-sm bg-background"
                     >
                       <ToggleGroupItem 
                         value="cm" 
-                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                        className="flex-1 rounded-l-lg rounded-r-none"
                       >
                         Centimeters
                       </ToggleGroupItem>
                       <ToggleGroupItem 
                         value="ft_in" 
-                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                        className="flex-1 rounded-l-none rounded-r-lg"
                       >
                         Feet/Inches
                       </ToggleGroupItem>
@@ -263,8 +262,9 @@ const Onboarding = () => {
                           value={heightCm}
                           onChange={(e) => setHeightCm(e.target.value)}
                           placeholder="Height in cm"
+                          className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                         />
-                        <span className="text-sm font-medium">cm</span>
+                        <span className="text-sm font-medium text-gray-600">cm</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
@@ -273,50 +273,51 @@ const Onboarding = () => {
                           value={heightFt}
                           onChange={(e) => setHeightFt(e.target.value)}
                           placeholder="Feet"
-                          className="w-24"
+                          className="w-24 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                         />
-                        <span className="text-sm font-medium">ft</span>
+                        <span className="text-sm font-medium text-gray-600">ft</span>
                         <Input
                           type="number"
                           value={heightIn}
                           onChange={(e) => setHeightIn(e.target.value)}
                           placeholder="Inches"
-                          className="w-24"
+                          className="w-24 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                         />
-                        <span className="text-sm font-medium">in</span>
+                        <span className="text-sm font-medium text-gray-600">in</span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Date of Birth</Label>
+                  <Label className="text-gray-700">Date of Birth</Label>
                   <Input
                     type="date"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Weight</Label>
+                  <Label className="text-gray-700">Weight</Label>
                   <div className="space-y-2">
                     <ToggleGroup 
                       type="single" 
                       value={weightUnit} 
                       onValueChange={(val) => val && setWeightUnit(val as "kg" | "lb")}
                       variant="outline" 
-                      className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                      className="inline-flex w-full gap-0 rounded-lg shadow-sm bg-background"
                     >
                       <ToggleGroupItem 
                         value="kg" 
-                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                        className="flex-1 rounded-l-lg rounded-r-none"
                       >
                         Kilograms
                       </ToggleGroupItem>
                       <ToggleGroupItem 
                         value="lb" 
-                        className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+                        className="flex-1 rounded-l-none rounded-r-lg"
                       >
                         Pounds
                       </ToggleGroupItem>
@@ -328,16 +329,17 @@ const Onboarding = () => {
                         value={weight}
                         onChange={(e) => setWeight(e.target.value)}
                         placeholder={`Weight in ${weightUnit}`}
+                        className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                       />
-                      <span className="text-sm font-medium">{weightUnit}</span>
+                      <span className="text-sm font-medium text-gray-600">{weightUnit}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Ethnicity</Label>
+                  <Label className="text-gray-700">Ethnicity</Label>
                   <Select value={ethnicity} onValueChange={setEthnicity}>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select ethnicity" />
                     </SelectTrigger>
                     <SelectContent>
@@ -350,43 +352,42 @@ const Onboarding = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="bloodsCheck">Do you get your bloods tested?</Label>
+                    <Label htmlFor="bloodsCheck" className="text-gray-700">Do you get your bloods tested?</Label>
                     <Switch 
                       id="bloodsCheck"
                       checked={getsBloodsTested} 
-                      onCheckedChange={setGetsBloodsTested} 
+                      onCheckedChange={setGetsBloodsTested}
+                      className="data-[state=checked]:bg-blue-500"
                     />
                   </div>
-                </div>
-
-                <div className="space-y-3">
+                
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="supplementsCheck">Do you take over the counter supplements?</Label>
+                    <Label htmlFor="supplementsCheck" className="text-gray-700">Do you take over the counter supplements?</Label>
                     <Switch 
                       id="supplementsCheck"
                       checked={takesSupplement} 
-                      onCheckedChange={setTakesSupplement} 
+                      onCheckedChange={setTakesSupplement}
+                      className="data-[state=checked]:bg-blue-500"
                     />
                   </div>
-                </div>
-
-                <div className="space-y-3">
+                
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="pedsCheck">Are you taking any PEDs?</Label>
+                    <Label htmlFor="pedsCheck" className="text-gray-700">Are you taking any PEDs?</Label>
                     <Switch 
                       id="pedsCheck"
                       checked={takesPeds} 
-                      onCheckedChange={setTakesPeds} 
+                      onCheckedChange={setTakesPeds}
+                      className="data-[state=checked]:bg-blue-500" 
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>When would you like to input your weekly data?</Label>
+                  <Label className="text-gray-700">When would you like to input your weekly data?</Label>
                   <Select value={weeklyDataDay} onValueChange={setWeeklyDataDay}>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select day of week" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,8 +400,8 @@ const Onboarding = () => {
                   </Select>
                 </div>
 
-                <div className="flex justify-end">
-                  <Button onClick={handleNextStep} className="gap-2">
+                <div className="flex justify-end mt-8">
+                  <Button onClick={handleNextStep} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
                     Next Step
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -410,36 +411,36 @@ const Onboarding = () => {
 
             {step === 2 && (
               <div className="space-y-6">
-                <p className="text-sm">
+                <p className="text-sm text-gray-500 mb-4">
                   How often would you like to track each metric?
                 </p>
 
                 <div className="space-y-4">
                   {AVAILABLE_METRICS.map((metric) => (
                     <div key={metric.id} className="grid grid-cols-[1fr,auto] gap-4 items-center">
-                      <Label>{metric.name}</Label>
+                      <Label className="text-gray-700">{metric.name}</Label>
                       <ToggleGroup 
                         type="single" 
                         value={metricPreferences[metric.id]} 
                         onValueChange={(val) => val && handleMetricFrequencyChange(metric.id, val)}
                         variant="outline" 
-                        className="inline-flex gap-0 -space-x-px rounded-lg shadow-sm shadow-black/5 bg-background"
+                        className="inline-flex gap-0 rounded-lg shadow-sm bg-background"
                       >
                         <ToggleGroupItem 
                           value="daily" 
-                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                          className="rounded-l-lg rounded-r-none text-sm px-3 py-1"
                         >
                           Daily
                         </ToggleGroupItem>
                         <ToggleGroupItem 
                           value="weekly" 
-                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                          className="rounded-none text-sm px-3 py-1"
                         >
                           Weekly
                         </ToggleGroupItem>
                         <ToggleGroupItem 
                           value="not_tracking" 
-                          className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 text-sm px-2 py-1"
+                          className="rounded-l-none rounded-r-lg text-sm px-3 py-1"
                         >
                           Not Tracking
                         </ToggleGroupItem>
@@ -448,12 +449,16 @@ const Onboarding = () => {
                   ))}
                 </div>
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevStep} className="gap-2">
+                <div className="flex justify-between mt-8">
+                  <Button variant="outline" onClick={handlePrevStep} className="border-gray-200 text-gray-700 hover:bg-gray-100 gap-2">
                     <ArrowLeft className="h-4 w-4" />
                     Back
                   </Button>
-                  <Button onClick={handleSubmit} disabled={loading}>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
                     {loading ? "Saving..." : "Complete Setup"}
                   </Button>
                 </div>
