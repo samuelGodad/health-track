@@ -13,8 +13,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage
   },
   global: {
-    fetch: function customFetch(...args) {
-      return fetch(...args);
+    fetch: function customFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+      return fetch(url, init);
     }
   }
 });
