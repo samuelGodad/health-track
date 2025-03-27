@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   CalendarIcon,
@@ -119,6 +118,16 @@ const Dashboard = () => {
     fetchDailyMetrics();
   }, [user, date, toast]);
 
+  const getFormattedDateForTitle = (date: Date) => {
+    if (isToday(date)) {
+      return "Today's";
+    } else if (isYesterday(date)) {
+      return "Yesterday's";
+    } else {
+      return `${format(date, "MMMM do")}'s`;
+    }
+  };
+
   const handleMetricChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewMetric(prev => ({ ...prev, [name]: value }));
@@ -131,7 +140,6 @@ const Dashboard = () => {
       setLoading(true);
       const formattedDate = format(date, "yyyy-MM-dd");
       
-      // Create an array of metrics to insert
       const metricsToInsert = [];
       
       if (newMetric.weight) {
@@ -200,7 +208,6 @@ const Dashboard = () => {
         description: "Your metrics have been saved successfully."
       });
       
-      // Reset form
       setNewMetric({
         weight: "",
         sleep: "",
@@ -209,7 +216,6 @@ const Dashboard = () => {
         steps: ""
       });
       
-      // Refetch daily metrics
       const { data, error: fetchError } = await supabase
         .from("daily_metrics")
         .select("*")
@@ -288,7 +294,7 @@ const Dashboard = () => {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(date) => date && setDate(date)}
+                onSelect={(newDate) => newDate && setDate(newDate)}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
               />
@@ -326,7 +332,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm md:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Add Today's Data</CardTitle>
+              <CardTitle className="text-xl">Add {getFormattedDateForTitle(date)} Data</CardTitle>
               <PlusIcon className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent className="space-y-4">
@@ -416,7 +422,7 @@ const Dashboard = () => {
                 disabled={loading}
               >
                 <Save className="h-4 w-4 mr-2" />
-                Save Today's Data
+                Save {getFormattedDateForTitle(date)} Data
               </Button>
             </CardContent>
           </Card>

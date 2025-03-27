@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,6 +31,8 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 // Photo types
 const PHOTO_TYPES = [
@@ -130,6 +132,7 @@ const monthsWithPhotos = Object.keys(groupedPhotos).sort().reverse();
 const monthsWithVideos = Object.keys(groupedVideos).sort().reverse();
 
 const BodyProgress = () => {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
   const [photoType, setPhotoType] = useState<string>(PHOTO_TYPES[0]);
   const [mediaType, setMediaType] = useState<'photo' | 'video'>('photo');
@@ -139,6 +142,10 @@ const BodyProgress = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewVideo, setPreviewVideo] = useState<string | null>(null);
   const [uploadTab, setUploadTab] = useState<string>('upload');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
 
   const filteredPhotos = selectedPhotoMonth
     ? groupedPhotos[selectedPhotoMonth].filter(photo => photoFilterType === 'all' || photo.type === photoFilterType)
@@ -161,8 +168,70 @@ const BodyProgress = () => {
     setPreviewVideo(null);
   };
 
-  const handleUpload = () => {
-    toast.success(`${mediaType === 'photo' ? 'Photo' : 'Video'} uploaded successfully`);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Create and set preview URL for the selected image
+      const objectUrl = URL.createObjectURL(file);
+      setLocalImagePreview(objectUrl);
+      
+      // Clean up the object URL when component unmounts or file changes
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!user) {
+      toast.error('You must be logged in to upload images');
+      return;
+    }
+    
+    if (!selectedFile) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      const fileExt = selectedFile.name.split('.').pop();
+      const filePath = `${user.id}/${formattedDate}/${photoType.replace(/\s/g, '-')}.${fileExt}`;
+      
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('progress-images')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (error) throw error;
+      
+      console.log('Upload successful:', data);
+      
+      // Get the public URL for the uploaded file
+      const { data: publicUrlData } = supabase.storage
+        .from('progress-images')
+        .getPublicUrl(filePath);
+      
+      toast.success(`${mediaType === 'photo' ? 'Photo' : 'Video'} uploaded successfully`);
+      
+      // Reset form
+      setSelectedFile(null);
+      setLocalImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+    } catch (error) {
+      console.error('Error uploading:', error);
+      toast.error('Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -278,33 +347,51 @@ const BodyProgress = () => {
                           type="file"
                           accept={mediaType === 'photo' ? "image/*" : "video/*"}
                           className="cursor-pointer"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
                         />
-                        <Button className="w-full" onClick={handleUpload}>Upload</Button>
+                        <Button 
+                          className="w-full" 
+                          onClick={handleUpload}
+                          disabled={isUploading || !selectedFile}
+                        >
+                          {isUploading ? "Uploading..." : "Upload"}
+                        </Button>
                       </div>
                     </div>
                   </div>
                   
                   <div className="w-full md:w-2/3 border border-border/50 rounded-lg p-4 bg-muted/30">
                     <div className="flex items-center justify-center h-full">
-                      <div className="text-center flex flex-col items-center">
-                        {mediaType === 'photo' ? (
-                          <>
-                            <ImageIcon className="h-16 w-16 text-muted-foreground opacity-50 mb-4" />
-                            <h3 className="text-lg font-medium">No Preview Available</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Upload a new photo or select an existing one to preview
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <VideoIcon className="h-16 w-16 text-muted-foreground opacity-50 mb-4" />
-                            <h3 className="text-lg font-medium">No Video Preview Available</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Upload a new video or select an existing one to preview
-                            </p>
-                          </>
-                        )}
-                      </div>
+                      {localImagePreview ? (
+                        <div className="w-full h-full aspect-square">
+                          <img 
+                            src={localImagePreview} 
+                            alt="Selected preview" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-center flex flex-col items-center">
+                          {mediaType === 'photo' ? (
+                            <>
+                              <ImageIcon className="h-16 w-16 text-muted-foreground opacity-50 mb-4" />
+                              <h3 className="text-lg font-medium">No Preview Available</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Upload a new photo or select an existing one to preview
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <VideoIcon className="h-16 w-16 text-muted-foreground opacity-50 mb-4" />
+                              <h3 className="text-lg font-medium">No Video Preview Available</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Upload a new video or select an existing one to preview
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
