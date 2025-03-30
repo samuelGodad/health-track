@@ -1,7 +1,6 @@
 
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 

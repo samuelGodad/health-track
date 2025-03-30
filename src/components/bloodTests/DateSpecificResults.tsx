@@ -173,7 +173,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
             <SelectValue placeholder="Select test date" />
           </SelectTrigger>
           <SelectContent>
-            {testDates.map(date => (
+            {testDates.map((date) => (
               <SelectItem key={date} value={date}>
                 {format(new Date(date), 'MMM d, yyyy')}
               </SelectItem>

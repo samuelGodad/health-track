@@ -1,12 +1,11 @@
 
 import { useState, useMemo } from 'react';
 import {
-  LineChart,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/components/ui';
+} from '@/components/ui/card';
 import { 
   Select,
   SelectContent,
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LineChart } from '@/components/ui/line-chart';
 
 type TimelineProps = {
   bloodTestResults: any[];

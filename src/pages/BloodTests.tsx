@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Toggle,
   FileIcon,
   Loader2Icon,
   FileTextIcon,
@@ -15,6 +14,9 @@ import {
   PlusIcon,
   DownloadIcon,
 } from 'lucide-react';
+import { 
+  Toggle 
+} from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -282,17 +284,15 @@ const BloodTests = () => {
                       </div>
                     ))}
                     
-                    {showAIProcessing && (
-                      <div className="p-3 bg-blue-50 border border-blue-100 text-blue-700 rounded-md flex items-center gap-2">
-                        <div className="text-blue-600">
-                          <AlertCircleIcon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">AI Processing Available</p>
-                          <p className="text-xs">Your PDF will be analyzed to automatically extract test results</p>
-                        </div>
+                    <div className="p-3 bg-blue-50 border border-blue-100 text-blue-700 rounded-md flex items-center gap-2">
+                      <div className="text-blue-600">
+                        <AlertCircleIcon className="h-5 w-5" />
                       </div>
-                    )}
+                      <div>
+                        <p className="text-sm font-medium">AI Processing Available</p>
+                        <p className="text-xs">Your PDF will be analyzed to automatically extract test results</p>
+                      </div>
+                    </div>
                     
                     <div className="pt-2 flex items-center gap-2">
                       <Toggle
