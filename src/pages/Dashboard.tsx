@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,17 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Toggle } from "@/components/ui/toggle";
 import { format, isToday } from "date-fns";
 import {
   CalendarIcon,
-  Home as HomeIcon,
-  Activity as DailyIcon,
-  LineChart as WeeklyIcon,
-  FlaskConical as BloodsIcon,
-  Camera as ProgressPhotosIcon,
-  Ruler as MeasurementsIcon,
-  Pill as SupplementsIcon,
-  Target as GoalsIcon,
+  HomeIcon,
+  ActivityIcon,
+  LineChartIcon,
+  FlaskConicalIcon,
+  CameraIcon,
+  RulerIcon,
+  PillIcon,
+  TargetIcon,
 } from "lucide-react";
 
 interface Target {
@@ -50,7 +52,7 @@ const Dashboard = () => {
     water: "",
     steps: ""
   });
-  const [activeTab, setActiveTab] = useState("food");
+  const [activeTab, setActiveTab] = useState("daily");
   
   useEffect(() => {
     if (!user) return;
@@ -215,215 +217,227 @@ const Dashboard = () => {
     }
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   const formattedDate = isToday(date) ? "Today" : format(date, "MMMM do");
 
   return (
-    <div className="figma-dashboard flex min-h-screen">
-      <div className="figma-sidebar">
-        <div className="px-4 mb-6">
-          <h2 className="font-semibold text-gray-900">Your Enhanced Health</h2>
-        </div>
-        
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="container mx-auto px-4 pt-20 pb-10">
         <div className="mb-6">
-          <p className="px-4 text-xs font-medium text-gray-500 mb-2">Discover</p>
-          <nav className="space-y-1">
-            <a href="/dashboard" className="sidebar-link active">
-              <HomeIcon className="w-4 h-4" />
-              Dashboard
-            </a>
-            <a href="/daily-metrics" className="sidebar-link">
-              <DailyIcon className="w-4 h-4" />
-              Daily
-            </a>
-            <a href="#" className="sidebar-link">
-              <WeeklyIcon className="w-4 h-4" />
-              Weekly
-            </a>
-          </nav>
-        </div>
-        
-        <div>
-          <p className="px-4 text-xs font-medium text-gray-500 mb-2">Library</p>
-          <nav className="space-y-1">
-            <a href="/blood-tests" className="sidebar-link">
-              <BloodsIcon className="w-4 h-4" />
-              Bloods
-            </a>
-            <a href="/body-progress" className="sidebar-link">
-              <ProgressPhotosIcon className="w-4 h-4" />
-              Progress Photos
-            </a>
-            <a href="#" className="sidebar-link">
-              <MeasurementsIcon className="w-4 h-4" />
-              Measurements
-            </a>
-            <a href="/supplements" className="sidebar-link">
-              <SupplementsIcon className="w-4 h-4" />
-              Supplements
-            </a>
-            <a href="/targets" className="sidebar-link">
-              <GoalsIcon className="w-4 h-4" />
-              Goals
-            </a>
-          </nav>
-        </div>
-      </div>
-
-      <div className="figma-content flex-1">
-        <div className="figma-header">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Daily Dashboard</h1>
-            <p className="text-gray-500 text-sm">Track your progress and meet your daily targets</p>
-          </div>
-          
-          <div className="flex items-center">
-            <div className="bg-black text-white rounded-full px-3 py-1 text-sm">
-              {format(date, "MMMM do")}
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold">Daily Dashboard</h1>
+          <p className="text-muted-foreground">Track your progress and meet your daily targets</p>
         </div>
         
         <div className="flex space-x-2 mb-6">
-          <button 
-            className={`figma-tab px-4 py-1 rounded-full ${activeTab === 'food' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}
-            onClick={() => setActiveTab('food')}
+          <Toggle 
+            variant="tab" 
+            pressed={activeTab === "daily"} 
+            onPressedChange={() => setActiveTab("daily")}
           >
-            Food
-          </button>
-          <button 
-            className={`figma-tab px-4 py-1 rounded-full ${activeTab === 'activity' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}
-            onClick={() => setActiveTab('activity')}
+            Daily
+          </Toggle>
+          <Toggle 
+            variant="tab" 
+            pressed={activeTab === "weekly"} 
+            onPressedChange={() => setActiveTab("weekly")}
           >
-            Activity
-          </button>
-          <button 
-            className={`figma-tab px-4 py-1 rounded-full ${activeTab === 'health' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}
-            onClick={() => setActiveTab('health')}
+            Weekly
+          </Toggle>
+          <Toggle 
+            variant="tab" 
+            pressed={activeTab === "bloods"}
+
+            onPressedChange={() => handleNavigation("/blood-tests")}
           >
-            Health
-          </button>
+            Bloods
+          </Toggle>
+          <Toggle 
+            variant="tab" 
+            pressed={activeTab === "physique"} 
+            onPressedChange={() => handleNavigation("/body-progress")}
+          >
+            Physique
+          </Toggle>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="figma-metric-card">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 font-medium">Calories</div>
-              <div className="text-3xl font-bold mt-1">3,250</div>
-              <div className="text-xs text-gray-500 mt-1">+8% over the last 30 days</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="figma-metric-card">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 font-medium">Protein</div>
-              <div className="text-3xl font-bold mt-1">200g</div>
-              <div className="text-xs text-gray-500 mt-1">+8% over the last 30 days</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="figma-metric-card">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 font-medium">Carbs</div>
-              <div className="text-3xl font-bold mt-1">500g</div>
-              <div className="text-xs text-gray-500 mt-1">-5% over the last 30 days</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="figma-metric-card">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 font-medium">Fat</div>
-              <div className="text-3xl font-bold mt-1">50g</div>
-              <div className="text-xs text-gray-500 mt-1">-6% over the last 30 days</div>
-            </CardContent>
-          </Card>
-        </div>
+        {activeTab === "daily" && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm font-medium text-muted-foreground">Calories</div>
+                  <div className="text-2xl font-bold mt-1">2,400</div>
+                  <div className="text-xs text-muted-foreground mt-1">Target: 2,500</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm font-medium text-muted-foreground">Protein</div>
+                  <div className="text-2xl font-bold mt-1">180g</div>
+                  <div className="text-xs text-muted-foreground mt-1">Target: 200g</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm font-medium text-muted-foreground">Water</div>
+                  <div className="text-2xl font-bold mt-1">2.5L</div>
+                  <div className="text-xs text-muted-foreground mt-1">Target: 3L</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm font-medium text-muted-foreground">Steps</div>
+                  <div className="text-2xl font-bold mt-1">8,540</div>
+                  <div className="text-xs text-muted-foreground mt-1">Target: 10,000</div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <Card>
+                  <CardContent className="pt-6">
+                    <h2 className="text-lg font-semibold mb-4">Add {formattedDate}'s Data</h2>
+                    
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="weight">Weight (kg)</Label>
+                          <Input 
+                            id="weight" 
+                            name="weight" 
+                            value={newMetric.weight} 
+                            onChange={handleMetricChange}
+                            placeholder="Enter your weight"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="sleep">Sleep (hours)</Label>
+                          <Input 
+                            id="sleep" 
+                            name="sleep" 
+                            value={newMetric.sleep} 
+                            onChange={handleMetricChange}
+                            placeholder="Enter sleep duration"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="calories">Calories</Label>
+                          <Input 
+                            id="calories" 
+                            name="calories" 
+                            value={newMetric.calories} 
+                            onChange={handleMetricChange}
+                            placeholder="Enter calories consumed"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="water">Water (liters)</Label>
+                          <Input 
+                            id="water" 
+                            name="water" 
+                            value={newMetric.water} 
+                            onChange={handleMetricChange}
+                            placeholder="Enter water intake"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="steps">Steps</Label>
+                        <Input 
+                          id="steps" 
+                          name="steps" 
+                          value={newMetric.steps} 
+                          onChange={handleMetricChange}
+                          placeholder="Enter steps taken"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full mt-6" 
+                      onClick={handleSaveMetrics}
+                      disabled={loading}
+                    >
+                      {loading ? "Saving..." : "Save Today's Data"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div>
+                <Card>
+                  <CardContent className="pt-6">
+                    <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+                    
+                    <div className="space-y-3">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => navigate('/blood-tests')}
+                      >
+                        <FlaskConicalIcon className="mr-2 h-4 w-4" />
+                        Blood Test Results
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => navigate('/body-progress')}
+                      >
+                        <CameraIcon className="mr-2 h-4 w-4" />
+                        Track Body Progress
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => navigate('/supplements')}
+                      >
+                        <PillIcon className="mr-2 h-4 w-4" />
+                        Manage Supplements
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => navigate('/targets')}
+                      >
+                        <TargetIcon className="mr-2 h-4 w-4" />
+                        Set Health Targets
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </>
+        )}
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="col-span-2 figma-data-card">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Add {formattedDate}'s Data</h2>
-            
-            <div className="grid grid-cols-2 mb-2">
-              <div className="text-sm text-gray-500 font-medium">Source</div>
-              <div className="text-sm text-gray-500 font-medium">Input Your Data</div>
-            </div>
-            
-            {Array.from({ length: 7 }).map((_, index) => (
-              <div key={index} className="grid grid-cols-2 items-center mb-3">
-                <div className="text-sm text-gray-700">test name</div>
-                <Input className="h-9 bg-gray-100 border-gray-200" />
-              </div>
-            ))}
-            
-            <h2 className="text-lg font-medium text-gray-900 mt-8 mb-4">Supplements</h2>
-            
-            <div className="grid grid-cols-2 mb-2">
-              <div className="text-sm text-gray-500 font-medium">Source</div>
-              <div className="text-sm text-gray-500 font-medium">Timing & Dosage</div>
-            </div>
-            
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="grid grid-cols-2 items-center mb-3">
-                <div className="text-sm text-gray-700">supplement name</div>
-                <div className="text-sm text-gray-700">Timing & dose</div>
-              </div>
-            ))}
+        {activeTab === "weekly" && (
+          <div className="p-8 text-center bg-muted rounded-lg">
+            <h2 className="text-xl font-semibold mb-2">Weekly Dashboard</h2>
+            <p className="text-muted-foreground mb-4">This section is coming soon. It will show your weekly trends and progress.</p>
+            <Button onClick={() => setActiveTab("daily")}>
+              Go back to Daily Dashboard
+            </Button>
           </div>
-          
-          <div className="figma-data-card">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Weight</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">82.5</p>
-                  <p className="text-sm text-gray-500">kg</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Sleep</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">7.5</p>
-                  <p className="text-sm text-gray-500">hours</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Steps</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">8,547</p>
-                  <p className="text-sm text-gray-500">steps</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Water</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">2.5</p>
-                  <p className="text-sm text-gray-500">liters</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Meal Quality</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">8/10</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-gray-500 text-sm font-medium">Recovery</h3>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold">7/10</p>
-                </div>
-              </div>
-              
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mt-4">
-                Save Today's Data
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   );
 };

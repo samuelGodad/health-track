@@ -103,11 +103,15 @@ export type Database = {
           ethnicity: string | null
           first_name: string | null
           gender: string | null
+          gets_bloods_tested: boolean | null
           height_cm: number | null
           height_unit: string | null
           id: string
           last_name: string | null
+          takes_peds: boolean | null
+          takes_supplements: boolean | null
           updated_at: string
+          weekly_data_day: string | null
           weight: number | null
           weight_unit: string | null
         }
@@ -117,11 +121,15 @@ export type Database = {
           ethnicity?: string | null
           first_name?: string | null
           gender?: string | null
+          gets_bloods_tested?: boolean | null
           height_cm?: number | null
           height_unit?: string | null
           id: string
           last_name?: string | null
+          takes_peds?: boolean | null
+          takes_supplements?: boolean | null
           updated_at?: string
+          weekly_data_day?: string | null
           weight?: number | null
           weight_unit?: string | null
         }
@@ -131,11 +139,15 @@ export type Database = {
           ethnicity?: string | null
           first_name?: string | null
           gender?: string | null
+          gets_bloods_tested?: boolean | null
           height_cm?: number | null
           height_unit?: string | null
           id?: string
           last_name?: string | null
+          takes_peds?: boolean | null
+          takes_supplements?: boolean | null
           updated_at?: string
+          weekly_data_day?: string | null
           weight?: number | null
           weight_unit?: string | null
         }
