@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -24,14 +23,30 @@ type BloodTestsByDateProps = {
 const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
   // Group tests by date
   const testsByDate = useMemo(() => {
-    const grouped = bloodTestResults.reduce((acc, test) => {
+    // First, deduplicate the results by test_name within each date
+    // This ensures only one instance of each test type appears per date
+    const deduplicated: Record<string, Record<string, BloodTest>> = {};
+    
+    // Group by date, then by test name (keeping only most recent entry)
+    bloodTestResults.forEach(test => {
       const date = test.test_date;
-      if (!acc[date]) {
-        acc[date] = [];
+      
+      if (!deduplicated[date]) {
+        deduplicated[date] = {};
       }
-      acc[date].push(test);
-      return acc;
-    }, {} as Record<string, BloodTest[]>);
+      
+      // Only store if we don't have this test yet or if this one is more recent
+      if (!deduplicated[date][test.test_name] || 
+          new Date(test.id) > new Date(deduplicated[date][test.test_name].id)) {
+        deduplicated[date][test.test_name] = test;
+      }
+    });
+    
+    // Convert the nested objects back to the format expected by the component
+    const grouped: Record<string, BloodTest[]> = {};
+    Object.entries(deduplicated).forEach(([date, tests]) => {
+      grouped[date] = Object.values(tests);
+    });
     
     // Sort dates in descending order (newest first)
     return Object.entries(grouped)

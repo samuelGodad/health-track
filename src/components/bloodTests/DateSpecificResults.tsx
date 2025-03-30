@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, EditIcon, SaveIcon, XIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -60,23 +60,36 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
     new Date(b).getTime() - new Date(a).getTime()
   );
   
-  // Filter tests for the selected date
-  const testsForSelectedDate = selectedDate 
-    ? bloodTestResults.filter(test => {
-        const testDate = new Date(test.test_date);
-        return testDate.toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0];
-      })
-    : [];
+  // Filter tests for the selected date with deduplication
+  const testsForSelectedDate = useMemo(() => {
+    if (!selectedDate) return [];
+    
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const testsOnDate = bloodTestResults.filter(test => test.test_date === dateStr);
+    
+    // Deduplicate by test name, keeping only the most recent entry
+    const deduplicated = new Map<string, BloodTest>();
+    testsOnDate.forEach(test => {
+      const existingTest = deduplicated.get(test.test_name);
+      if (!existingTest || new Date(test.id) > new Date(existingTest.id)) {
+        deduplicated.set(test.test_name, test);
+      }
+    });
+    
+    return Array.from(deduplicated.values());
+  }, [bloodTestResults, selectedDate]);
   
   // Group tests by category
-  const testsByCategory = testsForSelectedDate.reduce((acc, test) => {
-    const category = test.category || 'Other';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(test);
-    return acc;
-  }, {} as Record<string, BloodTest[]>);
+  const testsByCategory = useMemo(() => {
+    return testsForSelectedDate.reduce((acc, test) => {
+      const category = test.category || 'Other';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(test);
+      return acc;
+    }, {} as Record<string, BloodTest[]>);
+  }, [testsForSelectedDate]);
   
   // Load notes when a date is selected
   const loadNotes = async (date: Date) => {

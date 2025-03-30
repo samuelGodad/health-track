@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import {
   Card,
@@ -41,12 +40,25 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
     return Array.from(names).sort();
   }, [bloodTestResults]);
   
-  // Format data for timeline chart
+  // Format data for timeline chart with deduplication
   const timelineData = useMemo(() => {
     if (!selectedTest) return [];
     
-    return bloodTestResults
-      .filter(test => test.test_name === selectedTest)
+    // Get all tests of the selected type
+    const relevantTests = bloodTestResults
+      .filter(test => test.test_name === selectedTest);
+    
+    // Deduplicate by date - only keep the most recent result for each day
+    const deduplicated = new Map<string, BloodTest>();
+    relevantTests.forEach(test => {
+      const existingTest = deduplicated.get(test.test_date);
+      if (!existingTest || new Date(test.id) > new Date(existingTest.id)) {
+        deduplicated.set(test.test_date, test);
+      }
+    });
+    
+    // Convert to array and sort by date
+    return Array.from(deduplicated.values())
       .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
       .map(test => ({
         date: test.test_date,
