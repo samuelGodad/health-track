@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
@@ -31,6 +32,7 @@ const BloodTests = () => {
   const [showAIProcessing, setShowAIProcessing] = useState(false);
   const [bloodTestResults, setBloodTestResults] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("by-date");
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -82,6 +84,7 @@ const BloodTests = () => {
       if (pdfFiles.length > 0) {
         setSelectedFiles(pdfFiles);
         setShowAIProcessing(true);
+        setUploadError(null); // Clear any previous errors
         toast.success(`${pdfFiles.length} PDF file(s) selected`);
       }
     }
@@ -99,6 +102,7 @@ const BloodTests = () => {
     }
     
     setIsUploading(true);
+    setUploadError(null);
     
     try {
       const uploadPromises = selectedFiles.map(async (file) => {
@@ -143,6 +147,7 @@ const BloodTests = () => {
       
     } catch (error) {
       console.error('Error uploading files:', error);
+      setUploadError('Failed to upload files. Please try again.');
       toast.error('Failed to upload files. Please try again.');
     } finally {
       setIsUploading(false);
@@ -157,6 +162,9 @@ const BloodTests = () => {
     
     try {
       const processingPromises = files.map(async (file) => {
+        console.log('Processing file:', file.name);
+        console.log('File URL:', file.url);
+        
         const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
           body: {
             pdfUrl: file.url,
@@ -165,7 +173,15 @@ const BloodTests = () => {
           }
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Edge function error:', error);
+          throw error;
+        }
+        
+        if (data && !data.success) {
+          console.error('Processing error:', data.error);
+          throw new Error(data.error || 'Unknown processing error');
+        }
         
         return data;
       });
@@ -179,9 +195,13 @@ const BloodTests = () => {
       // Refresh the data
       fetchBloodTestResults();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing files with AI:', error);
       toast.dismiss(processingToast);
+      
+      // Set a more user-friendly error message
+      setUploadError('Error processing blood test PDFs. Please try manual entry instead.');
+      
       toast.error('Error processing blood test PDFs. Please try manual entry instead.');
     } finally {
       setIsProcessing(false);
@@ -268,6 +288,17 @@ const BloodTests = () => {
                     <span>Manual Entry</span>
                   </Button>
                 </div>
+                
+                {uploadError && (
+                  <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-md flex items-center gap-2">
+                    <div className="text-red-600">
+                      <AlertCircleIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{uploadError}</p>
+                    </div>
+                  </div>
+                )}
                 
                 {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">

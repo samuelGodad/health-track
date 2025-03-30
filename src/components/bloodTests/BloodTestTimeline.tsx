@@ -33,14 +33,14 @@ type TimelineProps = {
 const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
   const [selectedTest, setSelectedTest] = useState<string | null>(null);
   
-  // Extract unique test names from results
+  // Extract unique test names from results, sorted alphabetically
   const testNames = useMemo(() => {
     const names = new Set<string>();
     bloodTestResults.forEach(test => names.add(test.test_name));
     return Array.from(names).sort();
   }, [bloodTestResults]);
   
-  // Format data for timeline chart with deduplication
+  // Format data for timeline chart with deduplication by date
   const timelineData = useMemo(() => {
     if (!selectedTest) return [];
     
@@ -50,18 +50,24 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
     
     // Deduplicate by date - only keep the most recent result for each day
     const deduplicated = new Map<string, BloodTest>();
-    relevantTests.forEach(test => {
-      const existingTest = deduplicated.get(test.test_date);
-      if (!existingTest || new Date(test.id) > new Date(existingTest.id)) {
+    
+    // Sort by ID (descending) to get the most recent test first
+    const sortedTests = [...relevantTests].sort((a, b) => 
+      new Date(b.id).getTime() - new Date(a.id).getTime()
+    );
+    
+    // Only keep the first (most recent) entry for each test date
+    sortedTests.forEach(test => {
+      if (!deduplicated.has(test.test_date)) {
         deduplicated.set(test.test_date, test);
       }
     });
     
-    // Convert to array and sort by date
+    // Convert to array and sort by date (ascending)
     return Array.from(deduplicated.values())
       .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
       .map(test => ({
-        date: test.test_date,
+        date: new Date(test.test_date).toLocaleDateString(),
         value: test.result
       }));
   }, [bloodTestResults, selectedTest]);
