@@ -5,8 +5,12 @@ import * as React from "react";
 import { Line, LineChart as RechartsLineChart, ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "./chart";
 
-interface LineChartProps {
-  data: any[];
+export interface LineChartProps {
+  data: Array<{
+    date: string;
+    value: number;
+    [key: string]: any;
+  }>;
   dataKey: string;
   title?: string;
   tooltipLabel?: string;

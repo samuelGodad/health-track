@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
@@ -14,13 +13,11 @@ import {
   PlusIcon,
   DownloadIcon,
 } from 'lucide-react';
-import { 
-  Toggle 
-} from '@/components/ui/toggle';
+import { Toggle } from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 
-// Import the new components
+// Import the components
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
 import BloodTestTimeline from '@/components/bloodTests/BloodTestTimeline';
 import DateSpecificResults from '@/components/bloodTests/DateSpecificResults';

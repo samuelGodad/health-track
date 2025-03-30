@@ -30,8 +30,21 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
+interface BloodTest {
+  id: string;
+  test_name: string;
+  test_date: string;
+  result: number;
+  unit?: string;
+  reference_min?: number | null;
+  reference_max?: number | null;
+  status?: string;
+  category: string;
+  notes?: string | null;
+}
+
 type DateSpecificResultsProps = {
-  bloodTestResults: any[];
+  bloodTestResults: BloodTest[];
   userId: string;
   onDataUpdate?: () => void;
 };
@@ -63,7 +76,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
     }
     acc[category].push(test);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, BloodTest[]>);
   
   // Load notes when a date is selected
   const loadNotes = async (date: Date) => {

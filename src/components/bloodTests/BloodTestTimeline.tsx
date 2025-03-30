@@ -15,8 +15,20 @@ import {
 } from "@/components/ui/select";
 import { LineChart } from '@/components/ui/line-chart';
 
+interface BloodTest {
+  id: string;
+  test_name: string;
+  test_date: string;
+  result: number;
+  unit?: string;
+  reference_min?: number | null;
+  reference_max?: number | null;
+  status?: string;
+  category: string;
+}
+
 type TimelineProps = {
-  bloodTestResults: any[];
+  bloodTestResults: BloodTest[];
 };
 
 const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {

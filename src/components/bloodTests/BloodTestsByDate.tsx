@@ -4,8 +4,21 @@ import { format } from 'date-fns';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+interface BloodTest {
+  id: string;
+  test_name: string;
+  test_date: string;
+  result: number;
+  unit?: string;
+  reference_min?: number | null;
+  reference_max?: number | null;
+  status?: string;
+  category: string;
+  notes?: string | null;
+}
+
 type BloodTestsByDateProps = {
-  bloodTestResults: any[];
+  bloodTestResults: BloodTest[];
 };
 
 const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
@@ -18,7 +31,7 @@ const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
       }
       acc[date].push(test);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, BloodTest[]>);
     
     // Sort dates in descending order (newest first)
     return Object.entries(grouped)
