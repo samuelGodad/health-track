@@ -9,16 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      blood_test_metadata: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_max: number | null
+          reference_min: number | null
+          test_code: string
+          test_name: string
+          unit: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_max?: number | null
+          reference_min?: number | null
+          test_code: string
+          test_name: string
+          unit?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_max?: number | null
+          reference_min?: number | null
+          test_code?: string
+          test_name?: string
+          unit?: string | null
+        }
+        Relationships: []
+      }
       blood_test_results: {
         Row: {
           category: string
           created_at: string
           id: string
           notes: string | null
+          processed_by_ai: boolean | null
           reference_max: number | null
           reference_min: number | null
           result: number
+          source_file_path: string | null
+          source_file_type: string | null
+          source_file_url: string | null
           status: string | null
+          test_code: string | null
           test_date: string
           test_name: string
           user_id: string
@@ -28,10 +69,15 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          processed_by_ai?: boolean | null
           reference_max?: number | null
           reference_min?: number | null
           result: number
+          source_file_path?: string | null
+          source_file_type?: string | null
+          source_file_url?: string | null
           status?: string | null
+          test_code?: string | null
           test_date: string
           test_name: string
           user_id: string
@@ -41,10 +87,15 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          processed_by_ai?: boolean | null
           reference_max?: number | null
           reference_min?: number | null
           result?: number
+          source_file_path?: string | null
+          source_file_type?: string | null
+          source_file_url?: string | null
           status?: string | null
+          test_code?: string | null
           test_date?: string
           test_name?: string
           user_id?: string

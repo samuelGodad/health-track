@@ -1,1 +1,10 @@
+
 project_id = "dfnkmdzjifjdmemebhdi"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[functions.process-blood-test-pdf]
+verify_jwt = true

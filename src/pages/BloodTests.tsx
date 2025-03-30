@@ -1,3 +1,4 @@
+
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
@@ -20,13 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Toggle } from '@/components/ui/toggle';
 import { 
   ChevronDownIcon,
   ChevronUpIcon,
   DownloadIcon,
   PlusIcon,
   UploadIcon,
-  FileIcon
+  FileIcon,
+  Loader2Icon,
+  FileTextIcon,
+  AlertCircleIcon
 } from 'lucide-react';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +40,10 @@ const categories = [
   { value: 'cardiac', label: 'Cardiac' },
   { value: 'liver', label: 'Liver' },
   { value: 'kidney', label: 'Kidney' },
-  { value: 'hormonal', label: 'Hormonal' },
+  { value: 'biochemistry', label: 'Biochemistry' },
+  { value: 'hormone', label: 'Hormonal' },
+  { value: 'hematology', label: 'Hematology' },
+  { value: 'vitamin', label: 'Vitamins' },
   { value: 'others', label: 'Others' },
 ];
 
@@ -249,11 +257,15 @@ const BloodTests = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('cardiac');
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [bloodTestResults, setBloodTestResults] = useState<any>(mockTestResults);
+  const [recentResults, setRecentResults] = useState<any[]>([]);
+  const [showAIProcessing, setShowAIProcessing] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchBloodTestResults();
+      fetchRecentResults();
     }
   }, [user]);
 
@@ -262,7 +274,8 @@ const BloodTests = () => {
       const { data, error } = await supabase
         .from('blood_test_results')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .order('test_date', { ascending: false });
       
       if (error) {
         throw error;
@@ -271,10 +284,32 @@ const BloodTests = () => {
       if (data && data.length > 0) {
         console.log('Blood test results fetched:', data);
         // Process data to match our expected format if needed
+        // For now, we'll continue using mock data until we format the real data
       }
     } catch (error) {
       console.error('Error fetching blood test results:', error);
       toast.error('Failed to fetch blood test results');
+    }
+  };
+
+  const fetchRecentResults = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('blood_test_results')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+        
+      if (error) throw error;
+      
+      if (data) {
+        setRecentResults(data);
+      }
+    } catch (error) {
+      console.error('Error fetching recent results:', error);
     }
   };
 
@@ -288,8 +323,21 @@ const BloodTests = () => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const filesArray = Array.from(files);
-      setSelectedFiles(filesArray);
-      toast.success(`${filesArray.length} file(s) selected`);
+      // Filter to only accept PDFs
+      const pdfFiles = filesArray.filter(file => 
+        file.type === 'application/pdf' || 
+        file.name.toLowerCase().endsWith('.pdf')
+      );
+      
+      if (pdfFiles.length !== filesArray.length) {
+        toast.warning('Only PDF files are accepted for blood test results');
+      }
+      
+      if (pdfFiles.length > 0) {
+        setSelectedFiles(pdfFiles);
+        setShowAIProcessing(true);
+        toast.success(`${pdfFiles.length} PDF file(s) selected`);
+      }
     }
   };
 
@@ -300,7 +348,7 @@ const BloodTests = () => {
     }
     
     if (selectedFiles.length === 0) {
-      toast.error('Please select files to upload');
+      toast.error('Please select PDF files to upload');
       return;
     }
     
@@ -312,7 +360,7 @@ const BloodTests = () => {
         const filePath = `${user.id}/${timestamp}-${file.name}`;
         
         const { data, error } = await supabase.storage
-          .from('blood-tests')
+          .from('blood-test-pdfs')
           .upload(filePath, file, {
             cacheControl: '3600',
             upsert: true
@@ -321,7 +369,7 @@ const BloodTests = () => {
         if (error) throw error;
         
         const { data: publicUrlData } = supabase.storage
-          .from('blood-tests')
+          .from('blood-test-pdfs')
           .getPublicUrl(filePath);
           
         return {
@@ -331,19 +379,72 @@ const BloodTests = () => {
         };
       });
       
-      const results = await Promise.all(uploadPromises);
+      const uploadedFiles = await Promise.all(uploadPromises);
       
-      toast.success(`Successfully uploaded ${results.length} file(s)`);
-      setSelectedFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      toast.success(`Successfully uploaded ${uploadedFiles.length} file(s)`);
+      
+      if (showAIProcessing) {
+        await processFilesWithAI(uploadedFiles);
+      } else {
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
+      
+      // Refresh the results list
+      fetchRecentResults();
       
     } catch (error) {
       console.error('Error uploading files:', error);
       toast.error('Failed to upload files. Please try again.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const processFilesWithAI = async (files: Array<{name: string, url: string, path: string}>) => {
+    if (!user || files.length === 0) return;
+    
+    setIsProcessing(true);
+    const processingToast = toast.loading('Processing blood test PDFs with AI...');
+    
+    try {
+      const processingPromises = files.map(async (file) => {
+        const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
+          body: {
+            pdfUrl: file.url,
+            fileId: file.path,
+            userId: user.id
+          }
+        });
+        
+        if (error) throw error;
+        
+        return data;
+      });
+      
+      const results = await Promise.all(processingPromises);
+      const totalProcessed = results.reduce((sum, result) => sum + (result.resultsCount || 0), 0);
+      
+      toast.dismiss(processingToast);
+      toast.success(`AI successfully extracted ${totalProcessed} test results from your PDFs`);
+      
+      // Refresh the data
+      fetchBloodTestResults();
+      fetchRecentResults();
+      
+    } catch (error) {
+      console.error('Error processing files with AI:', error);
+      toast.dismiss(processingToast);
+      toast.error('Error processing blood test PDFs. Please try manual entry instead.');
+    } finally {
+      setIsProcessing(false);
+      setSelectedFiles([]);
+      setShowAIProcessing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -390,7 +491,7 @@ const BloodTests = () => {
               type="file" 
               ref={fileInputRef} 
               onChange={handleFileChange} 
-              accept=".pdf,.jpg,.jpeg,.png" 
+              accept=".pdf" 
               className="hidden"
               multiple
             />
@@ -417,6 +518,7 @@ const BloodTests = () => {
             </Select>
           </div>
           
+          {/* Test results table */}
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm mb-8">
             <CardHeader>
               <CardTitle>{categories.find(c => c.value === selectedCategory)?.label} Test Results</CardTitle>
@@ -462,6 +564,7 @@ const BloodTests = () => {
             </CardContent>
           </Card>
           
+          {/* Trend charts */}
           <h2 className="text-xl font-semibold mb-4">Trend Analysis</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {mockTestResults[selectedCategory as keyof typeof mockTestResults].map((test) => (
@@ -478,46 +581,113 @@ const BloodTests = () => {
           </div>
         </div>
         
+        {/* Upload section with AI processing feature */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Upload New Results</h2>
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
             <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <Button 
-                  className="flex-1" 
-                  onClick={handleUploadClick}
-                  disabled={isUploading}
-                >
-                  <UploadIcon className="h-4 w-4 mr-2" />
-                  <span>{isUploading ? "Uploading..." : "Upload Test Results PDF"}</span>
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  <span>Manual Entry</span>
-                </Button>
-              </div>
-              {selectedFiles.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {selectedFiles.map((file, index) => (
-                    <div key={index} className="p-3 bg-muted rounded-md flex items-center justify-between">
-                      <div className="flex items-center">
-                        <FileIcon className="h-4 w-4 mr-2" />
-                        <p className="text-sm">{file.name}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                  ))}
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   <Button 
-                    onClick={uploadFiles}
-                    disabled={isUploading}
-                    className="w-full mt-2"
+                    className="flex-1" 
+                    onClick={handleUploadClick}
+                    disabled={isUploading || isProcessing}
                   >
-                    {isUploading ? "Uploading..." : `Upload ${selectedFiles.length} File(s)`}
+                    <UploadIcon className="h-4 w-4 mr-2" />
+                    <span>{isUploading ? "Uploading..." : "Upload Test Results PDF"}</span>
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    <span>Manual Entry</span>
                   </Button>
                 </div>
-              )}
+                
+                {selectedFiles.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="p-3 bg-muted rounded-md flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FileTextIcon className="h-4 w-4 mr-2" />
+                          <p className="text-sm">{file.name}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    ))}
+                    
+                    {showAIProcessing && (
+                      <div className="p-3 bg-blue-50 border border-blue-100 text-blue-700 rounded-md flex items-center gap-2">
+                        <div className="text-blue-600">
+                          <AlertCircleIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">AI Processing Available</p>
+                          <p className="text-xs">Your PDF will be analyzed to automatically extract test results</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="pt-2 flex items-center gap-2">
+                      <Toggle
+                        variant="outline"
+                        aria-label="Enable AI processing"
+                        pressed={showAIProcessing}
+                        onPressedChange={setShowAIProcessing}
+                        className="data-[state=on]:bg-blue-50 data-[state=on]:text-blue-700 data-[state=on]:border-blue-200"
+                      >
+                        Use AI to extract results
+                      </Toggle>
+                    </div>
+                    
+                    <Button 
+                      onClick={uploadFiles}
+                      disabled={isUploading || isProcessing}
+                      className="w-full mt-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : isProcessing ? (
+                        <>
+                          <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                          Processing with AI...
+                        </>
+                      ) : (
+                        `Upload ${selectedFiles.length} File(s)${showAIProcessing ? ' & Process with AI' : ''}`
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Recent results */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Recent Test Results</h2>
+          <div className="space-y-4">
+            {recentResults.length > 0 ? (
+              recentResults.map((result, index) => (
+                <TestHistoryCard key={index} record={{
+                  date: new Date(result.test_date).toLocaleDateString(),
+                  name: result.test_name,
+                  value: result.result,
+                  unit: result.unit || '',
+                  reference: { 
+                    min: result.reference_min || 0, 
+                    max: result.reference_max || 100 
+                  }
+                }} />
+              ))
+            ) : (
+              <Card className="p-6 text-center">
+                <p className="text-muted-foreground">No recent test results available.</p>
+                <p className="text-sm">Upload your blood test PDFs to get started.</p>
+              </Card>
+            )}
+          </div>
         </div>
       </main>
     </div>
