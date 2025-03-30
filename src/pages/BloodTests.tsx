@@ -13,10 +13,16 @@ import {
   UploadIcon,
   PlusIcon,
   DownloadIcon,
+  InfoIcon
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Alert,
+  AlertTitle,
+  AlertDescription 
+} from '@/components/ui/alert';
 
 // Import the components
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
@@ -33,6 +39,7 @@ const BloodTests = () => {
   const [bloodTestResults, setBloodTestResults] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("by-date");
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -41,6 +48,7 @@ const BloodTests = () => {
   }, [user]);
 
   const fetchBloodTestResults = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('blood_test_results')
@@ -58,6 +66,8 @@ const BloodTests = () => {
     } catch (error) {
       console.error('Error fetching blood test results:', error);
       toast.error('Failed to fetch blood test results');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -133,6 +143,7 @@ const BloodTests = () => {
       
       toast.success(`Successfully uploaded ${uploadedFiles.length} file(s)`);
       
+      // If AI processing is enabled, process the files, otherwise just add them as-is
       if (showAIProcessing) {
         await processFilesWithAI(uploadedFiles);
       } else {
@@ -161,38 +172,54 @@ const BloodTests = () => {
     const processingToast = toast.loading('Processing blood test PDFs with AI...');
     
     try {
-      const processingPromises = files.map(async (file) => {
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const file of files) {
         console.log('Processing file:', file.name);
         console.log('File URL:', file.url);
         
-        const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
-          body: {
-            pdfUrl: file.url,
-            fileId: file.path,
-            userId: user.id
+        try {
+          const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
+            body: {
+              pdfUrl: file.url,
+              fileId: file.path,
+              userId: user.id
+            }
+          });
+          
+          if (error) {
+            console.error('Edge function error:', error);
+            errorCount++;
+            continue;
           }
-        });
-        
-        if (error) {
-          console.error('Edge function error:', error);
-          throw error;
+          
+          if (data && !data.success) {
+            console.error('Processing error:', data.error);
+            errorCount++;
+            continue;
+          }
+          
+          successCount += data.resultsCount || 0;
+          
+        } catch (err) {
+          console.error(`Error processing file ${file.name}:`, err);
+          errorCount++;
         }
-        
-        if (data && !data.success) {
-          console.error('Processing error:', data.error);
-          throw new Error(data.error || 'Unknown processing error');
-        }
-        
-        return data;
-      });
-      
-      const results = await Promise.all(processingPromises);
-      const totalProcessed = results.reduce((sum, result) => sum + (result.resultsCount || 0), 0);
+      }
       
       toast.dismiss(processingToast);
-      toast.success(`AI successfully extracted ${totalProcessed} test results from your PDFs`);
       
-      // Refresh the data
+      if (successCount > 0) {
+        toast.success(`AI extracted ${successCount} test results from your PDFs`);
+      }
+      
+      if (errorCount > 0) {
+        setUploadError(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
+        toast.error(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
+      }
+      
+      // Refresh the data regardless
       fetchBloodTestResults();
       
     } catch (error: any) {
@@ -251,21 +278,29 @@ const BloodTests = () => {
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="by-date">
-            <BloodTestsByDate bloodTestResults={bloodTestResults} />
-          </TabsContent>
-          
-          <TabsContent value="date-specific">
-            <DateSpecificResults 
-              bloodTestResults={bloodTestResults} 
-              userId={user?.id || ''}
-              onDataUpdate={fetchBloodTestResults} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="timeline">
-            <BloodTestTimeline bloodTestResults={bloodTestResults} />
-          </TabsContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              <TabsContent value="by-date">
+                <BloodTestsByDate bloodTestResults={bloodTestResults} />
+              </TabsContent>
+              
+              <TabsContent value="date-specific">
+                <DateSpecificResults 
+                  bloodTestResults={bloodTestResults} 
+                  userId={user?.id || ''}
+                  onDataUpdate={fetchBloodTestResults} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="timeline">
+                <BloodTestTimeline bloodTestResults={bloodTestResults} />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
         
         {/* Upload section with AI processing feature */}
@@ -290,15 +325,22 @@ const BloodTests = () => {
                 </div>
                 
                 {uploadError && (
-                  <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-md flex items-center gap-2">
-                    <div className="text-red-600">
-                      <AlertCircleIcon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{uploadError}</p>
-                    </div>
-                  </div>
+                  <Alert variant="destructive" className="bg-red-50 border border-red-100">
+                    <AlertCircleIcon className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{uploadError}</AlertDescription>
+                  </Alert>
                 )}
+                
+                <Alert className="bg-blue-50 border border-blue-100 text-blue-800">
+                  <InfoIcon className="h-4 w-4" />
+                  <AlertTitle>About PDF Processing</AlertTitle>
+                  <AlertDescription>
+                    Our system attempts to automatically extract data from blood test PDFs. 
+                    Due to the variety of formats, this may not always work perfectly.
+                    If automatic extraction fails, please use manual entry.
+                  </AlertDescription>
+                </Alert>
                 
                 {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">

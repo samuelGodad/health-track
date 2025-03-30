@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import {
   Card,
@@ -13,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LineChart } from '@/components/ui/line-chart';
+import { format, parseISO } from 'date-fns';
 
 interface BloodTest {
   id: string;
@@ -66,10 +68,21 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
     // Convert to array and sort by date (ascending)
     return Array.from(deduplicated.values())
       .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
-      .map(test => ({
-        date: new Date(test.test_date).toLocaleDateString(),
-        value: test.result
-      }));
+      .map(test => {
+        let formattedDate;
+        try {
+          // Try to parse and format the date nicely
+          formattedDate = format(parseISO(test.test_date), 'MMM d, yyyy');
+        } catch (e) {
+          // Fallback to the original date string if parsing fails
+          formattedDate = test.test_date;
+        }
+        
+        return {
+          date: formattedDate,
+          value: test.result
+        };
+      });
   }, [bloodTestResults, selectedTest]);
   
   // Get the unit and reference range for the selected test
