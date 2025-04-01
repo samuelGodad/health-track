@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, EditIcon, SaveIcon, XIcon } from 'lucide-react';
+import { CalendarIcon, EditIcon, SaveIcon, XIcon, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,17 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 interface BloodTest {
   id: string;
@@ -54,6 +65,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
   const [notes, setNotes] = useState<string>("");
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
   const [isSavingNotes, setIsSavingNotes] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   
   // Extract unique test dates from results
   const testDates = [...new Set(bloodTestResults.map(test => test.test_date))].sort((a, b) => 
@@ -142,6 +154,38 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
       setIsSavingNotes(false);
     }
   };
+
+  // Delete a single test
+  const handleDeleteTest = async (testId: string) => {
+    if (!userId) {
+      toast.error('You must be logged in to delete tests');
+      return;
+    }
+
+    try {
+      setIsDeleting(testId);
+      
+      const { error } = await supabase
+        .from('blood_test_results')
+        .delete()
+        .eq('id', testId)
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      
+      toast.success('Test deleted successfully');
+      
+      // Refresh the data
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting test:', error);
+      toast.error('Failed to delete test');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
   
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -225,6 +269,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
                           <TableHead>Result</TableHead>
                           <TableHead>Reference Range</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -251,6 +296,45 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
                                       : 'Normal'
                                   : 'Unknown'}
                               </span>
+                            </TableCell>
+                            <TableCell>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-7 w-7 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
+                                    aria-label="Delete test"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete the {test.test_name} test result from {format(selectedDate, 'MMMM d, yyyy')}? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      className="bg-red-500 hover:bg-red-600"
+                                      onClick={() => handleDeleteTest(test.id)}
+                                      disabled={isDeleting === test.id}
+                                    >
+                                      {isDeleting === test.id ? (
+                                        <>
+                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          Deleting...
+                                        </>
+                                      ) : (
+                                        'Delete'
+                                      )}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </TableCell>
                           </TableRow>
                         ))}

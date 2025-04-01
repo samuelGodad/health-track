@@ -1,7 +1,15 @@
-import { useMemo } from 'react';
+
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Trash2 } from 'lucide-react';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { Loader2 } from 'lucide-react';
 
 interface BloodTest {
   id: string;
@@ -18,9 +26,14 @@ interface BloodTest {
 
 type BloodTestsByDateProps = {
   bloodTestResults: BloodTest[];
+  onDataUpdate?: () => void;
 };
 
-const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
+const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDateProps) => {
+  const { user } = useAuth();
+  const [expandedDates, setExpandedDates] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
   // Group tests by date
   const testsByDate = useMemo(() => {
     // First, deduplicate the results by test_name within each date
@@ -64,6 +77,46 @@ const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
     if (value > max) return "text-rose-500";
     return "text-emerald-500";
   };
+
+  // Delete a single test
+  const handleDeleteTest = async (testId: string) => {
+    if (!user) {
+      toast.error('You must be logged in to delete tests');
+      return;
+    }
+
+    try {
+      setIsDeleting(testId);
+      
+      const { error } = await supabase
+        .from('blood_test_results')
+        .delete()
+        .eq('id', testId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success('Test deleted successfully');
+      
+      // Refresh the data
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting test:', error);
+      toast.error('Failed to delete test');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const toggleDateExpansion = (date: string) => {
+    setExpandedDates(prev => 
+      prev.includes(date) 
+        ? prev.filter(d => d !== date) 
+        : [...prev, date]
+    );
+  };
   
   return (
     <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
@@ -72,7 +125,7 @@ const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
       </CardHeader>
       <CardContent>
         {testsByDate.length > 0 ? (
-          <Accordion type="multiple" className="w-full">
+          <Accordion type="multiple" className="w-full" value={expandedDates} onValueChange={setExpandedDates}>
             {testsByDate.map(({ date, formattedDate, tests }) => (
               <AccordionItem key={date} value={date}>
                 <AccordionTrigger className="hover:bg-muted/50 px-4 py-3 rounded-md">
@@ -87,7 +140,7 @@ const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
                       {tests.map((test) => (
                         <div 
                           key={`${date}-${test.id}`} 
-                          className="p-3 border border-border/30 rounded-md bg-background/70"
+                          className="p-3 border border-border/30 rounded-md bg-background/70 relative"
                         >
                           <div className="flex justify-between items-start">
                             <div>
@@ -110,6 +163,43 @@ const BloodTestsByDate = ({ bloodTestResults }: BloodTestsByDateProps) => {
                               Status: {test.status}
                             </div>
                           )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute top-1 right-1 h-7 w-7 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
+                                aria-label="Delete test"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the {test.test_name} test result from {formattedDate}? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  className="bg-red-500 hover:bg-red-600"
+                                  onClick={() => handleDeleteTest(test.id)}
+                                  disabled={isDeleting === test.id}
+                                >
+                                  {isDeleting === test.id ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    'Delete'
+                                  )}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       ))}
                     </div>

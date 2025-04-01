@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
@@ -285,7 +284,10 @@ const BloodTests = () => {
           ) : (
             <>
               <TabsContent value="by-date">
-                <BloodTestsByDate bloodTestResults={bloodTestResults} />
+                <BloodTestsByDate 
+                  bloodTestResults={bloodTestResults} 
+                  onDataUpdate={fetchBloodTestResults}
+                />
               </TabsContent>
               
               <TabsContent value="date-specific">
@@ -303,7 +305,6 @@ const BloodTests = () => {
           )}
         </Tabs>
         
-        {/* Upload section with AI processing feature */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Upload New Results</h2>
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
