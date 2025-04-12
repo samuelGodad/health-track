@@ -45,11 +45,12 @@ Return the data in this exact JSON format:
   {
     "test": "Test Name",
     "category": "Test Category",
-    "value": "Numerical Value",
-    "unit": "Unit of Measurement",
-    "reference_range": "Reference Range as Shown",
+    "result": "Numerical Value",
+    "reference_min": "Minimum Reference Value",
+    "reference_max": "Maximum Reference Value",
+    "payor_code": "Payor Code",
     "status": "normal/high/low",
-    "date": "YYYY-MM-DD"
+    "test_date": "YYYY-MM-DD"
   }
 ]
 
@@ -127,76 +128,140 @@ async function convertPdfToImages(pdfBuffer: Buffer): Promise<string[]> {
 app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
+      console.error('No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    console.log('\n=== Starting PDF Processing ===');
     console.log('Received file:', {
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
-      size: req.file.size + ' bytes'
+      size: req.file.size + ' bytes',
+      bufferLength: req.file.buffer.length + ' bytes'
     });
+
+    // Validate file size (PDFs should be at least 1KB)
+    if (req.file.size < 1024) {
+      console.error('File too small to be a valid PDF');
+      return res.status(400).json({ 
+        error: 'File too small to be a valid PDF',
+        details: {
+          size: req.file.size,
+          minimumSize: 1024,
+          message: 'PDF files should be at least 1KB in size'
+        }
+      });
+    }
+
+    // Validate PDF magic number (first 4 bytes should be "%PDF")
+    const magicNumber = req.file.buffer.slice(0, 4).toString('ascii');
+    console.log('PDF magic number:', magicNumber);
+    
+    if (magicNumber !== '%PDF') {
+      console.error('Invalid PDF file format');
+      return res.status(400).json({ 
+        error: 'Invalid PDF file format',
+        details: {
+          magicNumber,
+          expectedMagicNumber: '%PDF',
+          message: 'The file does not appear to be a valid PDF'
+        }
+      });
+    }
 
     try {
       // Convert PDF to images
-      console.log('Converting PDF to images...');
+      console.log('\nConverting PDF to images...');
       const base64Images = await convertPdfToImages(req.file.buffer);
-      console.log(`Converted PDF to ${base64Images.length} images`);
+      console.log(`Successfully converted PDF to ${base64Images.length} images`);
+
+      if (base64Images.length === 0) {
+        console.error('No images were generated from the PDF');
+        return res.status(400).json({ 
+          error: 'Failed to convert PDF to images',
+          details: {
+            message: 'The PDF could not be converted to images. Please ensure it is a valid PDF file.'
+          }
+        });
+      }
 
       // Process each page with GPT-4 Vision
       const allResults: any[] = [];
       
-      for (const base64Image of base64Images) {
-        console.log('Sending request to GPT-4 Vision...');
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: SYSTEM_PROMPT
-            },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: USER_PROMPT },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: base64Image,
+      for (let i = 0; i < base64Images.length; i++) {
+        console.log(`\n=== Processing page ${i + 1}/${base64Images.length} ===`);
+        const base64Image = base64Images[i];
+        try {
+          console.log('Sending request to GPT-4 Vision API...');
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4o',  // Fixed model name
+            messages: [
+              {
+                role: 'system',
+                content: SYSTEM_PROMPT
+              },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: USER_PROMPT },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: base64Image,
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          max_tokens: 4096
-        });
+                ]
+              }
+            ],
+            max_tokens: 4096
+          });
 
-        const responseText = completion.choices[0].message?.content || '[]';
-        console.log('Raw GPT Response:', responseText);
+          console.log('\nGPT-4 Vision Response:');
+          console.log('------------------------');
+          const responseText = completion.choices[0].message?.content || '[]';
+          console.log(responseText);
+          console.log('------------------------');
 
-        const parseResult = tryParseJSON(responseText);
-        if (parseResult.success) {
-          allResults.push(...parseResult.data);
+          const parseResult = tryParseJSON(responseText);
+          if (parseResult.success) {
+            console.log(`\nSuccessfully parsed ${parseResult.data.length} test results from page ${i + 1}`);
+            console.log('Parsed Results:', JSON.stringify(parseResult.data, null, 2));
+            allResults.push(...parseResult.data);
+          } else {
+            console.error(`\nFailed to parse JSON from page ${i + 1}:`, parseResult.error);
+            console.error('Raw response:', responseText);
+          }
+        } catch (pageError) {
+          console.error(`\nError processing page ${i + 1}:`, pageError);
+          // Continue with other pages even if one fails
         }
       }
 
+      console.log('\n=== Processing Complete ===');
+      console.log(`Total test results extracted: ${allResults.length}`);
+      console.log('All Results:', JSON.stringify(allResults, null, 2));
+
       // Combine results from all pages
       res.json({ 
+        success: true,
         data: allResults,
         debug: {
           fileInfo: {
             size: req.file.size,
-            pages: base64Images.length
+            pages: base64Images.length,
+            totalResults: allResults.length
           }
         }
       });
     } catch (err) {
-      console.error('OpenAI API Error:', err);
+      console.error('\nOpenAI API Error:', err);
       throw err;
     }
   } catch (err) {
-    console.error('Error:', err);
+    console.error('\nError:', err);
     const errorMessage = err instanceof Error ? err.message : 'Failed to process PDF';
     res.status(500).json({ 
+      success: false,
       error: errorMessage,
       details: err instanceof Error ? err.stack : undefined
     });

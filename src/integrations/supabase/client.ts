@@ -18,9 +18,4 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       return fetch(url, init);
     }
   },
-  // Add error handling for better debugging
-  logger: {
-    debug: console.debug,
-    error: console.error
-  }
 });

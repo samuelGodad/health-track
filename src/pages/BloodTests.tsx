@@ -22,6 +22,7 @@ import {
   AlertTitle,
   AlertDescription 
 } from '@/components/ui/alert';
+import { bloodTestService } from '@/services/bloodTestService';
 
 // Import the components
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
@@ -39,6 +40,10 @@ const BloodTests = () => {
   const [activeTab, setActiveTab] = useState("by-date");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [successfullyProcessed, setSuccessfullyProcessed] = useState<string[]>([]);
+  const [failedToProcess, setFailedToProcess] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -165,77 +170,55 @@ const BloodTests = () => {
   };
 
   const processFilesWithAI = async (files: Array<{name: string, url: string, path: string}>) => {
-    if (!user || files.length === 0) return;
-    
-    setIsProcessing(true);
-    const processingToast = toast.loading('Processing blood test PDFs with AI...');
-    
+    if (!files.length) {
+      toast.error('Please select files to process');
+      return;
+    }
+
+    setProcessing(true);
+    setProcessingProgress(0);
+    setSuccessfullyProcessed([]);
+    setFailedToProcess([]);
+
     try {
-      let successCount = 0;
-      let errorCount = 0;
-      
-      for (const file of files) {
-        console.log('Processing file:', file.name);
-        console.log('File URL:', file.url);
-        
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const progress = ((i + 1) / files.length) * 100;
+        setProcessingProgress(progress);
+
         try {
-          const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
-            body: {
-              pdfUrl: file.url,
-              fileId: file.path,
-              userId: user.id
-            }
-          });
-          
-          if (error) {
-            console.error('Edge function error:', error);
-            errorCount++;
-            continue;
+          // First check if the file exists in selectedFiles
+          const originalFile = selectedFiles.find(f => f.name === file.name);
+          if (!originalFile) {
+            throw new Error(`Original file not found for ${file.name}`);
           }
-          
-          if (data && !data.success) {
-            console.error('Processing error:', data.error);
-            errorCount++;
-            continue;
+
+          // Use the original file instead of downloading it again
+          const results = await bloodTestService.processBloodTestPDF(originalFile);
+          if (results && results.length > 0) {
+            setSuccessfullyProcessed(prev => [...prev, file.name]);
+          } else {
+            setFailedToProcess(prev => [...prev, file.name]);
           }
-          
-          successCount += data.resultsCount || 0;
-          
-        } catch (err) {
-          console.error(`Error processing file ${file.name}:`, err);
-          errorCount++;
+        } catch (error) {
+          console.error(`Error processing file ${file.name}:`, error);
+          setFailedToProcess(prev => [...prev, file.name]);
+          toast.error(`Failed to process ${file.name}`);
         }
       }
-      
-      toast.dismiss(processingToast);
-      
-      if (successCount > 0) {
-        toast.success(`AI extracted ${successCount} test results from your PDFs`);
+
+      if (successfullyProcessed.length > 0) {
+        toast.success(`Successfully processed ${successfullyProcessed.length} file(s)`);
       }
-      
-      if (errorCount > 0) {
-        setUploadError(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
-        toast.error(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
+      if (failedToProcess.length > 0) {
+        toast.error(`Failed to process ${failedToProcess.length} file(s)`);
       }
-      
-      // Refresh the data regardless
-      fetchBloodTestResults();
-      
-    } catch (error: any) {
-      console.error('Error processing files with AI:', error);
-      toast.dismiss(processingToast);
-      
-      // Set a more user-friendly error message
-      setUploadError('Error processing blood test PDFs. Please try manual entry instead.');
-      
-      toast.error('Error processing blood test PDFs. Please try manual entry instead.');
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast.error('An error occurred while processing files');
     } finally {
-      setIsProcessing(false);
-      setSelectedFiles([]);
-      setShowAIProcessing(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setProcessing(false);
+      setProcessingProgress(0);
     }
   };
 
