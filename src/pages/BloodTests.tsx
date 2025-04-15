@@ -12,7 +12,8 @@ import {
   UploadIcon,
   PlusIcon,
   DownloadIcon,
-  InfoIcon
+  InfoIcon,
+  CheckCircleIcon
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
@@ -44,6 +45,8 @@ const BloodTests = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [successfullyProcessed, setSuccessfullyProcessed] = useState<string[]>([]);
   const [failedToProcess, setFailedToProcess] = useState<string[]>([]);
+  const [duplicateFiles, setDuplicateFiles] = useState<string[]>([]);
+  const [processingStatus, setProcessingStatus] = useState<Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>>({});
 
   useEffect(() => {
     if (user) {
@@ -179,6 +182,14 @@ const BloodTests = () => {
     setProcessingProgress(0);
     setSuccessfullyProcessed([]);
     setFailedToProcess([]);
+    setDuplicateFiles([]);
+    
+    // Initialize processing status for all files
+    const initialStatus = files.reduce((acc, file) => {
+      acc[file.name] = 'pending';
+      return acc;
+    }, {} as Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>);
+    setProcessingStatus(initialStatus);
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -187,28 +198,42 @@ const BloodTests = () => {
         setProcessingProgress(progress);
 
         try {
-          // First check if the file exists in selectedFiles
+          setProcessingStatus(prev => ({ ...prev, [file.name]: 'processing' }));
+
           const originalFile = selectedFiles.find(f => f.name === file.name);
           if (!originalFile) {
             throw new Error(`Original file not found for ${file.name}`);
           }
 
-          // Use the original file instead of downloading it again
           const results = await bloodTestService.processBloodTestPDF(originalFile);
           if (results && results.length > 0) {
             setSuccessfullyProcessed(prev => [...prev, file.name]);
+            setProcessingStatus(prev => ({ ...prev, [file.name]: 'success' }));
           } else {
             setFailedToProcess(prev => [...prev, file.name]);
+            setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
           }
         } catch (error) {
           console.error(`Error processing file ${file.name}:`, error);
-          setFailedToProcess(prev => [...prev, file.name]);
-          toast.error(`Failed to process ${file.name}`);
+          if (error instanceof Error) {
+            if (error.message === 'This PDF has already been processed and results exist') {
+              setDuplicateFiles(prev => [...prev, file.name]);
+              setProcessingStatus(prev => ({ ...prev, [file.name]: 'duplicate' }));
+            } else {
+              setFailedToProcess(prev => [...prev, file.name]);
+              setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
+              toast.error(`Failed to process ${file.name}: ${error.message}`);
+            }
+          }
         }
       }
 
+      // Show summary toasts
       if (successfullyProcessed.length > 0) {
         toast.success(`Successfully processed ${successfullyProcessed.length} file(s)`);
+      }
+      if (duplicateFiles.length > 0) {
+        toast.warning(`${duplicateFiles.length} file(s) were already processed and have existing results`);
       }
       if (failedToProcess.length > 0) {
         toast.error(`Failed to process ${failedToProcess.length} file(s)`);
@@ -219,6 +244,11 @@ const BloodTests = () => {
     } finally {
       setProcessing(false);
       setProcessingProgress(0);
+      // Clear the file input and selected files after processing
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setSelectedFiles([]);
     }
   };
 
@@ -329,10 +359,43 @@ const BloodTests = () => {
                 {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {selectedFiles.map((file, index) => (
-                      <div key={index} className="p-3 bg-muted rounded-md flex items-center justify-between">
+                      <div 
+                        key={index} 
+                        className={`p-3 rounded-md flex items-center justify-between ${
+                          processingStatus[file.name] === 'success' ? 'bg-green-50 border border-green-100' :
+                          processingStatus[file.name] === 'error' ? 'bg-red-50 border border-red-100' :
+                          processingStatus[file.name] === 'duplicate' ? 'bg-amber-50 border border-amber-100' :
+                          processingStatus[file.name] === 'processing' ? 'bg-blue-50 border border-blue-100' :
+                          'bg-muted'
+                        }`}
+                      >
                         <div className="flex items-center">
                           <FileTextIcon className="h-4 w-4 mr-2" />
                           <p className="text-sm">{file.name}</p>
+                          {processingStatus[file.name] === 'processing' && (
+                            <span className="ml-2 text-xs text-blue-600">
+                              <Loader2Icon className="h-3 w-3 animate-spin inline mr-1" />
+                              Processing...
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'success' && (
+                            <span className="ml-2 text-xs text-green-600">
+                              <CheckCircleIcon className="h-3 w-3 inline mr-1" />
+                              Processed successfully
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'error' && (
+                            <span className="ml-2 text-xs text-red-600">
+                              <AlertCircleIcon className="h-3 w-3 inline mr-1" />
+                              Failed to process
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'duplicate' && (
+                            <span className="ml-2 text-xs text-amber-600">
+                              <InfoIcon className="h-3 w-3 inline mr-1" />
+                              Already processed
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                       </div>

@@ -8,6 +8,7 @@ type BloodTestResultInsert = BloodTestResultTable['Insert'];
 interface ParsePdfResponse {
   success: boolean;
   data: LabResult[];
+  error?: string;
   debug?: {
     fileInfo: {
       size: number;
@@ -33,6 +34,12 @@ interface FileInfo {
   url: string;
 }
 
+// Add new interface for file processing status
+interface FileProcessingStatus {
+  exists: boolean;
+  fileHash?: string;
+}
+
 class BloodTestService {
   private static instance: BloodTestService;
   private constructor() {}
@@ -44,7 +51,97 @@ class BloodTestService {
     return BloodTestService.instance;
   }
 
-  private async transformResults(results: LabResult[]): Promise<BloodTestResultInsert[]> {
+  // Add new method to check if file exists in storage
+  private async checkFileInStorage(fileHash: string, userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from('blood-test-pdfs')
+        .list(`${userId}`, {
+          search: fileHash
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      return data.length > 0;
+    } catch (error) {
+      console.error('Error checking file in storage:', error);
+      return false;
+    }
+  }
+
+  // Add new method to check if file has results
+  private async checkFileHasResults(fileHash: string, userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('blood_test_results')
+        .select('id')
+        .eq('source_file_hash', fileHash)
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (error) {
+        throw error;
+      }
+
+      return (data?.length ?? 0) > 0;
+    } catch (error) {
+      console.error('Error checking file results:', error);
+      return false;
+    }
+  }
+
+  // Add new method to calculate file hash
+  private async calculateFileHash(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  }
+
+  // Add new method to check if file was already processed
+  private async checkFileProcessed(fileHash: string, userId: string): Promise<boolean> {
+    try {
+      const { data: processedFile, error } = await supabase
+        .from('processed_files')
+        .select('file_hash')
+        .eq('file_hash', fileHash)
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+        throw error;
+      }
+
+      return !!processedFile;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('PGRST116')) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  // Add new method to mark file as processed
+  private async markFileAsProcessed(fileHash: string, userId: string, fileName: string): Promise<void> {
+    const { error } = await supabase
+      .from('processed_files')
+      .upsert({
+        file_hash: fileHash,
+        user_id: userId,
+        file_name: fileName,
+        processed_at: new Date().toISOString()
+      });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  private async transformResults(results: LabResult[], fileHash: string): Promise<BloodTestResultInsert[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       throw new Error('User not authenticated');
@@ -62,6 +159,7 @@ class BloodTestService {
       created_at: new Date().toISOString(),
       processed_by_ai: true,
       source_file_type: 'pdf',
+      source_file_hash: fileHash,
       user_id: user.id
     }));
   }
@@ -72,47 +170,72 @@ class BloodTestService {
       .insert(results);
 
     if (error) {
-      throw error;
+      throw new Error(`Failed to save results: ${error.message}`);
     }
   }
 
   public async processBloodTestPDF(file: File | FileInfo): Promise<BloodTestResultInsert[]> {
     try {
-      // Validate file
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Handle file validation and conversion
+      let fileToProcess: File;
       if (file instanceof File) {
-        if (file.size < 1024) { // 1KB minimum
+        if (file.size < 1024) {
           throw new Error('File is too small to be a valid PDF');
         }
         if (file.type !== 'application/pdf') {
           throw new Error('File must be a PDF');
         }
-      }
-
-      // Create FormData and append file
-      const formData = new FormData();
-      if (file instanceof File) {
-        formData.append('file', file);
+        fileToProcess = file;
       } else {
-        // If it's a FileInfo, we need to fetch the file first
         const response = await fetch(file.url);
         const blob = await response.blob();
-        formData.append('file', blob, file.name);
+        fileToProcess = new File([blob], file.name, { type: 'application/pdf' });
       }
 
-      // Send to server
+      // Calculate file hash
+      const fileHash = await this.calculateFileHash(fileToProcess);
+
+      // Check if file has results first
+      const hasResults = await this.checkFileHasResults(fileHash, user.id);
+      if (hasResults) {
+        throw new Error('This PDF has already been processed and results exist');
+      }
+
+      // Check if file was previously processed but has no results
+      const isProcessed = await this.checkFileProcessed(fileHash, user.id);
+      if (isProcessed) {
+        // Remove from processed_files since it has no results
+        await supabase
+          .from('processed_files')
+          .delete()
+          .eq('file_hash', fileHash)
+          .eq('user_id', user.id);
+      }
+
+      // Create FormData and process the file
+      const formData = new FormData();
+      formData.append('file', fileToProcess);
+
       const response = await fetch('http://localhost:3000/api/parse-pdf', {
         method: 'POST',
         body: formData
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server returned ${response.status}: ${response.statusText}`);
       }
 
       const result: ParsePdfResponse = await response.json();
       
       if (!result.success) {
-        throw new Error('Failed to parse PDF');
+        throw new Error('Failed to parse PDF: ' + (result.error || 'Unknown error'));
       }
 
       if (!result.data || result.data.length === 0) {
@@ -120,13 +243,27 @@ class BloodTestService {
       }
 
       // Transform and save results
-      const transformedResults = await this.transformResults(result.data);
-      await this.saveResults(transformedResults);
+      const transformedResults = await this.transformResults(result.data, fileHash);
       
-      return transformedResults;
+      try {
+        // Save results first
+        await this.saveResults(transformedResults);
+        
+        // Only mark as processed if results were saved successfully
+        await this.markFileAsProcessed(fileHash, user.id, fileToProcess.name);
+        
+        return transformedResults;
+      } catch (error) {
+        // If saving results fails, ensure we don't mark the file as processed
+        console.error('Error saving results:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Error processing blood test PDF:', error);
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred while processing the PDF');
     }
   }
 
