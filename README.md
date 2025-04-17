@@ -1,69 +1,133 @@
-# Welcome to your Lovable project
+# Enhanced Health - PDF Parsing Guide
 
-## Project info
+This guide explains how to run and test the PDF parsing functionality for blood test results in the Enhanced Health application.
 
-**URL**: https://lovable.dev/projects/14b56dc0-581d-4152-9064-606d679ac340
+## Prerequisites
 
-## How can I edit this code?
+Before you begin, ensure you have the following installed:
+- Node.js (v16 or higher)
+- npm or yarn
+- OpenAI API key (for GPT-4 Vision API)
 
-There are several ways of editing your application.
+## Project Structure
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/14b56dc0-581d-4152-9064-606d679ac340) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+enhanced-health/
+├── server/              # Backend server for PDF processing
+├── src/                 # Frontend application
+└── supabase/           # Supabase configuration and functions
 ```
 
-**Edit a file directly in GitHub**
+## Setting Up the Environment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd enhanced-health
+```
 
-**Use GitHub Codespaces**
+2. Install dependencies for both frontend and backend:
+```bash
+# Install frontend dependencies
+npm install
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Install backend dependencies
+cd server
+npm install
+```
 
-## What technologies are used for this project?
+3. Create a `.env` file in the server directory with your OpenAI API key:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-This project is built with .
+## Running the Application
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Start the backend server:
+```bash
+cd server
+npm start
+```
+The server will start on `http://localhost:3000`
 
-## How can I deploy this project?
+2. Start the frontend development server:
+```bash
+cd ..  # Return to project root
+npm run dev
+```
+The frontend will start on `http://localhost:8000`
 
-Simply open [Lovable](https://lovable.dev/projects/14b56dc0-581d-4152-9064-606d679ac340) and click on Share -> Publish.
+## Testing PDF Parsing
 
-## I want to use a custom domain - is that possible?
+### 1. Upload a PDF
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+1. Navigate to the Blood Tests page in the application
+2. Click the "Upload Test Results" button
+3. Select a blood test PDF file from your computer
+
+### 2. Processing Flow
+
+The PDF processing follows these steps:
+1. The PDF is uploaded to the server
+2. The server converts the PDF to images using `pdf-poppler`
+3. Each image is sent to GPT-4 Vision for analysis
+4. The AI extracts test results and returns them in JSON format
+5. Results are saved to the database and displayed in the UI
+
+### 3. Expected Results
+
+After successful processing, you should see:
+- A list of extracted test results
+- Test names, values, and reference ranges
+- Status indicators (normal/high/low)
+- Test dates
+
+### 4. Troubleshooting
+
+If you encounter issues:
+
+1. Check the server console for error messages
+2. Verify your OpenAI API key is valid
+3. Ensure the PDF file is:
+   - A valid PDF document
+   - Contains readable text
+   - Has clear test results
+   - Is not password protected
+
+## Development Tips
+
+1. **Testing Different PDF Formats**
+   - Try various blood test report formats
+   - Test with different layouts and structures
+   - Verify handling of different units and reference ranges
+
+2. **Monitoring Processing**
+   - Watch the server console for processing logs
+   - Check the browser console for frontend errors
+   - Monitor the AI response quality
+
+3. **Improving Results**
+   - If results are inaccurate, try:
+     - Using higher quality PDFs
+     - Adjusting the AI prompt in `server/index.ts`
+     - Modifying the image conversion settings
+
+## API Endpoints
+
+- `POST /api/parse-pdf`: Main endpoint for PDF processing
+  - Accepts multipart form data with a PDF file
+  - Returns JSON with extracted test results
+
+## Dependencies
+
+- Frontend:
+  - React
+  - Supabase Client
+  - UI Components
+
+- Backend:
+  - Express
+  - pdf-poppler
+  - OpenAI API
+  - Multer (for file uploads)
+
