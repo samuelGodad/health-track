@@ -25,4 +25,4 @@ dist-ssr
 .env
 .env.*.local
 /server/.env
-render.yaml
+render.yamlserver/.env
