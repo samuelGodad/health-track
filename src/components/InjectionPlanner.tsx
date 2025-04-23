@@ -67,10 +67,10 @@ export default function InjectionPlanner() {
     );
   };
 
-  // Select days component (brand-themed, to sit above the table)
+  // Responsive: Weekday selector, compact single row
   const WeekdaySelector = (
-    <div className="mb-2 flex flex-col items-start">
-      <div className="flex flex-wrap gap-2 mb-1">
+    <div className="mb-2">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar md:justify-start py-1">
         {DAYS.map((day) => (
           <button
             key={day.key}
@@ -79,22 +79,20 @@ export default function InjectionPlanner() {
             onClick={() => toggleDay(day.key)}
             className={cn(
               // Brand: Selected days = bg-primary/text-primary-foreground, else secondary
-              "transition-colors px-3 py-1 rounded font-medium border focus:outline-none",
+              "transition-colors px-3 py-1 rounded font-medium border focus:outline-none min-w-[40px] text-sm",
               selectedDays.includes(day.key)
                 ? "bg-primary text-primary-foreground border-primary shadow"
                 : "bg-secondary text-secondary-foreground border-border hover:bg-muted"
             )}
+            style={{ flex: "0 0 auto" }}
           >
             {day.label}
           </button>
         ))}
       </div>
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-muted-foreground mt-1">
         Choose which days of the week you take your injections
-        {" "}
-        <span className="font-semibold text-primary">
-          ({weeklyInjections} selected)
-        </span>
+        <span className="font-semibold text-primary"> ({weeklyInjections} selected)</span>
       </div>
     </div>
   );
@@ -102,62 +100,116 @@ export default function InjectionPlanner() {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Injection Planner</h2>
-      {/* Day selector at the top, matching where the green line used to be */}
+      {/* Day selector at the top */}
       {WeekdaySelector}
-      <div className="overflow-x-auto rounded-lg border border-muted">
-        <table className="w-full min-w-[600px] table-auto text-sm">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="px-3 py-2 text-left font-semibold">PED To Inject</th>
-              <th className="px-3 py-2 text-left font-semibold">Dosing Per 1ML</th>
-              <th className="px-3 py-2 text-left font-semibold">Weekly Dose</th>
-              <th className="px-3 py-2 text-left font-semibold">ML Per Injection</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, idx) => (
-              <tr key={idx}>
-                <td>
-                  <Input
-                    value={row.ped}
-                    onChange={e => handleRowChange(idx, "ped", e.target.value)}
-                    placeholder="PED name"
-                    className="font-semibold"
-                  />
-                </td>
-                <td>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={row.dosing}
-                    onChange={e => handleRowChange(idx, "dosing", e.target.value)}
-                    placeholder="mg/ml"
-                    className="text-center"
-                  />
-                </td>
-                <td>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={row.weeklyDose}
-                    onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
-                    placeholder="mg"
-                    className="text-center"
-                  />
-                </td>
-                <td>
-                  <Input
-                    value={computeMlPerInjection(row)}
-                    disabled
-                    className="bg-white text-center font-semibold"
-                  />
-                </td>
+
+      {/* Responsive: cards on mobile, table on desktop */}
+      <div>
+        {/* Mobile: vertical card display */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {rows.map((row, idx) => (
+            <div
+              key={idx}
+              className="rounded-lg border border-muted p-3 shadow-sm bg-white space-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-32 text-muted-foreground text-xs">PED To Inject</span>
+                <Input
+                  value={row.ped}
+                  onChange={e => handleRowChange(idx, "ped", e.target.value)}
+                  placeholder="PED name"
+                  className="font-semibold flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-32 text-muted-foreground text-xs">Dosing Per 1ML</span>
+                <Input
+                  type="number"
+                  min={0}
+                  value={row.dosing}
+                  onChange={e => handleRowChange(idx, "dosing", e.target.value)}
+                  placeholder="mg/ml"
+                  className="font-normal flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-32 text-muted-foreground text-xs">Weekly Dose</span>
+                <Input
+                  type="number"
+                  min={0}
+                  value={row.weeklyDose}
+                  onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
+                  placeholder="mg"
+                  className="font-normal flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-32 text-muted-foreground text-xs">ML Per Injection</span>
+                <Input
+                  value={computeMlPerInjection(row)}
+                  disabled
+                  className="bg-white text-center font-semibold flex-1"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Desktop: table for overview */}
+        <div className="overflow-x-auto rounded-lg border border-muted hidden md:block">
+          <table className="w-full min-w-[600px] table-auto text-sm">
+            <thead>
+              <tr className="bg-muted/50">
+                <th className="px-3 py-2 text-left font-semibold">PED To Inject</th>
+                <th className="px-3 py-2 text-left font-semibold">Dosing Per 1ML</th>
+                <th className="px-3 py-2 text-left font-semibold">Weekly Dose</th>
+                <th className="px-3 py-2 text-left font-semibold">ML Per Injection</th>
               </tr>
-            ))}
-            {/* Removed Weekly Injections row from table body */}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr key={idx}>
+                  <td>
+                    <Input
+                      value={row.ped}
+                      onChange={e => handleRowChange(idx, "ped", e.target.value)}
+                      placeholder="PED name"
+                      className="font-semibold"
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={row.dosing}
+                      onChange={e => handleRowChange(idx, "dosing", e.target.value)}
+                      placeholder="mg/ml"
+                      className="text-center"
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={row.weeklyDose}
+                      onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
+                      placeholder="mg"
+                      className="text-center"
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      value={computeMlPerInjection(row)}
+                      disabled
+                      className="bg-white text-center font-semibold"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
       <button
         type="button"
         className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 rounded shadow transition-colors"
