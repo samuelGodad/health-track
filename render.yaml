@@ -1,14 +1,13 @@
 services:
   # Frontend service
-  - type: web
+  - type: static
     name: enhanced-health-frontend
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://enhanced-health-backend.onrender.com
-    staticPublishPath: dist
 
   # Backend service
   - type: web
