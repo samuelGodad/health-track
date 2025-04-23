@@ -11,7 +11,7 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
-            Your Veta Health
+            Your Vita Health
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
             <Button 
@@ -29,7 +29,7 @@ const Index = () => {
           titleComponent={
             <div className="space-y-2 pt-16 md:pt-24">
               <h1 className="text-3xl md:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                Your Veta Health
+                Your Vita Health
               </h1>
               <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
                 Mastering Health Through Intelligent Insights
