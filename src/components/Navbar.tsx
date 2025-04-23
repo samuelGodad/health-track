@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -124,7 +123,7 @@ const Navbar = () => {
             className="flex items-center gap-2 text-xl font-semibold text-foreground"
           >
             <HeartPulseIcon className="h-6 w-6 text-primary" />
-            <span>Your Beta Health</span>
+            <span>Your Veta Health</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
