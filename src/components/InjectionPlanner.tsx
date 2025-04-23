@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -97,6 +96,12 @@ export default function InjectionPlanner() {
     </div>
   );
 
+  // Calculate total ML per injection
+  const totalMlPerInjection = rows.reduce((total, row) => {
+    const mlPerInjection = parseFloat(computeMlPerInjection(row)) || 0;
+    return total + mlPerInjection;
+  }, 0);
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Injection Planner</h2>
@@ -153,6 +158,16 @@ export default function InjectionPlanner() {
               </div>
             </div>
           ))}
+          
+          {/* Total ML Injection Box */}
+          <div className="rounded-lg border border-primary p-3 bg-primary/10 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Total ML Per Injection</span>
+              <span className="text-lg font-bold text-primary">
+                {totalMlPerInjection.toFixed(2)} ML
+              </span>
+            </div>
+          </div>
         </div>
         {/* Desktop: table for overview */}
         <div className="overflow-x-auto rounded-lg border border-muted hidden md:block">
@@ -215,8 +230,10 @@ export default function InjectionPlanner() {
         className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 rounded shadow transition-colors"
         onClick={handleAddRow}
       >
-        + Add Row
+        + Add Injectable PED
       </button>
+
+      {/* Formula section */}
       <div className="mt-3 text-xs text-muted-foreground">
         <strong>Formula</strong> for "ML Per Injection": <br />
         <span className="bg-gray-100 rounded px-2 py-1">
