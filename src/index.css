@@ -1,0 +1,234 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 84% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 240 6% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 18%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 213 27% 84%;
+    
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border transition-colors duration-200;
+  }
+  
+  html, body {
+    @apply antialiased;
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 dark:bg-black/70 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-sm;
+  }
+  
+  .metric-value {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  
+  .metric-label {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .animated-gradient-border {
+    @apply relative rounded-xl overflow-hidden;
+    background-clip: padding-box;
+  }
+  
+  .animated-gradient-border::before {
+    content: '';
+    @apply absolute inset-0 -z-10 rounded-xl animate-pulse-subtle;
+    background: linear-gradient(45deg, 
+      rgba(59, 130, 246, 0.2), 
+      rgba(59, 130, 246, 0.1),
+      rgba(59, 130, 246, 0.05)
+    );
+    margin: -1px;
+  }
+
+  .page-transition-enter {
+    @apply opacity-0 transform translate-x-6;
+  }
+  
+  .page-transition-enter-active {
+    @apply opacity-100 transform translate-x-0 transition-all duration-300 ease-in-out;
+  }
+  
+  .page-transition-exit {
+    @apply opacity-100 transform translate-x-0;
+  }
+  
+  .page-transition-exit-active {
+    @apply opacity-0 transform -translate-x-6 transition-all duration-300 ease-in-out;
+  }
+  
+  /* New styles to match Figma design */
+  .sidebar {
+    @apply bg-white border-r border-gray-200;
+  }
+  
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md;
+  }
+  
+  .sidebar-link.active {
+    @apply bg-gray-50 text-blue-600 font-medium;
+  }
+  
+  .content-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-6;
+  }
+  
+  .metric-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
+  }
+  
+  .metric-title {
+    @apply text-sm font-medium text-gray-500;
+  }
+  
+  .metric-value {
+    @apply text-2xl font-bold text-gray-900 mt-1;
+  }
+  
+  .metric-trend {
+    @apply text-xs text-gray-500 mt-1;
+  }
+  
+  .section-title {
+    @apply text-lg font-medium text-gray-900 mb-4;
+  }
+  
+  .tab-button {
+    @apply px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300;
+  }
+  
+  .tab-button.active {
+    @apply text-blue-600 border-blue-600;
+  }
+  
+  /* Figma design specific styles */
+  .figma-dashboard {
+    @apply bg-white min-h-screen;
+  }
+  
+  .figma-sidebar {
+    @apply fixed left-0 top-0 h-full w-44 bg-white border-r border-gray-200 flex flex-col py-6;
+  }
+  
+  .figma-content {
+    @apply ml-44 p-6;
+  }
+  
+  .figma-header {
+    @apply flex items-center justify-between mb-6;
+  }
+  
+  .figma-data-card {
+    @apply bg-white rounded-lg border border-gray-200 p-4 mb-4;
+  }
+  
+  .figma-metric-card {
+    @apply bg-white rounded-lg border border-gray-200 p-4;
+  }
+  
+  .figma-tab-group {
+    @apply flex bg-black text-white rounded-full text-sm mb-4 overflow-hidden;
+  }
+  
+  .figma-tab {
+    @apply px-4 py-1;
+  }
+  
+  .figma-tab.active {
+    @apply bg-black;
+  }
+}
