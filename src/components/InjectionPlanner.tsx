@@ -105,10 +105,8 @@ export default function InjectionPlanner() {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Injection Planner</h2>
-      {/* Day selector at the top */}
       {WeekdaySelector}
 
-      {/* Responsive: cards on mobile, table on desktop */}
       <div>
         {/* Mobile: vertical card display */}
         <div className="flex flex-col gap-3 md:hidden">
@@ -220,6 +218,13 @@ export default function InjectionPlanner() {
                   </td>
                 </tr>
               ))}
+              {/* Total ML Per Injection Row */}
+              <tr className="bg-primary/10 font-semibold">
+                <td colSpan={3} className="px-3 py-2 text-right">Total ML Per Injection</td>
+                <td className="px-3 py-2 text-center text-primary">
+                  {totalMlPerInjection.toFixed(2)} ML
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
