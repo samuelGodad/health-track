@@ -125,6 +125,20 @@ async function convertPdfToImages(pdfBuffer: Buffer): Promise<string[]> {
   }
 }
 
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
+
+// Add new test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Backend is working correctly!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
