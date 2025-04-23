@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, EditIcon, SaveIcon, XIcon, Trash2, Loader2 } from 'lucide-react';
@@ -118,7 +117,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
       if (error) throw error;
       
       if (data && data.length > 0 && data[0].notes) {
-        setNotes(data[0].notes);
+        setNotes(data[0].notes || '');
       } else {
         setNotes('');
       }
@@ -138,7 +137,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
       
       const { error } = await supabase
         .from('blood_test_results')
-        .update({ notes })
+        .update({ notes: notes })
         .eq('user_id', userId)
         .eq('test_date', formattedDate);
       
@@ -273,7 +272,7 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {tests.map(test => (
+                        {tests.map((test) => (
                           <TableRow key={test.id}>
                             <TableCell className="font-medium">{test.test_name}</TableCell>
                             <TableCell>

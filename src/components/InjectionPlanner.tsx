@@ -3,33 +3,45 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const initialRows = [
+// Define proper types for row data
+interface InjectionRow {
+  ped: string;
+  dosing: number;
+  weeklyDose: number;
+}
+
+const initialRows: InjectionRow[] = [
   { ped: "Test", dosing: 300, weeklyDose: 500 },
   { ped: "Mast", dosing: 200, weeklyDose: 400 },
   { ped: "Primo", dosing: 100, weeklyDose: 200 }
 ];
 
 export default function InjectionPlanner() {
-  const [rows, setRows] = useState(initialRows);
-  const [weeklyInjections, setWeeklyInjections] = useState(3);
+  const [rows, setRows] = useState<InjectionRow[]>(initialRows);
+  const [weeklyInjections, setWeeklyInjections] = useState<number>(3);
 
   // Add a row at the end (optionally)
   const handleAddRow = () => {
-    setRows([...rows, { ped: "", dosing: "", weeklyDose: "" }]);
+    setRows([...rows, { ped: "", dosing: 0, weeklyDose: 0 }]);
   };
 
   // Update a field in a row
-  const handleRowChange = (index, field, value) => {
+  const handleRowChange = (index: number, field: keyof InjectionRow, value: string) => {
     const newRows = [...rows];
-    newRows[index][field] = value;
+    if (field === 'ped') {
+      newRows[index][field] = value;
+    } else {
+      // Convert to number for dosing and weeklyDose
+      newRows[index][field] = parseFloat(value) || 0;
+    }
     setRows(newRows);
   };
 
   // Compute ML per injection
-  function computeMlPerInjection(row) {
-    const dosing = parseFloat(row.dosing) || 0;
-    const weeklyDose = parseFloat(row.weeklyDose) || 0;
-    const injections = parseFloat(weeklyInjections) || 0;
+  function computeMlPerInjection(row: InjectionRow): string {
+    const dosing = row.dosing || 0;
+    const weeklyDose = row.weeklyDose || 0;
+    const injections = weeklyInjections || 0;
     if (dosing > 0 && injections > 0) {
       return weeklyDose ? (weeklyDose / (dosing * injections)).toFixed(2) : "";
     }
@@ -46,7 +58,7 @@ export default function InjectionPlanner() {
           type="number"
           min={1}
           value={weeklyInjections}
-          onChange={e => setWeeklyInjections(e.target.value)}
+          onChange={e => setWeeklyInjections(Number(e.target.value))}
           className="bg-[#E5F9ED] font-semibold text-center"
         />
       </td>
@@ -92,9 +104,7 @@ export default function InjectionPlanner() {
                     type="number"
                     min={0}
                     value={row.weeklyDose}
-                    onChange={e =>
-                      handleRowChange(idx, "weeklyDose", e.target.value)
-                    }
+                    onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
                     placeholder="mg"
                     className="bg-[#E5F9ED] text-center"
                   />
