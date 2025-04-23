@@ -1,0 +1,25 @@
+services:
+  # Frontend service
+  - type: web
+    name: enhanced-health-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://enhanced-health-backend.onrender.com
+    staticPublishPath: dist
+
+  # Backend service
+  - type: web
+    name: enhanced-health-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000 
