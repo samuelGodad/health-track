@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +21,7 @@ import {
   PillIcon,
   TargetIcon,
 } from "lucide-react";
+import InjectionPlanner from "@/components/InjectionPlanner";
 
 interface Target {
   id: string;
@@ -251,7 +251,6 @@ const Dashboard = () => {
           <Toggle 
             variant="tab" 
             pressed={activeTab === "bloods"}
-
             onPressedChange={() => handleNavigation("/blood-tests")}
           >
             Bloods
@@ -262,6 +261,13 @@ const Dashboard = () => {
             onPressedChange={() => handleNavigation("/body-progress")}
           >
             Physique
+          </Toggle>
+          <Toggle
+            variant="tab"
+            pressed={activeTab === "injection-planner"}
+            onPressedChange={() => setActiveTab("injection-planner")}
+          >
+            Injection Planner
           </Toggle>
         </div>
         
@@ -435,6 +441,12 @@ const Dashboard = () => {
             <Button onClick={() => setActiveTab("daily")}>
               Go back to Daily Dashboard
             </Button>
+          </div>
+        )}
+        
+        {activeTab === "injection-planner" && (
+          <div className="p-4 bg-white rounded-lg border border-muted shadow">
+            <InjectionPlanner />
           </div>
         )}
       </main>

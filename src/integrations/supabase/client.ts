@@ -17,5 +17,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     fetch: function customFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
       return fetch(url, init);
     }
-  },
+  }
 });

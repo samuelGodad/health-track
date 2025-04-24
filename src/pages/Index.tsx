@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
@@ -93,7 +92,7 @@ const Index = () => {
                     <path d="m7 16.5-4.74-2.85" />
                     <path d="m7 16.5 5-3" />
                     <path d="M7 16.5V21" />
-                    <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" />
+                    <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3-2.03-1.2-2.03 1.2-5-3a2 2 0 0 1 1.73-.1l-5 3-2.03-1.2-2.03 1.2-5-3a2 2 0 0 1 1.73.1Z" />
                     <path d="m17 16.5-5-3" />
                     <path d="m17 16.5 4.74-2.85" />
                     <path d="M17 16.5V21" />
