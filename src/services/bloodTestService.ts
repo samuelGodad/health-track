@@ -1,5 +1,6 @@
 import { supabase } from '../integrations/supabase/client';
 import { Database } from '../integrations/supabase/types';
+import { createHash } from 'crypto';
 
 type Tables = Database['public']['Tables'];
 type BloodTestResultTable = Tables['blood_test_results'];
@@ -94,14 +95,19 @@ class BloodTestService {
   }
 
   // Add new method to calculate file hash
+  // private async calculateFileHash(file: File): Promise<string> {
+  //   const buffer = await file.arrayBuffer();
+  //   const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  //   const hashArray = Array.from(new Uint8Array(hashBuffer));
+  //   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  //   return hashHex;
+  // }
   private async calculateFileHash(file: File): Promise<string> {
     const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-  }
-
+    const hash = createHash('sha256');
+    hash.update(Buffer.from(buffer));
+    return hash.digest('hex');
+  };
   // Add new method to check if file was already processed
   private async checkFileProcessed(fileHash: string, userId: string): Promise<boolean> {
     try {
