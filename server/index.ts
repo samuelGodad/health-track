@@ -3,10 +3,6 @@ import multer from 'multer';
 import cors from 'cors';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import pdf from 'pdf-poppler';
 
 dotenv.config();
 
@@ -20,116 +16,68 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Function to clean response text and extract JSON
+function extractJSON(text: string): string {
+  // Remove markdown code blocks
+  let cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  
+  // Find the first [ and last ]
+  const startIndex = cleaned.indexOf('[');
+  const endIndex = cleaned.lastIndexOf(']');
+  
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error('No valid JSON array found in response');
+  }
+  
+  // Extract just the JSON array
+  cleaned = cleaned.slice(startIndex, endIndex + 1);
+  
+  return cleaned.trim();
+}
+
 const SYSTEM_PROMPT = `You are a medical lab report parser. Your task is to extract lab test results from PDF documents.
 You must analyze the content and identify:
-- Test names
-- Test categories (e.g., Hormones, Lipids, etc.)
-- Numerical values and units
+- Test names (exactly as shown in the report)
+- Test categories
+- Numerical results
 - Reference ranges
-- Whether results are normal, high, or low based on the reference ranges
+- Test status (normal/high/low)
 - Test dates
 
-You must respond with ONLY a JSON array in the specified format, with no additional text.`;
+You must return a JSON array where each test result has these EXACT field names:
+- test_name (string): The exact name of the test as shown in the report
+- category (string): The test category (e.g., "Complete Blood Count", "Lipid Profile")
+- result (number): The numerical result value
+- reference_min (number or null): The minimum reference value if available
+- reference_max (number or null): The maximum reference value if available
+- status (string): Must be exactly "normal", "high", or "low"
+- test_date (string): In YYYY-MM-DD format`;
 
-const USER_PROMPT = `Please analyze this lab report and extract all test results.
-For each test result found, include:
-1. The exact test name as shown
-2. The appropriate category for the test
-3. The numerical value and unit
-4. The reference range exactly as shown
-5. Whether the result is normal, high, or low
-6. The test date if available (use the report date if individual test dates aren't shown)
-
-Return the data in this exact JSON format:
-[
-  {
-    "test": "Test Name",
-    "category": "Test Category",
-    "result": "Numerical Value",
-    "reference_min": "Minimum Reference Value",
-    "reference_max": "Maximum Reference Value",
-    "payor_code": "Payor Code",
-    "status": "normal/high/low",
-    "test_date": "YYYY-MM-DD"
-  }
-]
+const USER_PROMPT = `Analyze this lab report and extract all test results.
+Return ONLY a JSON array where each object has these exact fields:
+{
+  "test_name": string,    // Exact test name from report
+  "category": string,     // Test category
+  "result": number,       // Numerical result value
+  "reference_min": number | null,  // Min reference value or null
+  "reference_max": number | null,  // Max reference value or null
+  "status": "normal" | "high" | "low",  // Result status
+  "test_date": "YYYY-MM-DD"  // Test date
+}
 
 Important:
-- Include ALL test results found in the document
-- Use EXACTLY the format shown
-- Return ONLY the JSON array, no other text
-- Determine status based on whether the value is within, above, or below the reference range`;
-
-function tryParseJSON(text: string): { success: boolean; data?: any; error?: string } {
-  try {
-    // Remove any non-JSON content before the first [
-    const jsonStart = text.indexOf('[');
-    if (jsonStart === -1) {
-      return { success: false, error: 'No JSON array found in response' };
-    }
-    const jsonEnd = text.lastIndexOf(']') + 1;
-    const jsonString = text.slice(jsonStart, jsonEnd);
-    const data = JSON.parse(jsonString);
-    return { success: true, data };
-  } catch (err) {
-    return { success: false, error: 'Failed to parse response as JSON' };
-  }
-}
-
-async function convertPdfToImages(pdfBuffer: Buffer): Promise<string[]> {
-  const tempDir = os.tmpdir();
-  const pdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
-  const outputDir = path.join(tempDir, `output_${Date.now()}`);
-  
-  // Write PDF to temporary file
-  fs.writeFileSync(pdfPath, pdfBuffer);
-  
-  // Create output directory
-  fs.mkdirSync(outputDir, { recursive: true });
-  
-  try {
-    // Convert PDF to images using pdf-poppler
-    const opts = {
-      format: 'png',
-      out_dir: outputDir,
-      out_prefix: 'page',
-      page: null // convert all pages
-    };
-    
-    await pdf.convert(pdfPath, opts);
-    
-    // Read all generated PNG files
-    const files = fs.readdirSync(outputDir);
-    const base64Images: string[] = [];
-    
-    for (const file of files) {
-      if (file.endsWith('.png')) {
-        const imagePath = path.join(outputDir, file);
-        const imageBuffer = fs.readFileSync(imagePath);
-        const base64Image = imageBuffer.toString('base64');
-        base64Images.push(`data:image/png;base64,${base64Image}`);
-      }
-    }
-    
-    return base64Images;
-  } finally {
-    // Clean up temporary files
-    if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-    if (fs.existsSync(outputDir)) {
-      const files = fs.readdirSync(outputDir);
-      for (const file of files) {
-        fs.unlinkSync(path.join(outputDir, file));
-      }
-      fs.rmdirSync(outputDir);
-    }
-  }
-}
+- test_name must not be null
+- result must be a number
+- status must be exactly "normal", "high", or "low"
+- For reference ranges like "<5", set reference_max to 5 and reference_min to null
+- For reference ranges like ">10", set reference_min to 10 and reference_max to null
+- For ranges like "10-20", set reference_min to 10 and reference_max to 20`;
 
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-// Add new test endpoint
+// Health check endpoint
 app.get('/api/test', (req, res) => {
   res.json({
     status: 'success',
@@ -154,125 +102,81 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
       bufferLength: req.file.buffer.length + ' bytes'
     });
 
-    // Validate file size (PDFs should be at least 1KB)
-    if (req.file.size < 1024) {
-      console.error('File too small to be a valid PDF');
-      return res.status(400).json({ 
-        error: 'File too small to be a valid PDF',
-        details: {
-          size: req.file.size,
-          minimumSize: 1024,
-          message: 'PDF files should be at least 1KB in size'
-        }
-      });
-    }
-
-    // Validate PDF magic number (first 4 bytes should be "%PDF")
-    const magicNumber = req.file.buffer.slice(0, 4).toString('ascii');
-    console.log('PDF magic number:', magicNumber);
-    
-    if (magicNumber !== '%PDF') {
-      console.error('Invalid PDF file format');
-      return res.status(400).json({ 
-        error: 'Invalid PDF file format',
-        details: {
-          magicNumber,
-          expectedMagicNumber: '%PDF',
-          message: 'The file does not appear to be a valid PDF'
-        }
-      });
-    }
+    // Convert the buffer to base64
+    const base64String = req.file.buffer.toString('base64');
 
     try {
-      // Convert PDF to images
-      console.log('\nConverting PDF to images...');
-      const base64Images = await convertPdfToImages(req.file.buffer);
-      console.log(`Successfully converted PDF to ${base64Images.length} images`);
+      const response = await openai.responses.create({
+        model: "gpt-4.1",
+        input: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_file",
+                filename: req.file.originalname,
+                file_data: `data:application/pdf;base64,${base64String}`,
+              },
+              {
+                type: "input_text",
+                text: USER_PROMPT,
+              },
+            ],
+          },
+        ],
+      });
 
-      if (base64Images.length === 0) {
-        console.error('No images were generated from the PDF');
-        return res.status(400).json({ 
-          error: 'Failed to convert PDF to images',
-          details: {
-            message: 'The PDF could not be converted to images. Please ensure it is a valid PDF file.'
+      try {
+        console.log('Raw response:', response.output_text);
+        const cleanedJSON = extractJSON(response.output_text);
+        console.log('Cleaned JSON:', cleanedJSON);
+        const parsedData = JSON.parse(cleanedJSON);
+
+        // Add only the required additional fields
+        const transformedData = parsedData.map((item: any) => ({
+          test: item.test_name,
+          category: item.category,
+          result: `${item.result}`,
+          reference_min: item.reference_min !== null ? `${item.reference_min}` : null,
+          reference_max: item.reference_max !== null ? `${item.reference_max}` : null,
+          status: item.status,
+          test_date: item.test_date,
+          processed_by_ai: true,
+          source_file_type: 'pdf'
+         
+        }));
+        
+        res.json({ 
+          success: true,
+          data: transformedData,
+          debug: {
+            fileInfo: {
+              size: req.file.size,
+              pages: 1,
+              totalResults:transformedData.length
+            }
           }
+        });
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        res.status(500).json({ 
+          success: false,
+          error: 'Failed to parse results',
+          rawResponse: response.output_text,
+          parseError: parseError instanceof Error ? parseError.message : String(parseError)
         });
       }
 
-      // Process each page with GPT-4 Vision
-      const allResults: any[] = [];
-      
-      for (let i = 0; i < base64Images.length; i++) {
-        console.log(`\n=== Processing page ${i + 1}/${base64Images.length} ===`);
-        const base64Image = base64Images[i];
-        try {
-          console.log('Sending request to GPT-4 Vision API...');
-          const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',  // Fixed model name
-            messages: [
-              {
-                role: 'system',
-                content: SYSTEM_PROMPT
-              },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: USER_PROMPT },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: base64Image,
-                    }
-                  }
-                ]
-              }
-            ],
-            max_tokens: 4096
-          });
-
-          console.log('\nGPT-4 Vision Response:');
-          console.log('------------------------');
-          const responseText = completion.choices[0].message?.content || '[]';
-          console.log(responseText);
-          console.log('------------------------');
-
-          const parseResult = tryParseJSON(responseText);
-          if (parseResult.success) {
-            console.log(`\nSuccessfully parsed ${parseResult.data.length} test results from page ${i + 1}`);
-            console.log('Parsed Results:', JSON.stringify(parseResult.data, null, 2));
-            allResults.push(...parseResult.data);
-          } else {
-            console.error(`\nFailed to parse JSON from page ${i + 1}:`, parseResult.error);
-            console.error('Raw response:', responseText);
-          }
-        } catch (pageError) {
-          console.error(`\nError processing page ${i + 1}:`, pageError);
-          // Continue with other pages even if one fails
-        }
-      }
-
-      console.log('\n=== Processing Complete ===');
-      console.log(`Total test results extracted: ${allResults.length}`);
-      console.log('All Results:', JSON.stringify(allResults, null, 2));
-
-      // Combine results from all pages
-      res.json({ 
-        success: true,
-        data: allResults,
-        debug: {
-          fileInfo: {
-            size: req.file.size,
-            pages: base64Images.length,
-            totalResults: allResults.length
-          }
-        }
+    } catch (openaiError) {
+      console.error('OpenAI API Error:', openaiError);
+      res.status(500).json({ 
+        success: false,
+        error: 'Failed to process PDF with OpenAI',
+        details: openaiError instanceof Error ? openaiError.message : 'Unknown error'
       });
-    } catch (err) {
-      console.error('\nOpenAI API Error:', err);
-      throw err;
     }
   } catch (err) {
-    console.error('\nError:', err);
+    console.error('Error:', err);
     const errorMessage = err instanceof Error ? err.message : 'Failed to process PDF';
     res.status(500).json({ 
       success: false,
@@ -281,7 +185,6 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
     });
   }
 });
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+
+// Export the Express API
+export default app; 
