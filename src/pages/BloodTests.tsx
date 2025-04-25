@@ -12,7 +12,8 @@ import {
   UploadIcon,
   PlusIcon,
   DownloadIcon,
-  InfoIcon
+  InfoIcon,
+  CheckCircleIcon
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
@@ -22,6 +23,7 @@ import {
   AlertTitle,
   AlertDescription 
 } from '@/components/ui/alert';
+import { bloodTestService } from '@/services/bloodTestService';
 
 // Import the components
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
@@ -39,6 +41,12 @@ const BloodTests = () => {
   const [activeTab, setActiveTab] = useState("by-date");
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [successfullyProcessed, setSuccessfullyProcessed] = useState<string[]>([]);
+  const [failedToProcess, setFailedToProcess] = useState<string[]>([]);
+  const [duplicateFiles, setDuplicateFiles] = useState<string[]>([]);
+  const [processingStatus, setProcessingStatus] = useState<Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>>({});
 
   useEffect(() => {
     if (user) {
@@ -165,77 +173,82 @@ const BloodTests = () => {
   };
 
   const processFilesWithAI = async (files: Array<{name: string, url: string, path: string}>) => {
-    if (!user || files.length === 0) return;
+    if (!files.length) {
+      toast.error('Please select files to process');
+      return;
+    }
+
+    setProcessing(true);
+    setProcessingProgress(0);
+    setSuccessfullyProcessed([]);
+    setFailedToProcess([]);
+    setDuplicateFiles([]);
     
-    setIsProcessing(true);
-    const processingToast = toast.loading('Processing blood test PDFs with AI...');
-    
+    // Initialize processing status for all files
+    const initialStatus = files.reduce((acc, file) => {
+      acc[file.name] = 'pending';
+      return acc;
+    }, {} as Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>);
+    setProcessingStatus(initialStatus);
+
     try {
-      let successCount = 0;
-      let errorCount = 0;
-      
-      for (const file of files) {
-        console.log('Processing file:', file.name);
-        console.log('File URL:', file.url);
-        
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const progress = ((i + 1) / files.length) * 100;
+        setProcessingProgress(progress);
+
         try {
-          const { data, error } = await supabase.functions.invoke('process-blood-test-pdf', {
-            body: {
-              pdfUrl: file.url,
-              fileId: file.path,
-              userId: user.id
+          setProcessingStatus(prev => ({ ...prev, [file.name]: 'processing' }));
+
+          const originalFile = selectedFiles.find(f => f.name === file.name);
+          if (!originalFile) {
+            throw new Error(`Original file not found for ${file.name}`);
+          }
+
+          const results = await bloodTestService.processBloodTestPDF(originalFile);
+          if (results && results.length > 0) {
+            setSuccessfullyProcessed(prev => [...prev, file.name]);
+            setProcessingStatus(prev => ({ ...prev, [file.name]: 'success' }));
+          } else {
+            setFailedToProcess(prev => [...prev, file.name]);
+            setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
+          }
+        } catch (error) {
+          console.error(`Error processing file ${file.name}:`, error);
+          if (error instanceof Error) {
+            if (error.message === 'This PDF has already been processed and results exist') {
+              setDuplicateFiles(prev => [...prev, file.name]);
+              setProcessingStatus(prev => ({ ...prev, [file.name]: 'duplicate' }));
+            } else {
+              setFailedToProcess(prev => [...prev, file.name]);
+              setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
+              toast.error(`Failed to process ${file.name}: ${error.message}`);
             }
-          });
-          
-          if (error) {
-            console.error('Edge function error:', error);
-            errorCount++;
-            continue;
           }
-          
-          if (data && !data.success) {
-            console.error('Processing error:', data.error);
-            errorCount++;
-            continue;
-          }
-          
-          successCount += data.resultsCount || 0;
-          
-        } catch (err) {
-          console.error(`Error processing file ${file.name}:`, err);
-          errorCount++;
         }
       }
-      
-      toast.dismiss(processingToast);
-      
-      if (successCount > 0) {
-        toast.success(`AI extracted ${successCount} test results from your PDFs`);
+
+      // Show summary toasts
+      if (successfullyProcessed.length > 0) {
+        toast.success(`Successfully processed ${successfullyProcessed.length} file(s)`);
       }
-      
-      if (errorCount > 0) {
-        setUploadError(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
-        toast.error(`Error processing ${errorCount} PDF file(s). Please try manual entry instead.`);
+      if (duplicateFiles.length > 0) {
+        toast.warning(`${duplicateFiles.length} file(s) were already processed and have existing results`);
       }
-      
-      // Refresh the data regardless
-      fetchBloodTestResults();
-      
-    } catch (error: any) {
-      console.error('Error processing files with AI:', error);
-      toast.dismiss(processingToast);
-      
-      // Set a more user-friendly error message
-      setUploadError('Error processing blood test PDFs. Please try manual entry instead.');
-      
-      toast.error('Error processing blood test PDFs. Please try manual entry instead.');
+      if (failedToProcess.length > 0) {
+        toast.error(`Failed to process ${failedToProcess.length} file(s)`);
+      }
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast.error('An error occurred while processing files');
     } finally {
-      setIsProcessing(false);
-      setSelectedFiles([]);
-      setShowAIProcessing(false);
+      setProcessing(false);
+      setProcessingProgress(0);
+      // Clear the file input and selected files after processing
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      setSelectedFiles([]);
     }
   };
 
@@ -346,10 +359,43 @@ const BloodTests = () => {
                 {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {selectedFiles.map((file, index) => (
-                      <div key={index} className="p-3 bg-muted rounded-md flex items-center justify-between">
+                      <div 
+                        key={index} 
+                        className={`p-3 rounded-md flex items-center justify-between ${
+                          processingStatus[file.name] === 'success' ? 'bg-green-50 border border-green-100' :
+                          processingStatus[file.name] === 'error' ? 'bg-red-50 border border-red-100' :
+                          processingStatus[file.name] === 'duplicate' ? 'bg-amber-50 border border-amber-100' :
+                          processingStatus[file.name] === 'processing' ? 'bg-blue-50 border border-blue-100' :
+                          'bg-muted'
+                        }`}
+                      >
                         <div className="flex items-center">
                           <FileTextIcon className="h-4 w-4 mr-2" />
                           <p className="text-sm">{file.name}</p>
+                          {processingStatus[file.name] === 'processing' && (
+                            <span className="ml-2 text-xs text-blue-600">
+                              <Loader2Icon className="h-3 w-3 animate-spin inline mr-1" />
+                              Processing...
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'success' && (
+                            <span className="ml-2 text-xs text-green-600">
+                              <CheckCircleIcon className="h-3 w-3 inline mr-1" />
+                              Processed successfully
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'error' && (
+                            <span className="ml-2 text-xs text-red-600">
+                              <AlertCircleIcon className="h-3 w-3 inline mr-1" />
+                              Failed to process
+                            </span>
+                          )}
+                          {processingStatus[file.name] === 'duplicate' && (
+                            <span className="ml-2 text-xs text-amber-600">
+                              <InfoIcon className="h-3 w-3 inline mr-1" />
+                              Already processed
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                       </div>

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,17 +11,10 @@ import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { Loader2 } from 'lucide-react';
 
-interface BloodTest {
-  id: string;
-  test_name: string;
-  test_date: string;
-  result: number;
-  unit?: string;
-  reference_min?: number | null;
-  reference_max?: number | null;
-  status?: string;
-  category: string;
-  notes?: string | null;
+type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row'];
+
+interface BloodTest extends Omit<BloodTestResult, 'created_at' | 'user_id' | 'processed_by_ai' | 'source_file_path' | 'source_file_type' | 'source_file_url'> {
+  // Additional fields specific to the component if needed
 }
 
 type BloodTestsByDateProps = {
@@ -148,11 +142,11 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                             </div>
                             <div className="text-right">
                               <p className={`font-bold ${getCellColor(test.result, test.reference_min, test.reference_max)}`}>
-                                {test.result} {test.unit || ''}
+                                {test.result}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {test.reference_min !== null && test.reference_max !== null 
-                                  ? `Ref: ${test.reference_min} - ${test.reference_max} ${test.unit || ''}`
+                                  ? `Ref: ${test.reference_min} - ${test.reference_max}`
                                   : 'No reference range'}
                               </p>
                             </div>
