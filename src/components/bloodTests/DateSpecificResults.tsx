@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, EditIcon, SaveIcon, XIcon, Trash2, Loader2 } from 'lucide-react';
@@ -202,6 +203,26 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
     if (value > max) return "text-rose-500";
     return "text-emerald-500";
   };
+
+  const getStatusColor = (status: string | null | undefined) => {
+    if (!status) return "";
+    switch(status.toLowerCase()) {
+      case 'high':
+        return "text-rose-500";
+      case 'low':
+        return "text-amber-500";
+      case 'normal':
+      default:
+        return "text-emerald-500";
+    }
+  };
+  
+  const getStatusText = (value: number, min: number | null, max: number | null) => {
+    if (min === null || max === null) return "Unknown";
+    if (value < min) return "Low";
+    if (value > max) return "High";
+    return "Normal";
+  };
   
   return (
     <div className="space-y-6">
@@ -272,71 +293,70 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {tests.map((test) => (
-                          <TableRow key={test.id}>
-                            <TableCell className="font-medium">{test.test_name}</TableCell>
-                            <TableCell>
-                              <span className={getCellColor(test.result, test.reference_min, test.reference_max)}>
-                                {test.result} {test.unit || ''}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              {test.reference_min !== null && test.reference_max !== null 
-                                ? `${test.reference_min} - ${test.reference_max} ${test.unit || ''}`
-                                : 'Not available'}
-                            </TableCell>
-                            <TableCell>
-                              <span className={getCellColor(test.result, test.reference_min, test.reference_max)}>
-                                {test.reference_min !== null && test.reference_max !== null
-                                  ? test.result < test.reference_min
-                                    ? 'Low'
-                                    : test.result > test.reference_max
-                                      ? 'High'
-                                      : 'Normal'
-                                  : 'Unknown'}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-7 w-7 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
-                                    aria-label="Delete test"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete the {test.test_name} test result from {format(selectedDate, 'MMMM d, yyyy')}? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      className="bg-red-500 hover:bg-red-600"
-                                      onClick={() => handleDeleteTest(test.id)}
-                                      disabled={isDeleting === test.id}
+                        {tests.map((test) => {
+                          const statusText = test.status || getStatusText(test.result, test.reference_min, test.reference_max);
+                          const statusColorClass = getStatusColor(test.status) || getCellColor(test.result, test.reference_min, test.reference_max);
+                          
+                          return (
+                            <TableRow key={test.id}>
+                              <TableCell className="font-medium">{test.test_name}</TableCell>
+                              <TableCell>
+                                <span className={statusColorClass}>
+                                  {test.result} {test.unit || ''}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                {test.reference_min !== null && test.reference_max !== null 
+                                  ? `${test.reference_min} - ${test.reference_max} ${test.unit || ''}`
+                                  : 'Not available'}
+                              </TableCell>
+                              <TableCell>
+                                <span className={statusColorClass}>
+                                  {statusText}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-7 w-7 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
+                                      aria-label="Delete test"
                                     >
-                                      {isDeleting === test.id ? (
-                                        <>
-                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                          Deleting...
-                                        </>
-                                      ) : (
-                                        'Delete'
-                                      )}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete the {test.test_name} test result from {format(selectedDate, 'MMMM d, yyyy')}? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        className="bg-red-500 hover:bg-red-600"
+                                        onClick={() => handleDeleteTest(test.id)}
+                                        disabled={isDeleting === test.id}
+                                      >
+                                        {isDeleting === test.id ? (
+                                          <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Deleting...
+                                          </>
+                                        ) : (
+                                          'Delete'
+                                        )}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </CardContent>

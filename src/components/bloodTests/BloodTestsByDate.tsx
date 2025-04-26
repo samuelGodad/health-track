@@ -72,6 +72,19 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
     return "text-emerald-500";
   };
 
+  const getStatusColor = (status: string | null) => {
+    if (!status) return "";
+    switch(status.toLowerCase()) {
+      case 'high':
+        return "text-rose-500";
+      case 'low':
+        return "text-amber-500";
+      case 'normal':
+      default:
+        return "text-emerald-500";
+    }
+  };
+
   // Delete a single test
   const handleDeleteTest = async (testId: string) => {
     if (!user) {
@@ -143,17 +156,17 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                             </div>
                             <div className="text-right pl-4 flex flex-col items-end">
                               <p className={`font-bold ${getCellColor(test.result, test.reference_min, test.reference_max)}`}>
-                                {test.result}
+                                {test.result} {test.unit || ''}
                               </p>
                               <p className="text-xs text-muted-foreground whitespace-nowrap">
                                 {test.reference_min !== null && test.reference_max !== null 
-                                  ? `Ref: ${test.reference_min} - ${test.reference_max}`
+                                  ? `Ref: ${test.reference_min} - ${test.reference_max} ${test.unit || ''}`
                                   : 'No reference range'}
                               </p>
                             </div>
                           </div>
                           {test.status && (
-                            <div className={`text-xs font-medium mt-2 ${getCellColor(test.result, test.reference_min, test.reference_max)}`}>
+                            <div className={`text-xs font-medium mt-2 ${getStatusColor(test.status)}`}>
                               Status: {test.status}
                             </div>
                           )}
