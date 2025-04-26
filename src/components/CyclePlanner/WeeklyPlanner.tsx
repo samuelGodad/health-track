@@ -1,12 +1,15 @@
-
 import { useState } from "react";
-import { addWeeks, startOfWeek, endOfWeek, format } from "date-fns";
+import { addWeeks, startOfWeek, endOfWeek, format, addDays } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 
 interface CyclePlanEntry {
   id: string;
@@ -34,6 +37,7 @@ const compounds = [
 const WeeklyPlanner = () => {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [cyclePlans, setCyclePlans] = useState<CyclePlanEntry[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [newCyclePlan, setNewCyclePlan] = useState<Partial<CyclePlanEntry>>({
     compound: "",
     weeklyDose: 0,
@@ -43,9 +47,18 @@ const WeeklyPlanner = () => {
     weekNumber: 1,
   });
 
-  const startDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const startDate = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekStart = format(addWeeks(startDate, currentWeek - 1), 'MMM d');
   const weekEnd = format(endOfWeek(addWeeks(startDate, currentWeek - 1), { weekStartsOn: 1 }), 'MMM d, yyyy');
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      const start = startOfWeek(date, { weekStartsOn: 1 });
+      const dayDiff = Math.floor((date.getTime() - startOfWeek(new Date(), { weekStartsOn: 1 }).getTime()) / (1000 * 60 * 60 * 24 * 7)) + 1;
+      setCurrentWeek(Math.max(1, dayDiff));
+    }
+  };
 
   const handleInputChange = (field: keyof CyclePlanEntry, value: any) => {
     setNewCyclePlan((prev) => ({ ...prev, [field]: value }));
@@ -90,9 +103,25 @@ const WeeklyPlanner = () => {
           >
             Previous Week
           </Button>
-          <span className="font-medium">
-            Week {currentWeek} ({weekStart} - {weekEnd})
-          </span>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="min-w-[240px] justify-start text-left font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Week {currentWeek} ({weekStart} - {weekEnd})
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
           <Button 
             variant="outline" 
             onClick={() => setCurrentWeek(prev => prev + 1)}
