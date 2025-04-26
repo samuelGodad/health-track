@@ -47,7 +47,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+          margin={{ top: 20, right: 40, left: 15, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -67,7 +67,7 @@ export function LineChart({
             padding={{ top: 10, bottom: 10 }}
             tick={{ fontSize: 11 }}
             tickMargin={10}
-            width={50}
+            width={60}
           />
           <Tooltip
             content={({
@@ -119,7 +119,7 @@ export function LineChart({
             />
           )}
           <Line
-            type="monotone"
+            type="linear"
             dataKey={dataKey}
             stroke={color}
             activeDot={{ r: 6, stroke: "hsl(var(--background))", strokeWidth: 2 }}
