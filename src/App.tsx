@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard"; 
 import BloodTests from "./pages/BloodTests";
+import InjectionAssistant from "./pages/InjectionAssistant";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -40,6 +41,10 @@ function App() {
               <Route 
                 path="/dashboard" 
                 element={<AuthWrapper><Dashboard /></AuthWrapper>} 
+              />
+              <Route 
+                path="/injection-assistant" 
+                element={<AuthWrapper><InjectionAssistant /></AuthWrapper>} 
               />
               <Route 
                 path="/blood-tests" 
