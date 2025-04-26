@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -55,11 +56,23 @@ export function LineChart({
             tickLine={false}
             axisLine={false}
             padding={{ left: 10, right: 10 }}
-            tick={{ 
-              fontSize: 11,
-              angle: -45,
-              textAnchor: 'end',
-              dy: 10
+            tick={(props) => {
+              const { x, y, payload } = props;
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  <text
+                    x={0}
+                    y={0}
+                    dy={10}
+                    textAnchor="end"
+                    fill="hsl(var(--muted-foreground))"
+                    fontSize={11}
+                    transform="rotate(-45)"
+                  >
+                    {payload.value}
+                  </text>
+                </g>
+              );
             }}
             tickMargin={5}
             height={60}
