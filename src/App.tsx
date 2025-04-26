@@ -6,12 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard"; // Import the new Dashboard component
+import Dashboard from "./pages/Dashboard"; 
 import BloodTests from "./pages/BloodTests";
-import DailyMetrics from "./pages/DailyMetrics";
-import BodyProgress from "./pages/BodyProgress";
-import Supplements from "./pages/Supplements";
-import Targets from "./pages/Targets";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -49,22 +45,12 @@ function App() {
                 path="/blood-tests" 
                 element={<AuthWrapper><BloodTests /></AuthWrapper>} 
               />
-              <Route 
-                path="/daily-metrics" 
-                element={<AuthWrapper><DailyMetrics /></AuthWrapper>} 
-              />
-              <Route 
-                path="/body-progress" 
-                element={<AuthWrapper><BodyProgress /></AuthWrapper>} 
-              />
-              <Route 
-                path="/supplements" 
-                element={<AuthWrapper><Supplements /></AuthWrapper>} 
-              />
-              <Route 
-                path="/targets" 
-                element={<AuthWrapper><Targets /></AuthWrapper>} 
-              />
+              
+              {/* Redirect removed routes to dashboard */}
+              <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/supplements" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/targets" element={<Navigate to="/dashboard" replace />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />

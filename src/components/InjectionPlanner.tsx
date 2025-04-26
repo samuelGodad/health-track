@@ -1,250 +1,138 @@
+
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-// Days of the week for selector
-const DAYS = [
-  { key: "mon", label: "Mon" },
-  { key: "tue", label: "Tue" },
-  { key: "wed", label: "Wed" },
-  { key: "thu", label: "Thu" },
-  { key: "fri", label: "Fri" },
-  { key: "sat", label: "Sat" },
-  { key: "sun", label: "Sun" },
+// In a real implementation, this data would come from the cycle planner
+// and would be calculated based on the weekly doses and frequencies
+const injectionsData = [
+  {
+    id: 1,
+    compound: "Testosterone Enanthate",
+    dose: 250,
+    unit: "mg",
+    frequency: "Monday, Thursday",
+    status: "upcoming", // upcoming, completed, missed
+  },
+  {
+    id: 2,
+    compound: "Nandrolone Decanoate",
+    dose: 150,
+    unit: "mg",
+    frequency: "Monday, Thursday",
+    status: "completed",
+  },
+  {
+    id: 3,
+    compound: "Trenbolone Acetate",
+    dose: 75,
+    unit: "mg",
+    frequency: "Monday, Wednesday, Friday",
+    status: "missed",
+  },
 ];
 
-interface InjectionRow {
-  ped: string;
-  dosing: number;
-  weeklyDose: number;
-}
+type InjectionStatus = "upcoming" | "completed" | "missed";
 
-const initialRows: InjectionRow[] = [
-  { ped: "Test", dosing: 300, weeklyDose: 500 },
-  { ped: "Mast", dosing: 200, weeklyDose: 400 },
-  { ped: "Primo", dosing: 100, weeklyDose: 200 }
-];
+const InjectionPlanner: React.FC = () => {
+  const [injections, setInjections] = useState(injectionsData);
 
-export default function InjectionPlanner() {
-  const [rows, setRows] = useState<InjectionRow[]>(initialRows);
-  const [selectedDays, setSelectedDays] = useState<string[]>(["mon", "wed", "fri"]);
-
-  const weeklyInjections = selectedDays.length;
-
-  // Add a row at the end
-  const handleAddRow = () => {
-    setRows([...rows, { ped: "", dosing: 0, weeklyDose: 0 }]);
-  };
-
-  // Update a field in a row
-  const handleRowChange = (index: number, field: keyof InjectionRow, value: string) => {
-    const newRows = [...rows];
-    if (field === "ped") {
-      newRows[index][field] = value;
-    } else {
-      newRows[index][field] = parseFloat(value) || 0;
-    }
-    setRows(newRows);
-  };
-
-  function computeMlPerInjection(row: InjectionRow): string {
-    const dosing = row.dosing || 0;
-    const weeklyDose = row.weeklyDose || 0;
-    const injections = weeklyInjections || 0;
-    if (dosing > 0 && injections > 0) {
-      return weeklyDose ? (weeklyDose / (dosing * injections)).toFixed(2) : "";
-    }
-    return "";
-  }
-
-  // Toggle week day selection
-  const toggleDay = (dayKey: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(dayKey)
-        ? prev.filter((d) => d !== dayKey)
-        : [...prev, dayKey]
+  const updateInjectionStatus = (id: number, status: InjectionStatus) => {
+    setInjections(
+      injections.map((injection) =>
+        injection.id === id ? { ...injection, status } : injection
+      )
     );
   };
 
-  // Responsive: Weekday selector, compact single row
-  const WeekdaySelector = (
-    <div className="mb-2">
-      <div className="flex gap-2 overflow-x-auto no-scrollbar md:justify-start py-1">
-        {DAYS.map((day) => (
-          <button
-            key={day.key}
-            type="button"
-            aria-pressed={selectedDays.includes(day.key)}
-            onClick={() => toggleDay(day.key)}
-            className={cn(
-              // Brand: Selected days = bg-primary/text-primary-foreground, else secondary
-              "transition-colors px-3 py-1 rounded font-medium border focus:outline-none min-w-[40px] text-sm",
-              selectedDays.includes(day.key)
-                ? "bg-primary text-primary-foreground border-primary shadow"
-                : "bg-secondary text-secondary-foreground border-border hover:bg-muted"
-            )}
-            style={{ flex: "0 0 auto" }}
-          >
-            {day.label}
-          </button>
-        ))}
-      </div>
-      <div className="text-xs text-muted-foreground mt-1">
-        Choose which days of the week you take your injections
-        <span className="font-semibold text-primary"> ({weeklyInjections} selected)</span>
-      </div>
-    </div>
-  );
-
-  // Calculate total ML per injection
-  const totalMlPerInjection = rows.reduce((total, row) => {
-    const mlPerInjection = parseFloat(computeMlPerInjection(row)) || 0;
-    return total + mlPerInjection;
-  }, 0);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <Badge className="bg-green-500">Completed</Badge>;
+      case "missed":
+        return <Badge variant="destructive">Missed</Badge>;
+      default:
+        return <Badge variant="outline">Upcoming</Badge>;
+    }
+  };
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Injection Planner</h2>
-      {WeekdaySelector}
-
-      <div>
-        {/* Mobile: vertical card display */}
-        <div className="flex flex-col gap-3 md:hidden">
-          {rows.map((row, idx) => (
-            <div
-              key={idx}
-              className="rounded-lg border border-muted p-3 shadow-sm bg-white space-y-2"
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-32 text-muted-foreground text-xs">PED To Inject</span>
-                <Input
-                  value={row.ped}
-                  onChange={e => handleRowChange(idx, "ped", e.target.value)}
-                  placeholder="PED name"
-                  className="font-semibold flex-1"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-32 text-muted-foreground text-xs">Dosing Per 1ML</span>
-                <Input
-                  type="number"
-                  min={0}
-                  value={row.dosing}
-                  onChange={e => handleRowChange(idx, "dosing", e.target.value)}
-                  placeholder="mg/ml"
-                  className="font-normal flex-1"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-32 text-muted-foreground text-xs">Weekly Dose</span>
-                <Input
-                  type="number"
-                  min={0}
-                  value={row.weeklyDose}
-                  onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
-                  placeholder="mg"
-                  className="font-normal flex-1"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-32 text-muted-foreground text-xs">ML Per Injection</span>
-                <Input
-                  value={computeMlPerInjection(row)}
-                  disabled
-                  className="bg-white text-center font-semibold flex-1"
-                />
-              </div>
-            </div>
-          ))}
-          
-          {/* Total ML Injection Box */}
-          <div className="rounded-lg border border-primary p-3 bg-primary/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Total ML Per Injection</span>
-              <span className="text-lg font-bold text-primary">
-                {totalMlPerInjection.toFixed(2)} ML
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* Desktop: table for overview */}
-        <div className="overflow-x-auto rounded-lg border border-muted hidden md:block">
-          <table className="w-full min-w-[600px] table-auto text-sm">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="px-3 py-2 text-left font-semibold">PED To Inject</th>
-                <th className="px-3 py-2 text-left font-semibold">Dosing Per 1ML</th>
-                <th className="px-3 py-2 text-left font-semibold">Weekly Dose</th>
-                <th className="px-3 py-2 text-left font-semibold">ML Per Injection</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, idx) => (
-                <tr key={idx}>
-                  <td>
-                    <Input
-                      value={row.ped}
-                      onChange={e => handleRowChange(idx, "ped", e.target.value)}
-                      placeholder="PED name"
-                      className="font-semibold"
-                    />
-                  </td>
-                  <td>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={row.dosing}
-                      onChange={e => handleRowChange(idx, "dosing", e.target.value)}
-                      placeholder="mg/ml"
-                      className="text-center"
-                    />
-                  </td>
-                  <td>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={row.weeklyDose}
-                      onChange={e => handleRowChange(idx, "weeklyDose", e.target.value)}
-                      placeholder="mg"
-                      className="text-center"
-                    />
-                  </td>
-                  <td>
-                    <Input
-                      value={computeMlPerInjection(row)}
-                      disabled
-                      className="bg-white text-center font-semibold"
-                    />
-                  </td>
-                </tr>
-              ))}
-              {/* Total ML Per Injection Row */}
-              <tr className="bg-primary/10 font-semibold">
-                <td colSpan={3} className="px-3 py-2 text-right">Total ML Per Injection</td>
-                <td className="px-3 py-2 text-center text-primary">
-                  {totalMlPerInjection.toFixed(2)} ML
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <div className="w-full">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold">Your Injection Schedule</h2>
+        <p className="text-muted-foreground">
+          Track and manage your injections for optimal results
+        </p>
       </div>
 
-      <button
-        type="button"
-        className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 rounded shadow transition-colors"
-        onClick={handleAddRow}
-      >
-        + Add Injectable PED
-      </button>
-
-      {/* Formula section */}
-      <div className="mt-3 text-xs text-muted-foreground">
-        <strong>Formula</strong> for "ML Per Injection": <br />
-        <span className="bg-gray-100 rounded px-2 py-1">
-          ML/inj = Weekly Dose / (Dosing per 1ML × Weekly Injections)
-        </span>
+      <Table>
+        <TableCaption>Injections calculated from your cycle plan</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Compound</TableHead>
+            <TableHead>Dose</TableHead>
+            <TableHead>Schedule</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {injections.map((injection) => (
+            <TableRow key={injection.id}>
+              <TableCell className="font-medium">{injection.compound}</TableCell>
+              <TableCell>
+                {injection.dose} {injection.unit}
+              </TableCell>
+              <TableCell>{injection.frequency}</TableCell>
+              <TableCell>{getStatusBadge(injection.status)}</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={cn(
+                      injection.status === "completed" && "bg-green-500/10"
+                    )}
+                    onClick={() => updateInjectionStatus(injection.id, "completed")}
+                  >
+                    Done
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={cn(
+                      injection.status === "missed" && "bg-red-500/10"
+                    )}
+                    onClick={() => updateInjectionStatus(injection.id, "missed")}
+                  >
+                    Missed
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      
+      <div className="mt-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Your injection schedule is based on your cycle plan.
+          <br />
+          Update your cycle in the Cycle Planner to modify your injection schedule.
+        </p>
       </div>
     </div>
   );
-}
+};
+
+export default InjectionPlanner;
