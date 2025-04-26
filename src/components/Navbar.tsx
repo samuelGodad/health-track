@@ -1,103 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import {
-  HeartPulseIcon,
-  ClipboardIcon,
-  SyringeIcon,
-  FlaskConicalIcon,
-  MenuIcon,
-  UserIcon,
-  SettingsIcon,
-  MessageSquareIcon,
-  CreditCardIcon,
-  LogOutIcon
-} from "lucide-react";
+import { HeartPulseIcon, ClipboardIcon, SyringeIcon, FlaskConicalIcon, MenuIcon } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-const NavItem = ({ 
-  to, 
-  icon: Icon, 
-  label, 
-  isActive 
-}: { 
-  to: string; 
-  icon: React.ElementType; 
-  label: string; 
-  isActive: boolean;
-}) => {
-  return (
-    <Link 
-      to={to} 
-      className={cn(
-        "flex items-center gap-3 px-6 py-3 transition-all duration-300",
-        "hover:bg-secondary/80",
-        isActive ? "border-b-2 border-primary text-primary font-medium" : "text-muted-foreground"
-      )}
-    >
-      <Icon className={cn(
-        "w-5 h-5 transition-all duration-300",
-        isActive ? "text-primary" : "text-muted-foreground"
-      )} />
-      <span>{label}</span>
-    </Link>
-  );
-};
-
-const UserDropdown = () => {
-  const { user, signOut } = useAuth();
-  
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center rounded-full bg-secondary/70 p-1 hover:bg-secondary transition-colors">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="" />
-          <AvatarFallback className="bg-primary text-primary-foreground">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
-          </AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <UserIcon className="mr-2 h-4 w-4" />
-          <span>My Details</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <SettingsIcon className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <MessageSquareIcon className="mr-2 h-4 w-4" />
-          <span>Leave Feedback</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <CreditCardIcon className="mr-2 h-4 w-4" />
-          <span>Billing</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
+import { cn } from "@/lib/utils";
+import { NavItem } from "./navbar/NavItem";
+import { UserDropdown } from "./navbar/UserDropdown";
+import { MobileNav } from "./navbar/MobileNav";
 
 const Navbar = () => {
   const location = useLocation();
@@ -157,30 +66,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
-          <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
-            <NavItem 
-              to="/dashboard" 
-              icon={ClipboardIcon}
-              label="Cycle Planner" 
-              isActive={location.pathname === '/dashboard'} 
-            />
-            <NavItem 
-              to="/injection-assistant" 
-              icon={SyringeIcon} 
-              label="Injection Assistant" 
-              isActive={location.pathname === '/injection-assistant'} 
-            />
-            <NavItem 
-              to="/blood-tests" 
-              icon={FlaskConicalIcon} 
-              label="Blood Results" 
-              isActive={location.pathname === '/blood-tests'} 
-            />
-          </div>
-        </div>
-      )}
+      <MobileNav isOpen={mobileMenuOpen} currentPath={location.pathname} />
     </div>
   );
 };
