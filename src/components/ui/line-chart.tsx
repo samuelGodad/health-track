@@ -47,7 +47,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 20, right: 40, left: 15, bottom: 35 }}
+          margin={{ top: 30, right: 40, left: 15, bottom: 35 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -137,12 +137,36 @@ export function LineChart({
             />
           )}
           <Line
-            type="linear"
+            type="monotone"
             dataKey={dataKey}
             stroke={color}
-            activeDot={{ r: 6, stroke: "hsl(var(--background))", strokeWidth: 2 }}
             strokeWidth={2}
-            dot={{ fill: "hsl(var(--background))", stroke: color, strokeWidth: 2, r: 4 }}
+            dot={{ 
+              fill: "hsl(var(--background))", 
+              stroke: color, 
+              strokeWidth: 2, 
+              r: 4 
+            }}
+            activeDot={{ 
+              r: 6, 
+              stroke: "hsl(var(--background))", 
+              strokeWidth: 2 
+            }}
+            label={(props) => {
+              const { x, y, value } = props;
+              return (
+                <text
+                  x={x}
+                  y={y - 10}
+                  fill={color}
+                  fontSize={11}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {valueFormatter(Number(value))}
+                </text>
+              );
+            }}
           />
         </RechartsLineChart>
       </ResponsiveContainer>
