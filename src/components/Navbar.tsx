@@ -34,10 +34,10 @@ const Navbar = () => {
 
           <nav className="hidden md:flex items-center">
             <NavItem 
-              to="/dashboard" 
+              to="/cycle-planner" 
               icon={ClipboardIcon}
               label="Cycle Planner" 
-              isActive={location.pathname === '/dashboard'} 
+              isActive={location.pathname === '/cycle-planner'} 
             />
             <NavItem 
               to="/injection-assistant" 

@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard"; 
+import CyclePlanner from "./pages/CyclePlanner"; 
 import BloodTests from "./pages/BloodTests";
 import InjectionAssistant from "./pages/InjectionAssistant";
 import NotFound from "./pages/NotFound";
@@ -18,7 +18,6 @@ import AuthWrapper from "./components/AuthWrapper";
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-// Convert to a function component
 function App() {
   return (
     <React.StrictMode>
@@ -39,8 +38,8 @@ function App() {
                 element={<AuthWrapper><Onboarding /></AuthWrapper>} 
               />
               <Route 
-                path="/dashboard" 
-                element={<AuthWrapper><Dashboard /></AuthWrapper>} 
+                path="/cycle-planner" 
+                element={<AuthWrapper><CyclePlanner /></AuthWrapper>} 
               />
               <Route 
                 path="/injection-assistant" 
@@ -51,11 +50,14 @@ function App() {
                 element={<AuthWrapper><BloodTests /></AuthWrapper>} 
               />
               
-              {/* Redirect removed routes to dashboard */}
-              <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/supplements" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/targets" element={<Navigate to="/dashboard" replace />} />
+              {/* Redirect /dashboard to /cycle-planner */}
+              <Route path="/dashboard" element={<Navigate to="/cycle-planner" replace />} />
+              
+              {/* Redirect removed routes */}
+              <Route path="/daily-metrics" element={<Navigate to="/cycle-planner" replace />} />
+              <Route path="/body-progress" element={<Navigate to="/cycle-planner" replace />} />
+              <Route path="/supplements" element={<Navigate to="/cycle-planner" replace />} />
+              <Route path="/targets" element={<Navigate to="/cycle-planner" replace />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />

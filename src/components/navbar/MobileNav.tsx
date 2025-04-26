@@ -14,10 +14,10 @@ export const MobileNav = ({ isOpen, currentPath }: MobileNavProps) => {
     <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
       <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
         <NavItem 
-          to="/dashboard" 
+          to="/cycle-planner" 
           icon={ClipboardIcon}
           label="Cycle Planner" 
-          isActive={currentPath === '/dashboard'} 
+          isActive={currentPath === '/cycle-planner'} 
         />
         <NavItem 
           to="/injection-assistant" 
