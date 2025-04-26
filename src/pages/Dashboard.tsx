@@ -1,19 +1,18 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Toggle } from "@/components/ui/toggle";
 import { 
-  CalendarIcon,
+  SyringeIcon,
   FlaskConicalIcon,
-  SyringeIcon
+  ClipboardIcon
 } from "lucide-react";
 import InjectionPlanner from "@/components/InjectionPlanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CyclePlannerCalendar from "@/components/CyclePlanner/CyclePlannerCalendar";
+import WeeklyPlanner from "@/components/CyclePlanner/WeeklyPlanner";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -34,7 +33,7 @@ const Dashboard = () => {
         <Tabs defaultValue="cycle-planner" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="cycle-planner" className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" />
+              <ClipboardIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Cycle Planner</span>
             </TabsTrigger>
             <TabsTrigger value="injection-assistant" className="flex items-center gap-2">
@@ -54,7 +53,7 @@ const Dashboard = () => {
           <TabsContent value="cycle-planner" className="mt-6">
             <Card>
               <CardContent className="pt-6">
-                <CyclePlannerCalendar />
+                <WeeklyPlanner />
               </CardContent>
             </Card>
           </TabsContent>
