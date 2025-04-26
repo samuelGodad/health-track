@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -11,11 +10,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2 } from 'lucide-react';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { Loader2 } from 'lucide-react';
+import { EditIcon } from 'lucide-react';
 
 type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row'];
 
 interface BloodTest extends Omit<BloodTestResult, 'created_at' | 'user_id' | 'processed_by_ai' | 'source_file_path' | 'source_file_type' | 'source_file_url'> {
-  // Add unit property which was missing from the interface
   unit?: string; 
 }
 
@@ -29,13 +28,9 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
   const [expandedDates, setExpandedDates] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   
-  // Group tests by date
   const testsByDate = useMemo(() => {
-    // First, deduplicate the results by test_name within each date
-    // This ensures only one instance of each test type appears per date
     const deduplicated: Record<string, Record<string, BloodTest>> = {};
     
-    // Group by date, then by test name (keeping only most recent entry)
     bloodTestResults.forEach(test => {
       const date = test.test_date;
       
@@ -43,20 +38,17 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
         deduplicated[date] = {};
       }
       
-      // Only store if we don't have this test yet or if this one is more recent
       if (!deduplicated[date][test.test_name] || 
           new Date(test.id) > new Date(deduplicated[date][test.test_name].id)) {
         deduplicated[date][test.test_name] = test;
       }
     });
     
-    // Convert the nested objects back to the format expected by the component
     const grouped: Record<string, BloodTest[]> = {};
     Object.entries(deduplicated).forEach(([date, tests]) => {
       grouped[date] = Object.values(tests);
     });
     
-    // Sort dates in descending order (newest first)
     return Object.entries(grouped)
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
       .map(([date, tests]) => ({
@@ -86,7 +78,6 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
     }
   };
 
-  // Delete a single test
   const handleDeleteTest = async (testId: string) => {
     if (!user) {
       toast.error('You must be logged in to delete tests');
@@ -106,7 +97,6 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
       
       toast.success('Test deleted successfully');
       
-      // Refresh the data
       if (onDataUpdate) {
         onDataUpdate();
       }
@@ -148,12 +138,63 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                       {tests.map((test) => (
                         <div 
                           key={`${date}-${test.id}`} 
-                          className="p-3 border border-border/30 rounded-md bg-background/70 relative"
+                          className="p-3 border border-border/30 rounded-md bg-background/70"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h4 className="font-medium">{test.test_name}</h4>
-                              <p className="text-xs text-muted-foreground">{test.category}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="flex flex-col gap-1">
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
+                                        aria-label="Delete test"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete the {test.test_name} test result from {formattedDate}? This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          className="bg-red-500 hover:bg-red-600"
+                                          onClick={() => handleDeleteTest(test.id)}
+                                          disabled={isDeleting === test.id}
+                                        >
+                                          {isDeleting === test.id ? (
+                                            <>
+                                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              Deleting...
+                                            </>
+                                          ) : (
+                                            'Delete'
+                                          )}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 opacity-60 hover:opacity-100 hover:bg-blue-100 hover:text-blue-600 text-muted-foreground"
+                                    aria-label="Edit test"
+                                  >
+                                    <EditIcon className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">{test.test_name}</h4>
+                                  <p className="text-xs text-muted-foreground">{test.category}</p>
+                                </div>
+                              </div>
                             </div>
                             <div className="text-right pl-4 flex flex-col items-end">
                               <p className={`font-bold ${getCellColor(test.result, test.reference_min, test.reference_max)}`}>
@@ -171,43 +212,6 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                               Status: {test.status}
                             </div>
                           )}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="absolute top-1 right-1 h-7 w-7 opacity-60 hover:opacity-100 hover:bg-red-100 hover:text-red-600 text-muted-foreground" 
-                                aria-label="Delete test"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete the {test.test_name} test result from {formattedDate}? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  className="bg-red-500 hover:bg-red-600"
-                                  onClick={() => handleDeleteTest(test.id)}
-                                  disabled={isDeleting === test.id}
-                                >
-                                  {isDeleting === test.id ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Deleting...
-                                    </>
-                                  ) : (
-                                    'Delete'
-                                  )}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       ))}
                     </div>
