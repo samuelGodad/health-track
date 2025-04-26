@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import {
   Card,
@@ -87,13 +86,13 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
   
   // Get the unit and reference range for the selected test
   const testDetails = useMemo(() => {
-    if (!selectedTest) return { unit: '', min: 0, max: 0 };
+    if (!selectedTest) return { unit: '', min: null, max: null };
     
     const test = bloodTestResults.find(t => t.test_name === selectedTest);
     return {
       unit: test?.unit || '',
-      min: test?.reference_min || 0,
-      max: test?.reference_max || 0
+      min: test?.reference_min || null,
+      max: test?.reference_max || null
     };
   }, [bloodTestResults, selectedTest]);
   
@@ -103,7 +102,7 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
         <CardTitle>Test Timeline Comparison</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
+        <div className="mb-6">
           <Select
             value={selectedTest || ""}
             onValueChange={setSelectedTest}
@@ -125,7 +124,9 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
           <>
             <div className="flex justify-between items-center mb-2">
               <div className="text-sm text-muted-foreground">
-                Reference Range: {testDetails.min} - {testDetails.max} {testDetails.unit}
+                Reference Range: {testDetails.min !== null && testDetails.max !== null 
+                  ? `${testDetails.min} - ${testDetails.max} ${testDetails.unit}`
+                  : 'No reference range available'}
               </div>
               <div className="text-sm font-medium">
                 {timelineData.length} data points
@@ -133,7 +134,7 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
             </div>
             
             {timelineData.length > 0 ? (
-              <div className="h-64 w-full">
+              <div className="h-[400px] w-full">
                 <LineChart
                   title={`${selectedTest} (${testDetails.unit})`}
                   data={timelineData}
@@ -141,6 +142,8 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
                   color="hsl(var(--primary))"
                   tooltipLabel={selectedTest}
                   valueFormatter={(value) => `${value} ${testDetails.unit}`}
+                  referenceMin={testDetails.min}
+                  referenceMax={testDetails.max}
                 />
               </div>
             ) : (

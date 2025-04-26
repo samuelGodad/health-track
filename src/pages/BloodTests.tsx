@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/alert';
 import { bloodTestService } from '@/services/bloodTestService';
 
-// Import the components
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
 import BloodTestTimeline from '@/components/bloodTests/BloodTestTimeline';
 import DateSpecificResults from '@/components/bloodTests/DateSpecificResults';
@@ -88,7 +87,6 @@ const BloodTests = () => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const filesArray = Array.from(files);
-      // Filter to only accept PDFs
       const pdfFiles = filesArray.filter(file => 
         file.type === 'application/pdf' || 
         file.name.toLowerCase().endsWith('.pdf')
@@ -101,7 +99,7 @@ const BloodTests = () => {
       if (pdfFiles.length > 0) {
         setSelectedFiles(pdfFiles);
         setShowAIProcessing(true);
-        setUploadError(null); // Clear any previous errors
+        setUploadError(null);
         toast.success(`${pdfFiles.length} PDF file(s) selected`);
       }
     }
@@ -150,7 +148,6 @@ const BloodTests = () => {
       
       toast.success(`Successfully uploaded ${uploadedFiles.length} file(s)`);
       
-      // If AI processing is enabled, process the files, otherwise just add them as-is
       if (showAIProcessing) {
         await processFilesWithAI(uploadedFiles);
       } else {
@@ -160,9 +157,7 @@ const BloodTests = () => {
         }
       }
       
-      // Refresh the results list
       fetchBloodTestResults();
-      
     } catch (error) {
       console.error('Error uploading files:', error);
       setUploadError('Failed to upload files. Please try again.');
@@ -184,7 +179,6 @@ const BloodTests = () => {
     setFailedToProcess([]);
     setDuplicateFiles([]);
     
-    // Initialize processing status for all files
     const initialStatus = files.reduce((acc, file) => {
       acc[file.name] = 'pending';
       return acc;
@@ -228,7 +222,6 @@ const BloodTests = () => {
         }
       }
 
-      // Show summary toasts
       if (successfullyProcessed.length > 0) {
         toast.success(`Successfully processed ${successfullyProcessed.length} file(s)`);
       }
@@ -244,7 +237,6 @@ const BloodTests = () => {
     } finally {
       setProcessing(false);
       setProcessingProgress(0);
-      // Clear the file input and selected files after processing
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -284,9 +276,8 @@ const BloodTests = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="by-date">By Date</TabsTrigger>
-            <TabsTrigger value="date-specific">Date Specific</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
           
@@ -300,14 +291,6 @@ const BloodTests = () => {
                 <BloodTestsByDate 
                   bloodTestResults={bloodTestResults} 
                   onDataUpdate={fetchBloodTestResults}
-                />
-              </TabsContent>
-              
-              <TabsContent value="date-specific">
-                <DateSpecificResults 
-                  bloodTestResults={bloodTestResults} 
-                  userId={user?.id || ''}
-                  onDataUpdate={fetchBloodTestResults} 
                 />
               </TabsContent>
               
