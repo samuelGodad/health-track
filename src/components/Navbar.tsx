@@ -1,15 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  ActivityIcon,
-  BarChartIcon,
-  DropletIcon,
   HeartPulseIcon,
-  ImageIcon,
-  PillIcon,
-  TargetIcon,
+  ClipboardIcon,
+  SyringeIcon,
+  FlaskConicalIcon,
   MenuIcon,
   UserIcon,
   SettingsIcon,
@@ -43,9 +39,9 @@ const NavItem = ({
     <Link 
       to={to} 
       className={cn(
-        "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300",
+        "flex items-center gap-3 px-6 py-3 transition-all duration-300",
         "hover:bg-secondary/80",
-        isActive ? "bg-secondary text-primary font-medium" : "text-muted-foreground"
+        isActive ? "border-b-2 border-primary text-primary font-medium" : "text-muted-foreground"
       )}
     >
       <Icon className={cn(
@@ -127,41 +123,23 @@ const Navbar = () => {
             <span>Your Vita Health</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center">
             <NavItem 
               to="/dashboard" 
-              icon={BarChartIcon}
-              label="Dashboard" 
+              icon={ClipboardIcon}
+              label="Cycle Planner" 
               isActive={location.pathname === '/dashboard'} 
             />
             <NavItem 
-              to="/daily-metrics" 
-              icon={ActivityIcon} 
-              label="Daily Metrics" 
-              isActive={location.pathname === '/daily-metrics'} 
-            />
-            <NavItem 
-              to="/supplements" 
-              icon={PillIcon} 
-              label="Supplements" 
-              isActive={location.pathname === '/supplements'} 
-            />
-            <NavItem 
-              to="/targets" 
-              icon={TargetIcon} 
-              label="Targets" 
-              isActive={location.pathname === '/targets'} 
-            />
-            <NavItem 
-              to="/body-progress" 
-              icon={ImageIcon} 
-              label="Progress" 
-              isActive={location.pathname === '/body-progress'} 
+              to="/injection-assistant" 
+              icon={SyringeIcon} 
+              label="Injection Assistant" 
+              isActive={location.pathname === '/injection-assistant'} 
             />
             <NavItem 
               to="/blood-tests" 
-              icon={DropletIcon} 
-              label="Blood Tests" 
+              icon={FlaskConicalIcon} 
+              label="Blood Results" 
               isActive={location.pathname === '/blood-tests'} 
             />
           </nav>
@@ -184,38 +162,20 @@ const Navbar = () => {
           <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
             <NavItem 
               to="/dashboard" 
-              icon={BarChartIcon}
-              label="Dashboard" 
+              icon={ClipboardIcon}
+              label="Cycle Planner" 
               isActive={location.pathname === '/dashboard'} 
             />
             <NavItem 
-              to="/daily-metrics" 
-              icon={ActivityIcon} 
-              label="Daily Metrics" 
-              isActive={location.pathname === '/daily-metrics'} 
-            />
-            <NavItem 
-              to="/supplements" 
-              icon={PillIcon} 
-              label="Supplements" 
-              isActive={location.pathname === '/supplements'} 
-            />
-            <NavItem 
-              to="/targets" 
-              icon={TargetIcon} 
-              label="Targets" 
-              isActive={location.pathname === '/targets'} 
-            />
-            <NavItem 
-              to="/body-progress" 
-              icon={ImageIcon} 
-              label="Progress" 
-              isActive={location.pathname === '/body-progress'} 
+              to="/injection-assistant" 
+              icon={SyringeIcon} 
+              label="Injection Assistant" 
+              isActive={location.pathname === '/injection-assistant'} 
             />
             <NavItem 
               to="/blood-tests" 
-              icon={DropletIcon} 
-              label="Blood Tests" 
+              icon={FlaskConicalIcon} 
+              label="Blood Results" 
               isActive={location.pathname === '/blood-tests'} 
             />
           </div>
