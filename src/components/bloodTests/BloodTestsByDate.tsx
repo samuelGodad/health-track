@@ -15,7 +15,8 @@ import { Loader2 } from 'lucide-react';
 type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row'];
 
 interface BloodTest extends Omit<BloodTestResult, 'created_at' | 'user_id' | 'processed_by_ai' | 'source_file_path' | 'source_file_type' | 'source_file_url'> {
-  // Additional fields specific to the component if needed
+  // Add unit property which was missing from the interface
+  unit?: string; 
 }
 
 type BloodTestsByDateProps = {
