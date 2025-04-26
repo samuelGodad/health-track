@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface CyclePlanEntry {
   id: string;
   compound: string;
   weeklyDose: number;
+  dosingPer1ML: number;
   unit: string;
   frequency: number;
   weekNumber: number;
@@ -35,19 +37,22 @@ const WeeklyPlanner = () => {
   const [newCyclePlan, setNewCyclePlan] = useState<Partial<CyclePlanEntry>>({
     compound: "",
     weeklyDose: 0,
+    dosingPer1ML: 0,
     unit: "mg",
     frequency: 2,
     weekNumber: 1,
   });
 
-  const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Start on Monday
+  const startDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekStart = format(addWeeks(startDate, currentWeek - 1), 'MMM d');
+  const weekEnd = format(endOfWeek(addWeeks(startDate, currentWeek - 1), { weekStartsOn: 1 }), 'MMM d, yyyy');
 
   const handleInputChange = (field: keyof CyclePlanEntry, value: any) => {
     setNewCyclePlan((prev) => ({ ...prev, [field]: value }));
   };
 
   const addCyclePlan = () => {
-    if (!newCyclePlan.compound || !newCyclePlan.weeklyDose) {
+    if (!newCyclePlan.compound || !newCyclePlan.weeklyDose || !newCyclePlan.dosingPer1ML) {
       return;
     }
 
@@ -55,6 +60,7 @@ const WeeklyPlanner = () => {
       id: Date.now().toString(),
       compound: newCyclePlan.compound || "",
       weeklyDose: newCyclePlan.weeklyDose || 0,
+      dosingPer1ML: newCyclePlan.dosingPer1ML || 0,
       unit: newCyclePlan.unit || "mg",
       frequency: newCyclePlan.frequency || 2,
       weekNumber: currentWeek,
@@ -62,18 +68,15 @@ const WeeklyPlanner = () => {
 
     setCyclePlans([...cyclePlans, newPlan]);
     
-    // Reset form
     setNewCyclePlan({
       compound: "",
       weeklyDose: 0,
+      dosingPer1ML: 0,
       unit: "mg",
       frequency: 2,
       weekNumber: currentWeek,
     });
   };
-
-  const weekStart = format(addWeeks(startDate, currentWeek - 1), 'MMM d');
-  const weekEnd = format(endOfWeek(addWeeks(startDate, currentWeek - 1), { weekStartsOn: 1 }), 'MMM d, yyyy');
 
   return (
     <div className="space-y-6">
@@ -99,91 +102,90 @@ const WeeklyPlanner = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Week {currentWeek} Plan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-md">Week {currentWeek} Plan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>PED To Inject</TableHead>
+                <TableHead>Dosing Per 1ML</TableHead>
+                <TableHead>Weekly Dose</TableHead>
+                <TableHead>ML Per Injection</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {cyclePlans
                 .filter(plan => plan.weekNumber === currentWeek)
                 .map(plan => (
-                  <div key={plan.id} className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg">
-                    <div>
-                      <p className="font-medium">{plan.compound}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {plan.weeklyDose} {plan.unit} per week 
-                        ({plan.weeklyDose / plan.frequency} {plan.unit} × {plan.frequency}/week)
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </div>
-                ))}
+                  <TableRow key={plan.id}>
+                    <TableCell>{plan.compound}</TableCell>
+                    <TableCell>{plan.dosingPer1ML} {plan.unit}/ml</TableCell>
+                    <TableCell>{plan.weeklyDose} {plan.unit}</TableCell>
+                    <TableCell>
+                      {((plan.weeklyDose / plan.dosingPer1ML) / plan.frequency).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-md">Add Compound</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form 
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addCyclePlan();
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="compound">Compound</Label>
+              <Select 
+                value={newCyclePlan.compound}
+                onValueChange={(value) => handleInputChange("compound", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select compound" />
+                </SelectTrigger>
+                <SelectContent>
+                  {compounds.map(compound => (
+                    <SelectItem key={compound} value={compound}>
+                      {compound}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Add Compound</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form 
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                addCyclePlan();
-              }}
-            >
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="compound">Compound</Label>
-                <Select 
-                  value={newCyclePlan.compound}
-                  onValueChange={(value) => handleInputChange("compound", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select compound" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {compounds.map(compound => (
-                      <SelectItem key={compound} value={compound}>
-                        {compound}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="dosingPer1ML">Dosing Per 1ML</Label>
+                <Input
+                  id="dosingPer1ML"
+                  type="number"
+                  value={newCyclePlan.dosingPer1ML || ""}
+                  onChange={(e) => handleInputChange("dosingPer1ML", Number(e.target.value))}
+                  placeholder="Dosing per 1ML"
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="weeklyDose">Weekly Dose</Label>
-                  <Input
-                    id="weeklyDose"
-                    type="number"
-                    value={newCyclePlan.weeklyDose || ""}
-                    onChange={(e) => handleInputChange("weeklyDose", Number(e.target.value))}
-                    placeholder="Weekly dose"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select
-                    value={newCyclePlan.unit || "mg"}
-                    onValueChange={(value) => handleInputChange("unit", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="mg">mg</SelectItem>
-                      <SelectItem value="ml">ml</SelectItem>
-                      <SelectItem value="iu">IU</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="weeklyDose">Weekly Dose</Label>
+                <Input
+                  id="weeklyDose"
+                  type="number"
+                  value={newCyclePlan.weeklyDose || ""}
+                  onChange={(e) => handleInputChange("weeklyDose", Number(e.target.value))}
+                  placeholder="Weekly dose"
+                />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="frequency">Injections Per Week</Label>
                 <Select
@@ -202,12 +204,12 @@ const WeeklyPlanner = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <Button type="submit" className="w-full">Add to Week {currentWeek}</Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            <Button type="submit" className="w-full">Add to Week {currentWeek}</Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
