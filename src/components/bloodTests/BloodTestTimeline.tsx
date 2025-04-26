@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import {
   Card,
@@ -121,8 +122,8 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
         </div>
         
         {selectedTest ? (
-          <>
-            <div className="flex justify-between items-center mb-2">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center px-1">
               <div className="text-sm text-muted-foreground">
                 Reference Range: {testDetails.min !== null && testDetails.max !== null 
                   ? `${testDetails.min} - ${testDetails.max} ${testDetails.unit}`
@@ -134,7 +135,7 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
             </div>
             
             {timelineData.length > 0 ? (
-              <div className="h-[400px] w-full">
+              <div className="h-[350px] w-full">
                 <LineChart
                   title={`${selectedTest} (${testDetails.unit})`}
                   data={timelineData}
@@ -151,7 +152,7 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
                 <p className="text-muted-foreground">No data available for this test</p>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <div className="h-64 w-full flex items-center justify-center border border-dashed rounded-md">
             <p className="text-muted-foreground">Select a test to view its timeline</p>

@@ -47,7 +47,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 30, right: 30, left: 30, bottom: 30 }}
+          margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -55,14 +55,19 @@ export function LineChart({
             stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
-            padding={{ left: 20, right: 20 }}
+            padding={{ left: 10, right: 10 }}
+            tick={{ fontSize: 11 }}
+            tickMargin={10}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
             tickFormatter={valueFormatter}
-            padding={{ top: 20, bottom: 20 }}
+            padding={{ top: 10, bottom: 10 }}
+            tick={{ fontSize: 11 }}
+            tickMargin={10}
+            width={50}
           />
           <Tooltip
             content={({
@@ -82,20 +87,32 @@ export function LineChart({
               />
             )}
           />
-          {showLegend && <Legend />}
-          {referenceMin !== null && (
+          {showLegend && <Legend wrapperStyle={{ paddingTop: 10 }} />}
+          {referenceMin !== null && referenceMin !== undefined && (
             <ReferenceLine
               y={referenceMin}
-              label={{ value: 'Min', position: 'right' }}
+              label={{ 
+                value: 'Min', 
+                position: 'right', 
+                fill: 'hsl(var(--warning))', 
+                fontSize: 10,
+                offset: 5
+              }}
               stroke="hsl(var(--warning))"
               strokeDasharray="3 3"
               opacity={0.5}
             />
           )}
-          {referenceMax !== null && (
+          {referenceMax !== null && referenceMax !== undefined && (
             <ReferenceLine
               y={referenceMax}
-              label={{ value: 'Max', position: 'right' }}
+              label={{ 
+                value: 'Max', 
+                position: 'right', 
+                fill: 'hsl(var(--warning))', 
+                fontSize: 10,
+                offset: 5
+              }}
               stroke="hsl(var(--warning))"
               strokeDasharray="3 3"
               opacity={0.5}
@@ -105,7 +122,7 @@ export function LineChart({
             type="monotone"
             dataKey={dataKey}
             stroke={color}
-            activeDot={{ r: 8, stroke: "hsl(var(--background))", strokeWidth: 2 }}
+            activeDot={{ r: 6, stroke: "hsl(var(--background))", strokeWidth: 2 }}
             strokeWidth={2}
             dot={{ fill: "hsl(var(--background))", stroke: color, strokeWidth: 2, r: 4 }}
           />
