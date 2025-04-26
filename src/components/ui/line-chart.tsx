@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -47,7 +46,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 20, right: 40, left: 15, bottom: 20 }}
+          margin={{ top: 20, right: 40, left: 15, bottom: 35 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -56,8 +55,14 @@ export function LineChart({
             tickLine={false}
             axisLine={false}
             padding={{ left: 10, right: 10 }}
-            tick={{ fontSize: 11 }}
-            tickMargin={10}
+            tick={{ 
+              fontSize: 11,
+              angle: -45,
+              textAnchor: 'end',
+              dy: 10
+            }}
+            tickMargin={5}
+            height={60}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
