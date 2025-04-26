@@ -60,7 +60,6 @@ export type Database = {
           source_file_path: string | null
           source_file_type: string | null
           source_file_url: string | null
-          source_file_hash: string | null
           status: string | null
           test_code: string | null
           test_date: string
@@ -81,7 +80,6 @@ export type Database = {
           source_file_path?: string | null
           source_file_type?: string | null
           source_file_url?: string | null
-          source_file_hash?: string | null
           status?: string | null
           test_code?: string | null
           test_date: string
@@ -102,7 +100,6 @@ export type Database = {
           source_file_path?: string | null
           source_file_type?: string | null
           source_file_url?: string | null
-          source_file_hash?: string | null
           status?: string | null
           test_code?: string | null
           test_date?: string
@@ -296,40 +293,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      processed_files: {
-        Row: {
-          id: string
-          file_hash: string
-          user_id: string
-          file_name: string
-          processed_at: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          file_hash: string
-          user_id: string
-          file_name: string
-          processed_at: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          file_hash?: string
-          user_id?: string
-          file_name?: string
-          processed_at?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "processed_files_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
       }
     }
     Views: {

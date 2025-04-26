@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -136,15 +137,15 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                           className="p-3 border border-border/30 rounded-md bg-background/70 relative"
                         >
                           <div className="flex justify-between items-start">
-                            <div>
+                            <div className="flex-1">
                               <h4 className="font-medium">{test.test_name}</h4>
                               <p className="text-xs text-muted-foreground">{test.category}</p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right pl-4 flex flex-col items-end">
                               <p className={`font-bold ${getCellColor(test.result, test.reference_min, test.reference_max)}`}>
                                 {test.result}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground whitespace-nowrap">
                                 {test.reference_min !== null && test.reference_max !== null 
                                   ? `Ref: ${test.reference_min} - ${test.reference_max}`
                                   : 'No reference range'}
