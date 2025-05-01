@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { addWeeks, startOfWeek, endOfWeek, format, addDays, getISOWeek, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Plus } from "lucide-react";
-import { CycleType, useCycle } from "@/contexts/CycleContext";
+import { CycleType, useCycle, dateToWeekNumber } from "@/contexts/CycleContext";
 import { Textarea } from "@/components/ui/textarea";
 
 // List of available compounds
@@ -36,10 +35,11 @@ const WeeklyPlanner = () => {
     cyclePeriods,
     setCyclePeriods,
     currentWeek,
-    setCurrentWeek 
+    setCurrentWeek,
+    selectedDate,
+    setSelectedDate 
   } = useCycle();
   
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCyclePeriodForm, setShowCyclePeriodForm] = useState(false);
   
   // State for new cycle plan entry
@@ -51,11 +51,11 @@ const WeeklyPlanner = () => {
     frequency: 2,
   });
   
-  // State for new cycle period
+  // State for new cycle period with dates
   const [newCyclePeriod, setNewCyclePeriod] = useState({
     type: CycleType.BLAST,
-    startWeek: currentWeek,
-    endWeek: currentWeek + 12,
+    startDate: selectedDate,
+    endDate: addWeeks(selectedDate, 12),
     name: "",
     notes: "",
   });
@@ -67,11 +67,8 @@ const WeeklyPlanner = () => {
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      const selectedWeek = getISOWeek(date);
-      const currentYear = new Date().getFullYear();
-      const yearStartWeek = getISOWeek(new Date(currentYear, 0, 1));
-      const weekDiff = selectedWeek - yearStartWeek + 1;
-      setCurrentWeek(Math.max(1, weekDiff > 0 ? weekDiff : 52 + weekDiff));
+      const weekNumber = dateToWeekNumber(date);
+      setCurrentWeek(weekNumber);
     }
   };
 
@@ -110,15 +107,21 @@ const WeeklyPlanner = () => {
   };
 
   const addCyclePeriod = () => {
-    if (!newCyclePeriod.name || newCyclePeriod.startWeek > newCyclePeriod.endWeek) {
+    if (!newCyclePeriod.name || !newCyclePeriod.startDate || !newCyclePeriod.endDate) {
       return;
     }
+    
+    // Calculate the week numbers for compatibility
+    const startWeek = dateToWeekNumber(newCyclePeriod.startDate);
+    const endWeek = dateToWeekNumber(newCyclePeriod.endDate);
 
     const newPeriod = {
       id: Date.now().toString(),
       type: newCyclePeriod.type,
-      startWeek: newCyclePeriod.startWeek,
-      endWeek: newCyclePeriod.endWeek,
+      startDate: newCyclePeriod.startDate,
+      endDate: newCyclePeriod.endDate,
+      startWeek: startWeek,
+      endWeek: endWeek,
       name: newCyclePeriod.name,
       notes: newCyclePeriod.notes,
     };
@@ -129,8 +132,8 @@ const WeeklyPlanner = () => {
     // Reset form
     setNewCyclePeriod({
       type: CycleType.BLAST,
-      startWeek: currentWeek,
-      endWeek: currentWeek + 12,
+      startDate: selectedDate,
+      endDate: addWeeks(selectedDate, 12),
       name: "",
       notes: "",
     });
@@ -167,6 +170,23 @@ const WeeklyPlanner = () => {
         return "bg-gray-100 border-gray-300";
       default:
         return "bg-gray-50 border-gray-200";
+    }
+  };
+
+  // Calculate cycle length in weeks
+  const calculateCycleLength = () => {
+    if (!newCyclePeriod.startDate || !newCyclePeriod.endDate) {
+      return 0;
+    }
+    
+    const startWeek = dateToWeekNumber(newCyclePeriod.startDate);
+    const endWeek = dateToWeekNumber(newCyclePeriod.endDate);
+    
+    // Handle year boundary
+    if (endWeek >= startWeek) {
+      return endWeek - startWeek + 1;
+    } else {
+      return (52 - startWeek) + endWeek + 1;
     }
   };
 
@@ -278,35 +298,53 @@ const WeeklyPlanner = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="startWeek">Start Week</Label>
-                  <Input
-                    id="startWeek"
-                    type="number"
-                    min={1}
-                    max={52}
-                    value={newCyclePeriod.startWeek}
-                    onChange={(e) => handleCyclePeriodChange("startWeek", parseInt(e.target.value, 10))}
-                  />
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newCyclePeriod.startDate ? format(newCyclePeriod.startDate, 'PPP') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={newCyclePeriod.startDate}
+                        onSelect={(date) => date && handleCyclePeriodChange("startDate", date)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="endWeek">End Week</Label>
-                  <Input
-                    id="endWeek"
-                    type="number"
-                    min={1}
-                    max={52}
-                    value={newCyclePeriod.endWeek}
-                    onChange={(e) => handleCyclePeriodChange("endWeek", parseInt(e.target.value, 10))}
-                  />
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newCyclePeriod.endDate ? format(newCyclePeriod.endDate, 'PPP') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={newCyclePeriod.endDate}
+                        onSelect={(date) => date && handleCyclePeriodChange("endDate", date)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cycleLength">Length</Label>
                   <Input
                     id="cycleLength"
-                    value={`${newCyclePeriod.endWeek - newCyclePeriod.startWeek + 1} weeks`}
+                    value={`${calculateCycleLength()} weeks`}
                     disabled
                   />
                 </div>
@@ -329,6 +367,7 @@ const WeeklyPlanner = () => {
         </Card>
       )}
 
+      {/* Week Plan Card */}
       <Card>
         <CardHeader>
           <CardTitle className="text-md">Week {currentWeek} Plan</CardTitle>
@@ -368,6 +407,7 @@ const WeeklyPlanner = () => {
         </CardContent>
       </Card>
 
+      {/* Add Compound Card */}
       <Card>
         <CardHeader>
           <CardTitle className="text-md">Add Compound</CardTitle>
@@ -465,7 +505,7 @@ const WeeklyPlanner = () => {
                     <div>
                       <p className="font-medium">{period.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {period.type} · Weeks {period.startWeek}-{period.endWeek} 
+                        {period.type} · {format(period.startDate, 'MMM d')} - {format(period.endDate, 'MMM d, yyyy')} 
                         ({period.endWeek - period.startWeek + 1} weeks)
                       </p>
                     </div>
