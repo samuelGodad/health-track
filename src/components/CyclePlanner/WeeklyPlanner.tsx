@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { addWeeks, startOfWeek, endOfWeek, format, addDays } from "date-fns";
+import { addWeeks, startOfWeek, endOfWeek, format, addDays, getISOWeek, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -9,18 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
+import { CycleType, useCycle } from "@/contexts/CycleContext";
+import { Textarea } from "@/components/ui/textarea";
 
-interface CyclePlanEntry {
-  id: string;
-  compound: string;
-  weeklyDose: number;
-  dosingPer1ML: number;
-  unit: string;
-  frequency: number;
-  weekNumber: number;
-}
-
+// List of available compounds
 const compounds = [
   "Testosterone Enanthate",
   "Testosterone Cypionate",
@@ -35,16 +29,35 @@ const compounds = [
 ];
 
 const WeeklyPlanner = () => {
-  const [currentWeek, setCurrentWeek] = useState(1);
-  const [cyclePlans, setCyclePlans] = useState<CyclePlanEntry[]>([]);
+  // Use the enhanced CycleContext
+  const { 
+    cyclePlans, 
+    setCyclePlans,
+    cyclePeriods,
+    setCyclePeriods,
+    currentWeek,
+    setCurrentWeek 
+  } = useCycle();
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [newCyclePlan, setNewCyclePlan] = useState<Partial<CyclePlanEntry>>({
+  const [showCyclePeriodForm, setShowCyclePeriodForm] = useState(false);
+  
+  // State for new cycle plan entry
+  const [newCyclePlan, setNewCyclePlan] = useState({
     compound: "",
     weeklyDose: 0,
     dosingPer1ML: 0,
     unit: "mg",
     frequency: 2,
-    weekNumber: 1,
+  });
+  
+  // State for new cycle period
+  const [newCyclePeriod, setNewCyclePeriod] = useState({
+    type: CycleType.BLAST,
+    startWeek: currentWeek,
+    endWeek: currentWeek + 12,
+    name: "",
+    notes: "",
   });
 
   const startDate = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -54,14 +67,20 @@ const WeeklyPlanner = () => {
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      const start = startOfWeek(date, { weekStartsOn: 1 });
-      const dayDiff = Math.floor((date.getTime() - startOfWeek(new Date(), { weekStartsOn: 1 }).getTime()) / (1000 * 60 * 60 * 24 * 7)) + 1;
-      setCurrentWeek(Math.max(1, dayDiff));
+      const selectedWeek = getISOWeek(date);
+      const currentYear = new Date().getFullYear();
+      const yearStartWeek = getISOWeek(new Date(currentYear, 0, 1));
+      const weekDiff = selectedWeek - yearStartWeek + 1;
+      setCurrentWeek(Math.max(1, weekDiff > 0 ? weekDiff : 52 + weekDiff));
     }
   };
 
-  const handleInputChange = (field: keyof CyclePlanEntry, value: any) => {
+  const handleInputChange = (field: string, value: any) => {
     setNewCyclePlan((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCyclePeriodChange = (field: string, value: any) => {
+    setNewCyclePeriod((prev) => ({ ...prev, [field]: value }));
   };
 
   const addCyclePlan = () => {
@@ -69,13 +88,13 @@ const WeeklyPlanner = () => {
       return;
     }
 
-    const newPlan: CyclePlanEntry = {
+    const newPlan = {
       id: Date.now().toString(),
-      compound: newCyclePlan.compound || "",
-      weeklyDose: newCyclePlan.weeklyDose || 0,
-      dosingPer1ML: newCyclePlan.dosingPer1ML || 0,
-      unit: newCyclePlan.unit || "mg",
-      frequency: newCyclePlan.frequency || 2,
+      compound: newCyclePlan.compound,
+      weeklyDose: newCyclePlan.weeklyDose,
+      dosingPer1ML: newCyclePlan.dosingPer1ML,
+      unit: newCyclePlan.unit,
+      frequency: newCyclePlan.frequency,
       weekNumber: currentWeek,
     };
 
@@ -87,8 +106,68 @@ const WeeklyPlanner = () => {
       dosingPer1ML: 0,
       unit: "mg",
       frequency: 2,
-      weekNumber: currentWeek,
     });
+  };
+
+  const addCyclePeriod = () => {
+    if (!newCyclePeriod.name || newCyclePeriod.startWeek > newCyclePeriod.endWeek) {
+      return;
+    }
+
+    const newPeriod = {
+      id: Date.now().toString(),
+      type: newCyclePeriod.type,
+      startWeek: newCyclePeriod.startWeek,
+      endWeek: newCyclePeriod.endWeek,
+      name: newCyclePeriod.name,
+      notes: newCyclePeriod.notes,
+    };
+
+    setCyclePeriods([...cyclePeriods, newPeriod]);
+    setShowCyclePeriodForm(false);
+    
+    // Reset form
+    setNewCyclePeriod({
+      type: CycleType.BLAST,
+      startWeek: currentWeek,
+      endWeek: currentWeek + 12,
+      name: "",
+      notes: "",
+    });
+  };
+
+  // Get the current cycle type based on the week
+  const getCurrentCycleType = () => {
+    const currentPeriod = cyclePeriods.find(
+      period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
+    );
+    
+    return currentPeriod?.type || null;
+  };
+
+  // Get the current cycle name based on the week
+  const getCurrentCycleName = () => {
+    const currentPeriod = cyclePeriods.find(
+      period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
+    );
+    
+    return currentPeriod?.name || null;
+  };
+
+  // Get background color based on cycle type
+  const getCycleTypeColor = (type: CycleType) => {
+    switch (type) {
+      case CycleType.BLAST:
+        return "bg-red-100 border-red-300";
+      case CycleType.CRUISE:
+        return "bg-blue-100 border-blue-300";
+      case CycleType.TRT:
+        return "bg-green-100 border-green-300";
+      case CycleType.OFF:
+        return "bg-gray-100 border-gray-300";
+      default:
+        return "bg-gray-50 border-gray-200";
+    }
   };
 
   return (
@@ -124,12 +203,131 @@ const WeeklyPlanner = () => {
 
           <Button 
             variant="outline" 
-            onClick={() => setCurrentWeek(prev => prev + 1)}
+            onClick={() => setCurrentWeek(prev => Math.min(52, prev + 1))}
           >
             Next Week
           </Button>
         </div>
       </div>
+
+      {/* Cycle Period Indicator */}
+      <Card className={cn(
+        "border-2",
+        getCurrentCycleType() ? getCycleTypeColor(getCurrentCycleType()!) : "border-dashed border-gray-300"
+      )}>
+        <CardContent className="p-4 flex justify-between items-center">
+          {getCurrentCycleType() ? (
+            <div>
+              <p className="font-semibold">{getCurrentCycleName()}</p>
+              <p className="text-sm text-muted-foreground">{getCurrentCycleType()} Cycle</p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No cycle defined for this week</p>
+          )}
+          
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCyclePeriodForm(!showCyclePeriodForm)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {showCyclePeriodForm ? "Cancel" : "Define Cycle"}
+          </Button>
+        </CardContent>
+      </Card>
+      
+      {/* Cycle Period Form */}
+      {showCyclePeriodForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-md">Create New Cycle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form 
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addCyclePeriod();
+              }}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="cycleName">Cycle Name</Label>
+                <Input
+                  id="cycleName"
+                  value={newCyclePeriod.name}
+                  onChange={(e) => handleCyclePeriodChange("name", e.target.value)}
+                  placeholder="e.g. Summer Blast 2025"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cycleType">Cycle Type</Label>
+                  <Select
+                    value={newCyclePeriod.type}
+                    onValueChange={(value) => handleCyclePeriodChange("type", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={CycleType.BLAST}>Blast</SelectItem>
+                      <SelectItem value={CycleType.CRUISE}>Cruise</SelectItem>
+                      <SelectItem value={CycleType.TRT}>TRT</SelectItem>
+                      <SelectItem value={CycleType.OFF}>Off Cycle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="startWeek">Start Week</Label>
+                  <Input
+                    id="startWeek"
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={newCyclePeriod.startWeek}
+                    onChange={(e) => handleCyclePeriodChange("startWeek", parseInt(e.target.value, 10))}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="endWeek">End Week</Label>
+                  <Input
+                    id="endWeek"
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={newCyclePeriod.endWeek}
+                    onChange={(e) => handleCyclePeriodChange("endWeek", parseInt(e.target.value, 10))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cycleLength">Length</Label>
+                  <Input
+                    id="cycleLength"
+                    value={`${newCyclePeriod.endWeek - newCyclePeriod.startWeek + 1} weeks`}
+                    disabled
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="cycleNotes">Notes (Optional)</Label>
+                <Textarea
+                  id="cycleNotes"
+                  value={newCyclePeriod.notes}
+                  onChange={(e) => handleCyclePeriodChange("notes", e.target.value)}
+                  placeholder="Add any notes about this cycle period"
+                  rows={3}
+                />
+              </div>
+
+              <Button type="submit" className="w-full">Create Cycle</Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -158,6 +356,13 @@ const WeeklyPlanner = () => {
                     </TableCell>
                   </TableRow>
               ))}
+              {cyclePlans.filter(plan => plan.weekNumber === currentWeek).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                    No compounds planned for this week
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -218,7 +423,7 @@ const WeeklyPlanner = () => {
               <div className="space-y-2">
                 <Label htmlFor="frequency">Injections Per Week</Label>
                 <Select
-                  value={newCyclePlan.frequency?.toString() || "2"}
+                  value={newCyclePlan.frequency.toString()}
                   onValueChange={(value) => handleInputChange("frequency", Number(value))}
                 >
                   <SelectTrigger>
@@ -237,6 +442,52 @@ const WeeklyPlanner = () => {
 
             <Button type="submit" className="w-full">Add to Week {currentWeek}</Button>
           </form>
+        </CardContent>
+      </Card>
+      
+      {/* Cycle Periods Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-md">Year Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {cyclePeriods.length > 0 ? (
+              cyclePeriods.map(period => (
+                <div 
+                  key={period.id} 
+                  className={cn(
+                    "p-4 rounded-md border-2", 
+                    getCycleTypeColor(period.type)
+                  )}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{period.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {period.type} · Weeks {period.startWeek}-{period.endWeek} 
+                        ({period.endWeek - period.startWeek + 1} weeks)
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setCurrentWeek(period.startWeek)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                  {period.notes && (
+                    <p className="mt-2 text-sm border-t pt-2 border-dashed">{period.notes}</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                No cycle periods defined yet. Use the "Define Cycle" button to create one.
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
