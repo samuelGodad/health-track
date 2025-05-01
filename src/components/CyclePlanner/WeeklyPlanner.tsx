@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon, Plus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CycleType, useCycle, dateToWeekNumber } from "@/contexts/CycleContext";
-import CycleCompoundSelector from "./CycleCompoundSelector";
 import CyclePeriodForm from "./CyclePeriodForm";
 import CyclePeriodOverview from "./CyclePeriodOverview";
+import CycleDetails from "./CycleDetails";
 
 const WeeklyPlanner = () => {
   // Use the enhanced CycleContext
@@ -41,6 +41,12 @@ const WeeklyPlanner = () => {
 
   const handleAddCyclePlan = (newPlan: any) => {
     setCyclePlans([...cyclePlans, newPlan]);
+  };
+
+  const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number) => {
+    // This function would need implementation to update an existing cycle plan
+    // For now, we'll leave it as a placeholder
+    console.log("Update cycle plan:", weekNumber, weeklyDose);
   };
 
   const handleAddCyclePeriod = (newPeriod: any) => {
@@ -187,19 +193,14 @@ const WeeklyPlanner = () => {
         </Card>
       )}
 
-      {/* Week Plan Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-md">Week {currentWeek} Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CycleCompoundSelector 
-            cyclePlanEntries={cyclePlans.filter(plan => plan.weekNumber === currentWeek)}
-            onAddCyclePlan={handleAddCyclePlan}
-            currentWeek={currentWeek}
-          />
-        </CardContent>
-      </Card>
+      {/* Cycle Details - New component with tabs for Current Week and Week by Week */}
+      <CycleDetails 
+        currentWeek={currentWeek}
+        cyclePeriods={cyclePeriods}
+        cyclePlans={cyclePlans}
+        onAddCyclePlan={handleAddCyclePlan}
+        onUpdateCyclePlan={handleUpdateCyclePlan}
+      />
       
       {/* Cycle Periods Overview */}
       <Card>

@@ -36,7 +36,7 @@ const CycleCompoundSelector = ({
     weeklyDose: 0,
     dosingPer1ML: 0,
     unit: "mg",
-    frequency: 2,
+    frequency: 2, // Default to 2 injections per week
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -130,7 +130,7 @@ const CycleCompoundSelector = ({
           </Select>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="dosingPer1ML">Dosing Per 1ML</Label>
             <Input
@@ -150,24 +150,6 @@ const CycleCompoundSelector = ({
               onChange={(e) => handleInputChange("weeklyDose", Number(e.target.value))}
               placeholder="Weekly dose"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="frequency">Injections Per Week</Label>
-            <Select
-              value={newCyclePlan.frequency.toString()}
-              onValueChange={(value) => handleInputChange("frequency", Number(value))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5, 6, 7].map(num => (
-                  <SelectItem key={num} value={num.toString()}>
-                    {num} {num === 1 ? "time" : "times"} per week
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
