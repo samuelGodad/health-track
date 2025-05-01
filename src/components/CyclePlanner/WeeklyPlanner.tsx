@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Plus } from "lucide-react";
-import { CycleType, useCycle, dateToWeekNumber } from "@/contexts/CycleContext";
+import { CycleType, useCycle, dateToWeekNumber, ensureStartOfWeek } from "@/contexts/CycleContext";
 import { Textarea } from "@/components/ui/textarea";
 
 // List of available compounds
@@ -51,11 +51,11 @@ const WeeklyPlanner = () => {
     frequency: 2,
   });
   
-  // State for new cycle period with dates
+  // State for new cycle period with dates - ensure start date is a Monday
   const [newCyclePeriod, setNewCyclePeriod] = useState({
     type: CycleType.BLAST,
-    startDate: selectedDate,
-    endDate: addWeeks(selectedDate, 12),
+    startDate: ensureStartOfWeek(selectedDate),
+    endDate: addWeeks(ensureStartOfWeek(selectedDate), 12),
     name: "",
     notes: "",
   });
@@ -77,7 +77,26 @@ const WeeklyPlanner = () => {
   };
 
   const handleCyclePeriodChange = (field: string, value: any) => {
-    setNewCyclePeriod((prev) => ({ ...prev, [field]: value }));
+    if (field === "startDate") {
+      // Ensure start date is always a Monday (start of week)
+      const adjustedDate = ensureStartOfWeek(value);
+      
+      // Also update end date to maintain the same duration from the new start date
+      const currentDuration = newCyclePeriod.endDate.getTime() - newCyclePeriod.startDate.getTime();
+      const newEndDate = new Date(adjustedDate.getTime() + currentDuration);
+      
+      setNewCyclePeriod((prev) => ({ 
+        ...prev, 
+        startDate: adjustedDate,
+        endDate: newEndDate
+      }));
+    } else if (field === "endDate") {
+      // Ensure end date is always a Sunday (end of week)
+      const adjustedDate = endOfWeek(value, { weekStartsOn: 1 });
+      setNewCyclePeriod((prev) => ({ ...prev, endDate: adjustedDate }));
+    } else {
+      setNewCyclePeriod((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const addCyclePlan = () => {
@@ -111,15 +130,21 @@ const WeeklyPlanner = () => {
       return;
     }
     
+    // Ensure startDate is a Monday (start of week)
+    const adjustedStartDate = ensureStartOfWeek(newCyclePeriod.startDate);
+    
+    // Ensure endDate is a Sunday (end of week)
+    const adjustedEndDate = endOfWeek(newCyclePeriod.endDate, { weekStartsOn: 1 });
+    
     // Calculate the week numbers for compatibility
-    const startWeek = dateToWeekNumber(newCyclePeriod.startDate);
-    const endWeek = dateToWeekNumber(newCyclePeriod.endDate);
+    const startWeek = dateToWeekNumber(adjustedStartDate);
+    const endWeek = dateToWeekNumber(adjustedEndDate);
 
     const newPeriod = {
       id: Date.now().toString(),
       type: newCyclePeriod.type,
-      startDate: newCyclePeriod.startDate,
-      endDate: newCyclePeriod.endDate,
+      startDate: adjustedStartDate,
+      endDate: adjustedEndDate,
       startWeek: startWeek,
       endWeek: endWeek,
       name: newCyclePeriod.name,
@@ -132,8 +157,8 @@ const WeeklyPlanner = () => {
     // Reset form
     setNewCyclePeriod({
       type: CycleType.BLAST,
-      startDate: selectedDate,
-      endDate: addWeeks(selectedDate, 12),
+      startDate: ensureStartOfWeek(selectedDate),
+      endDate: addWeeks(ensureStartOfWeek(selectedDate), 12),
       name: "",
       notes: "",
     });
@@ -298,7 +323,7 @@ const WeeklyPlanner = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
+                  <Label>Start Date (Monday)</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-left">
@@ -321,7 +346,7 @@ const WeeklyPlanner = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>End Date</Label>
+                  <Label>End Date (Sunday)</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-left">
@@ -342,11 +367,17 @@ const WeeklyPlanner = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cycleLength">Length</Label>
-                  <Input
-                    id="cycleLength"
-                    value={`${calculateCycleLength()} weeks`}
-                    disabled
-                  />
+                  <div className="flex items-center">
+                    <Input
+                      id="cycleLength"
+                      value={`${calculateCycleLength()} weeks`}
+                      disabled
+                      className="bg-gray-100"
+                    />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Week {dateToWeekNumber(newCyclePeriod.startDate)} - {dateToWeekNumber(newCyclePeriod.endDate)}
+                    </span>
+                  </div>
                 </div>
               </div>
               
@@ -505,8 +536,11 @@ const WeeklyPlanner = () => {
                     <div>
                       <p className="font-medium">{period.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {period.type} · {format(period.startDate, 'MMM d')} - {format(period.endDate, 'MMM d, yyyy')} 
+                        {period.type} · Week {period.startWeek} - Week {period.endWeek} 
                         ({period.endWeek - period.startWeek + 1} weeks)
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(period.startDate, 'MMM d')} - {format(period.endDate, 'MMM d, yyyy')}
                       </p>
                     </div>
                     <Button 

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from 'react';
 import { getISOWeek, startOfWeek } from 'date-fns';
 
@@ -43,6 +44,11 @@ export function dateToWeekNumber(date: Date): number {
   // Handle year boundary cases
   const weekDiff = selectedWeek - firstWeek + 1;
   return Math.max(1, weekDiff > 0 ? weekDiff : 52 + weekDiff);
+}
+
+// Helper function to ensure a date is the start of a week (Monday)
+export function ensureStartOfWeek(date: Date): Date {
+  return startOfWeek(date, { weekStartsOn: 1 }); // 1 represents Monday
 }
 
 // Combined context for all cycle-related state
