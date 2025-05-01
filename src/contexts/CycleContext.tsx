@@ -22,6 +22,10 @@ export interface CyclePeriod {
   // We'll keep these for compatibility with existing code
   startWeek: number;
   endWeek: number;
+  
+  // New fields for injection frequency
+  injectionsPerWeek: number;
+  injectionDays: string[];
 }
 
 // Entry for a specific compound within a cycle

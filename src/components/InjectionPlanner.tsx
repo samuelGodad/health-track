@@ -1,13 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
 import { useCycle } from "@/contexts/CycleContext";
 
 const InjectionPlanner = () => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const { cyclePlans, currentWeek } = useCycle();
+  const { cyclePlans, currentWeek, cyclePeriods } = useCycle();
 
   const daysOfWeek = [
     { label: "Mon", value: "monday" },
@@ -18,6 +17,24 @@ const InjectionPlanner = () => {
     { label: "Sat", value: "saturday" },
     { label: "Sun", value: "sunday" },
   ];
+
+  // Get the current cycle period based on the week
+  const getCurrentCyclePeriod = () => {
+    return cyclePeriods.find(
+      period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
+    );
+  };
+
+  // Set selected days based on current cycle period
+  useEffect(() => {
+    const currentPeriod = getCurrentCyclePeriod();
+    if (currentPeriod && currentPeriod.injectionDays && currentPeriod.injectionDays.length > 0) {
+      setSelectedDays(currentPeriod.injectionDays);
+    } else {
+      // Default to Monday and Thursday if no days are specified
+      setSelectedDays(["monday", "thursday"]);
+    }
+  }, [currentWeek, cyclePeriods]);
 
   const toggleDay = (day: string) => {
     setSelectedDays(prev => 
