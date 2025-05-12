@@ -11,7 +11,7 @@ interface CycleDetailsProps {
   cyclePeriods: CyclePeriod[];
   cyclePlans: CyclePlanEntry[];
   onAddCyclePlan: (plan: any) => void;
-  onUpdateCyclePlan: (weekNumber: number, weeklyDose: number) => void;
+  onUpdateCyclePlan: (weekNumber: number, weeklyDose: number, compound: string) => void;
 }
 
 const CycleDetails = ({ 
