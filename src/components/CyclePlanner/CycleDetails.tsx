@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 import WeekByWeekTable from "./WeekByWeekTable";
-import WeekByWeekGrid from "./WeekByWeekGrid";
+import CycleCompounds from "./CycleCompounds";
 
 interface CycleDetailsProps {
   currentWeek: number;
@@ -32,18 +32,17 @@ const CycleDetails = ({
         <CardTitle className="text-md">Cycle Planning</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="week-grid">
+        <Tabs defaultValue="cycle-compounds">
           <TabsList className="mb-4">
-            <TabsTrigger value="week-grid">Week by Week Grid</TabsTrigger>
+            <TabsTrigger value="cycle-compounds">Cycle Compounds</TabsTrigger>
             <TabsTrigger value="week-table">Week by Week Table</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="week-grid">
-            <WeekByWeekGrid 
+          <TabsContent value="cycle-compounds">
+            <CycleCompounds 
               selectedCyclePeriod={currentCyclePeriod}
               cyclePlans={cyclePlans}
               onAddCyclePlan={onAddCyclePlan}
-              onUpdateCyclePlan={onUpdateCyclePlan}
             />
           </TabsContent>
           
