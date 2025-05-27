@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 import CycleCompoundSelector from "./CycleCompoundSelector";
 import WeekByWeekTable from "./WeekByWeekTable";
+import WeekByWeekGrid from "./WeekByWeekGrid";
 
 interface CycleDetailsProps {
   currentWeek: number;
@@ -37,6 +38,7 @@ const CycleDetails = ({
         <Tabs defaultValue="current-week">
           <TabsList className="mb-4">
             <TabsTrigger value="current-week">Week {currentWeek} Plan</TabsTrigger>
+            <TabsTrigger value="week-grid">Week Grid</TabsTrigger>
             <TabsTrigger value="week-by-week">Week by Week</TabsTrigger>
           </TabsList>
           
@@ -45,6 +47,15 @@ const CycleDetails = ({
               cyclePlanEntries={currentWeekPlans}
               onAddCyclePlan={onAddCyclePlan}
               currentWeek={currentWeek}
+            />
+          </TabsContent>
+          
+          <TabsContent value="week-grid">
+            <WeekByWeekGrid 
+              selectedCyclePeriod={currentCyclePeriod}
+              cyclePlans={cyclePlans}
+              onAddCyclePlan={onAddCyclePlan}
+              onUpdateCyclePlan={onUpdateCyclePlan}
             />
           </TabsContent>
           
