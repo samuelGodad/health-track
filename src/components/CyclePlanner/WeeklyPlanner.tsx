@@ -77,6 +77,16 @@ const WeeklyPlanner = () => {
     setShowCyclePeriodForm(false);
   };
 
+  const handleRemoveCompound = (compound: string, cyclePeriod: any) => {
+    setCyclePlans(prev => 
+      prev.filter(plan => 
+        !(plan.compound === compound && 
+          plan.weekNumber >= cyclePeriod.startWeek && 
+          plan.weekNumber <= cyclePeriod.endWeek)
+      )
+    );
+  };
+
   // Get the current cycle type based on the week
   const getCurrentCycleType = () => {
     const currentPeriod = cyclePeriods.find(
@@ -223,6 +233,7 @@ const WeeklyPlanner = () => {
         cyclePlans={cyclePlans}
         onAddCyclePlan={handleAddCyclePlan}
         onUpdateCyclePlan={handleUpdateCyclePlan}
+        onRemoveCompound={handleRemoveCompound}
       />
       
       {/* Cycle Periods Overview */}
