@@ -3,7 +3,6 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
-import CycleCompoundSelector from "./CycleCompoundSelector";
 import WeekByWeekTable from "./WeekByWeekTable";
 import WeekByWeekGrid from "./WeekByWeekGrid";
 
@@ -26,8 +25,6 @@ const CycleDetails = ({
   const currentCyclePeriod = cyclePeriods.find(
     period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
   ) || null;
-  
-  const currentWeekPlans = cyclePlans.filter(plan => plan.weekNumber === currentWeek);
 
   return (
     <Card>
@@ -35,20 +32,11 @@ const CycleDetails = ({
         <CardTitle className="text-md">Cycle Planning</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="current-week">
+        <Tabs defaultValue="week-grid">
           <TabsList className="mb-4">
-            <TabsTrigger value="current-week">Week {currentWeek} Plan</TabsTrigger>
-            <TabsTrigger value="week-grid">Week Grid</TabsTrigger>
-            <TabsTrigger value="week-by-week">Week by Week</TabsTrigger>
+            <TabsTrigger value="week-grid">Week by Week Grid</TabsTrigger>
+            <TabsTrigger value="week-table">Week by Week Table</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="current-week">
-            <CycleCompoundSelector 
-              cyclePlanEntries={currentWeekPlans}
-              onAddCyclePlan={onAddCyclePlan}
-              currentWeek={currentWeek}
-            />
-          </TabsContent>
           
           <TabsContent value="week-grid">
             <WeekByWeekGrid 
@@ -59,7 +47,7 @@ const CycleDetails = ({
             />
           </TabsContent>
           
-          <TabsContent value="week-by-week">
+          <TabsContent value="week-table">
             <WeekByWeekTable 
               selectedCyclePeriod={currentCyclePeriod}
               cyclePlans={cyclePlans}
