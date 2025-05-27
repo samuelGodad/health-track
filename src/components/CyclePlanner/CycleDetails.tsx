@@ -12,6 +12,7 @@ interface CycleDetailsProps {
   cyclePlans: CyclePlanEntry[];
   onAddCyclePlan: (plan: any) => void;
   onUpdateCyclePlan: (weekNumber: number, weeklyDose: number, compound: string) => void;
+  onRemoveCompound: (compound: string, cyclePeriod: CyclePeriod) => void;
 }
 
 const CycleDetails = ({ 
@@ -19,7 +20,8 @@ const CycleDetails = ({
   cyclePeriods, 
   cyclePlans,
   onAddCyclePlan,
-  onUpdateCyclePlan
+  onUpdateCyclePlan,
+  onRemoveCompound
 }: CycleDetailsProps) => {
   // Find the current cycle period based on the week
   const currentCyclePeriod = cyclePeriods.find(
@@ -43,6 +45,8 @@ const CycleDetails = ({
               selectedCyclePeriod={currentCyclePeriod}
               cyclePlans={cyclePlans}
               onAddCyclePlan={onAddCyclePlan}
+              onUpdateCyclePlan={onUpdateCyclePlan}
+              onRemoveCompound={onRemoveCompound}
             />
           </TabsContent>
           

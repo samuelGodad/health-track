@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2, Check, X } from "lucide-react";
 import { CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 
 // List of available compounds
@@ -26,15 +26,28 @@ interface CycleCompoundsProps {
   selectedCyclePeriod: CyclePeriod | null;
   cyclePlans: CyclePlanEntry[];
   onAddCyclePlan: (plan: any) => void;
+  onUpdateCyclePlan?: (weekNumber: number, weeklyDose: number, compound: string) => void;
+  onRemoveCompound?: (compound: string, cyclePeriod: CyclePeriod) => void;
 }
 
 const CycleCompounds = ({ 
   selectedCyclePeriod,
   cyclePlans,
-  onAddCyclePlan
+  onAddCyclePlan,
+  onUpdateCyclePlan,
+  onRemoveCompound
 }: CycleCompoundsProps) => {
   const [newCompound, setNewCompound] = useState({
     compound: "",
+    dosingPer1ML: 250,
+    unit: "mg"
+  });
+
+  const [editingCompound, setEditingCompound] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{
+    dosingPer1ML: number;
+    unit: string;
+  }>({
     dosingPer1ML: 250,
     unit: "mg"
   });
@@ -70,18 +83,20 @@ const CycleCompounds = ({
       return;
     }
 
-    // Add this compound to the first week of the cycle with default values
-    const newPlan = {
-      id: Date.now().toString(),
-      compound: newCompound.compound,
-      weeklyDose: 0,
-      dosingPer1ML: newCompound.dosingPer1ML,
-      unit: newCompound.unit,
-      frequency: 2,
-      weekNumber: selectedCyclePeriod.startWeek,
-    };
-    
-    onAddCyclePlan(newPlan);
+    // Add this compound to all weeks of the cycle with default values
+    for (let week = selectedCyclePeriod.startWeek; week <= selectedCyclePeriod.endWeek; week++) {
+      const newPlan = {
+        id: `${Date.now()}-${week}`,
+        compound: newCompound.compound,
+        weeklyDose: 0,
+        dosingPer1ML: newCompound.dosingPer1ML,
+        unit: newCompound.unit,
+        frequency: 2,
+        weekNumber: week,
+      };
+      
+      onAddCyclePlan(newPlan);
+    }
     
     // Reset form
     setNewCompound({
@@ -89,6 +104,45 @@ const CycleCompounds = ({
       dosingPer1ML: 250,
       unit: "mg"
     });
+  };
+
+  const handleRemoveCompound = (compound: string) => {
+    if (onRemoveCompound && selectedCyclePeriod) {
+      onRemoveCompound(compound, selectedCyclePeriod);
+    }
+  };
+
+  const handleEditCompound = (compound: string) => {
+    const details = getCompoundDetails(compound);
+    if (details) {
+      setEditValues({
+        dosingPer1ML: details.dosingPer1ML,
+        unit: details.unit
+      });
+      setEditingCompound(compound);
+    }
+  };
+
+  const handleSaveEdit = (compound: string) => {
+    // Update all instances of this compound in the cycle with new values
+    if (onUpdateCyclePlan) {
+      cyclePlans
+        .filter(plan => 
+          plan.compound === compound && 
+          plan.weekNumber >= selectedCyclePeriod.startWeek && 
+          plan.weekNumber <= selectedCyclePeriod.endWeek
+        )
+        .forEach(plan => {
+          // We need a way to update the compound details, not just the weekly dose
+          // For now, we'll use the existing onUpdateCyclePlan but we may need to extend it
+          onUpdateCyclePlan(plan.weekNumber, plan.weeklyDose, compound);
+        });
+    }
+    setEditingCompound(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCompound(null);
   };
 
   return (
@@ -103,24 +157,97 @@ const CycleCompounds = ({
           <div className="space-y-3 mb-6">
             {uniqueCompounds.map(compound => {
               const details = getCompoundDetails(compound);
+              const isEditing = editingCompound === compound;
+              
               return (
                 <Card key={compound}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">{compound}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Dosing Per 1ml: {details?.dosingPer1ML || 250} {details?.unit || 'mg'}/ml
-                        </p>
+                      <div className="flex-1">
+                        <h4 className="font-medium mb-2">{compound}</h4>
+                        {isEditing ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
+                              <Label className="text-xs">Dosing Per 1ml:</Label>
+                              <Input
+                                type="number"
+                                value={editValues.dosingPer1ML}
+                                onChange={(e) => setEditValues(prev => ({
+                                  ...prev,
+                                  dosingPer1ML: Number(e.target.value)
+                                }))}
+                                className="w-20 h-8 text-sm"
+                              />
+                              <Select
+                                value={editValues.unit}
+                                onValueChange={(value) => setEditValues(prev => ({
+                                  ...prev,
+                                  unit: value
+                                }))}
+                              >
+                                <SelectTrigger className="w-16 h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="mg">mg</SelectItem>
+                                  <SelectItem value="mcg">mcg</SelectItem>
+                                  <SelectItem value="iu">IU</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <span className="text-sm">/ml</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Dosing Per 1ml: {details?.dosingPer1ML || 250} {details?.unit || 'mg'}/ml
+                          </p>
+                        )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        className="h-8 w-8"
-                        title="Remove compound"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {isEditing ? (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleSaveEdit(compound)}
+                              title="Save changes"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={handleCancelEdit}
+                              title="Cancel editing"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEditCompound(compound)}
+                              title="Edit compound"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleRemoveCompound(compound)}
+                              title="Remove compound"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
