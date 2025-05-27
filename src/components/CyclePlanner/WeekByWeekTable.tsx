@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format, addWeeks } from "date-fns";
+import { format, addWeeks, getISOWeek } from "date-fns";
 import { Plus, Copy } from "lucide-react";
 import { useCycle, CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 
@@ -38,10 +38,19 @@ const WeekByWeekTable = ({
 
   // Get Monday date for each week
   const getWeekStartDate = (weekNumber: number) => {
-    // Calculate weeks difference from the cycle start week
     const weeksDiff = weekNumber - selectedCyclePeriod.startWeek;
-    // Add that many weeks to the cycle start date to get the Monday of that week
     return addWeeks(selectedCyclePeriod.startDate, weeksDiff);
+  };
+
+  // Get week of year
+  const getWeekOfYear = (weekNumber: number) => {
+    const weekDate = getWeekStartDate(weekNumber);
+    return getISOWeek(weekDate);
+  };
+
+  // Get week of cycle (1-based)
+  const getWeekOfCycle = (weekNumber: number) => {
+    return weekNumber - selectedCyclePeriod.startWeek + 1;
   };
 
   // Find unique compounds in the cycle
@@ -71,7 +80,7 @@ const WeekByWeekTable = ({
 
   // Function to increment dose by 10%
   const incrementDose = (weekNumber: number, compound: string, currentDose: number) => {
-    const newDose = Math.round(currentDose * 1.1); // Increase by 10%
+    const newDose = Math.round(currentDose * 1.1);
     onUpdateCyclePlan(weekNumber, newDose, compound);
   };
 
@@ -83,7 +92,6 @@ const WeekByWeekTable = ({
       
       {uniqueCompounds.length > 0 ? (
         uniqueCompounds.map(compound => {
-          // Find the dosing per 1ML for this compound
           const dosageInfo = cyclePlans.find(plan => plan.compound === compound);
           
           return (
@@ -99,7 +107,8 @@ const WeekByWeekTable = ({
                 <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Week</TableHead>
+                      <TableHead className="w-20">Week of Year</TableHead>
+                      <TableHead className="w-20">Week of Cycle</TableHead>
                       <TableHead className="w-32">Date</TableHead>
                       <TableHead className="w-28">Weekly Dose</TableHead>
                       <TableHead className="w-24">ML/Week</TableHead>
@@ -116,17 +125,24 @@ const WeekByWeekTable = ({
                       const mlPerWeek = plan?.dosingPer1ML && plan.dosingPer1ML > 0 
                         ? (weeklyDose / plan.dosingPer1ML).toFixed(1) 
                         : '0';
+                      const weekOfYear = getWeekOfYear(weekNumber);
+                      const weekOfCycle = getWeekOfCycle(weekNumber);
                       
                       return (
                         <TableRow key={`${compound}-week-${weekNumber}`} className="h-10">
-                          <TableCell className="py-1">{weekNumber}</TableCell>
+                          <TableCell className="py-1 text-center font-medium">{weekOfYear}</TableCell>
+                          <TableCell className="py-1 text-center font-medium">{weekOfCycle}</TableCell>
                           <TableCell className="py-1 text-xs">{format(weekDate, 'MMM d, yyyy')}</TableCell>
                           <TableCell className="py-1">
                             <Input
                               type="number"
-                              value={weeklyDose}
-                              onChange={(e) => onUpdateCyclePlan(weekNumber, Number(e.target.value), compound)}
+                              value={weeklyDose || ''}
+                              onChange={(e) => {
+                                const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                onUpdateCyclePlan(weekNumber, value, compound);
+                              }}
                               className="h-8 w-24 text-sm"
+                              placeholder="0"
                             />
                           </TableCell>
                           <TableCell className="py-1 text-sm">{mlPerWeek}</TableCell>
@@ -138,6 +154,7 @@ const WeekByWeekTable = ({
                                 className="h-7 w-7"
                                 onClick={() => copyFromPreviousWeek(weekNumber, compound)}
                                 disabled={weekNumber <= selectedCyclePeriod.startWeek}
+                                title="Copy from previous week"
                               >
                                 <Copy className="h-3 w-3" />
                               </Button>
@@ -146,6 +163,7 @@ const WeekByWeekTable = ({
                                 size="icon" 
                                 className="h-7 w-7"
                                 onClick={() => incrementDose(weekNumber, compound, weeklyDose)}
+                                title="Increase by 10%"
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -162,7 +180,7 @@ const WeekByWeekTable = ({
         })
       ) : (
         <div className="text-center py-8 text-muted-foreground border rounded-md">
-          No compounds added to this cycle yet. Add compounds on the Week Plan tab.
+          No compounds added to this cycle yet. Add compounds on the Week by Week Grid tab.
         </div>
       )}
     </div>

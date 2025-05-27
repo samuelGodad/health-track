@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { addWeeks, startOfWeek, endOfWeek, format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -43,10 +42,34 @@ const WeeklyPlanner = () => {
     setCyclePlans([...cyclePlans, newPlan]);
   };
 
-  const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number) => {
-    // This function would need implementation to update an existing cycle plan
-    // For now, we'll leave it as a placeholder
-    console.log("Update cycle plan:", weekNumber, weeklyDose);
+  const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number, compound: string) => {
+    setCyclePlans(prev => {
+      const existingPlanIndex = prev.findIndex(
+        plan => plan.weekNumber === weekNumber && plan.compound === compound
+      );
+      
+      if (existingPlanIndex >= 0) {
+        // Update existing plan
+        const updated = [...prev];
+        updated[existingPlanIndex] = {
+          ...updated[existingPlanIndex],
+          weeklyDose
+        };
+        return updated;
+      } else {
+        // Create new plan entry
+        const newPlan = {
+          id: Date.now().toString(),
+          compound,
+          weeklyDose,
+          dosingPer1ML: 250, // Default dosing
+          unit: "mg",
+          frequency: 2,
+          weekNumber,
+        };
+        return [...prev, newPlan];
+      }
+    });
   };
 
   const handleAddCyclePeriod = (newPeriod: any) => {
@@ -193,7 +216,7 @@ const WeeklyPlanner = () => {
         </Card>
       )}
 
-      {/* Cycle Details - New component with tabs for Current Week and Week by Week */}
+      {/* Cycle Details - Updated with proper handleUpdateCyclePlan */}
       <CycleDetails 
         currentWeek={currentWeek}
         cyclePeriods={cyclePeriods}
