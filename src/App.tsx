@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Daily from "./pages/Daily";
+import Weekly from "./pages/Weekly";
 import BloodTests from "./pages/BloodTests";
 import Analytics from "./pages/Analytics";
 import Trends from "./pages/Trends";
@@ -41,6 +43,14 @@ function App() {
               element={<AuthWrapper><Dashboard /></AuthWrapper>} 
             />
             <Route 
+              path="/daily" 
+              element={<AuthWrapper><Daily /></AuthWrapper>} 
+            />
+            <Route 
+              path="/weekly" 
+              element={<AuthWrapper><Weekly /></AuthWrapper>} 
+            />
+            <Route 
               path="/blood-tests" 
               element={<AuthWrapper><BloodTests /></AuthWrapper>} 
             />
@@ -64,7 +74,7 @@ function App() {
             {/* Redirect old routes to dashboard */}
             <Route path="/cycle-planner" element={<Navigate to="/dashboard" replace />} />
             <Route path="/injection-assistant" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/daily-metrics" element={<Navigate to="/daily" replace />} />
             <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
             <Route path="/supplements" element={<Navigate to="/dashboard" replace />} />
             <Route path="/targets" element={<Navigate to="/dashboard" replace />} />

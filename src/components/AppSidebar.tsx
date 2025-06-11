@@ -20,6 +20,8 @@ import {
   TrendingUpIcon,
   UserIcon,
   SettingsIcon,
+  CalendarIcon,
+  CalendarDaysIcon,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -27,6 +29,16 @@ const navigationItems = [
     title: 'Overview',
     url: '/dashboard',
     icon: LayoutDashboardIcon,
+  },
+  {
+    title: 'Daily',
+    url: '/daily',
+    icon: CalendarIcon,
+  },
+  {
+    title: 'Weekly',
+    url: '/weekly',
+    icon: CalendarDaysIcon,
   },
   {
     title: 'Blood Results',
