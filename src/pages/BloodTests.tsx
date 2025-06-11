@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import Navbar from '@/components/Navbar';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -238,11 +238,9 @@ const BloodTests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="pt-24 pb-16 px-4 md:px-6 max-w-screen-xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Blood Test Results</h1>
             <p className="text-muted-foreground">Track and monitor your blood test results over time</p>
@@ -268,7 +266,7 @@ const BloodTests = () => {
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="by-date">By Date</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -294,7 +292,7 @@ const BloodTests = () => {
           )}
         </Tabs>
         
-        <div className="mb-8">
+        <div>
           <h2 className="text-xl font-semibold mb-4">Upload New Results</h2>
           <Card className="border border-border/50 bg-card/90 backdrop-blur-sm">
             <CardContent className="pt-6">
@@ -402,8 +400,8 @@ const BloodTests = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
