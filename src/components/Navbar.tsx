@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { HeartPulseIcon, ClipboardIcon, SyringeIcon, FlaskConicalIcon, MenuIcon } from "lucide-react";
+import { HeartPulseIcon, FlaskConicalIcon, MenuIcon } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { cn } from "@/lib/utils";
 import { NavItem } from "./navbar/NavItem";
@@ -33,18 +33,6 @@ const Navbar = () => {
           </Link>
 
           <nav className="hidden md:flex items-center">
-            <NavItem 
-              to="/cycle-planner" 
-              icon={ClipboardIcon}
-              label="Cycle Planner" 
-              isActive={location.pathname === '/cycle-planner'} 
-            />
-            <NavItem 
-              to="/injection-assistant" 
-              icon={SyringeIcon} 
-              label="Injection Assistant" 
-              isActive={location.pathname === '/injection-assistant'} 
-            />
             <NavItem 
               to="/blood-tests" 
               icon={FlaskConicalIcon} 

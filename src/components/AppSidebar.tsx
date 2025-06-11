@@ -16,13 +16,8 @@ import {
   HeartPulseIcon,
   LayoutDashboardIcon,
   FlaskConicalIcon,
-  SyringeIcon,
-  ClipboardIcon,
   BarChart3Icon,
   TrendingUpIcon,
-  ActivityIcon,
-  UserIcon,
-  SettingsIcon,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -37,16 +32,6 @@ const navigationItems = [
     icon: FlaskConicalIcon,
   },
   {
-    title: 'Cycle Planning',
-    url: '/cycle-planner',
-    icon: ClipboardIcon,
-  },
-  {
-    title: 'Injections',
-    url: '/injection-assistant',
-    icon: SyringeIcon,
-  },
-  {
     title: 'Analytics',
     url: '/analytics',
     icon: BarChart3Icon,
@@ -55,19 +40,6 @@ const navigationItems = [
     title: 'Trends',
     url: '/trends',
     icon: TrendingUpIcon,
-  },
-];
-
-const secondaryItems = [
-  {
-    title: 'Profile',
-    url: '/profile',
-    icon: UserIcon,
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: SettingsIcon,
   },
 ];
 
@@ -89,27 +61,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild
-                    isActive={location.pathname === item.url}
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {secondaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild
