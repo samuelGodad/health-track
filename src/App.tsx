@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import BloodTests from "./pages/BloodTests";
 import Analytics from "./pages/Analytics";
 import Trends from "./pages/Trends";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -49,6 +51,14 @@ function App() {
             <Route 
               path="/trends" 
               element={<AuthWrapper><Trends /></AuthWrapper>} 
+            />
+            <Route 
+              path="/profile" 
+              element={<AuthWrapper><Profile /></AuthWrapper>} 
+            />
+            <Route 
+              path="/settings" 
+              element={<AuthWrapper><Settings /></AuthWrapper>} 
             />
             
             {/* Redirect old routes to dashboard */}

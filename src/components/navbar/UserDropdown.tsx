@@ -16,6 +16,7 @@ import {
   CreditCardIcon,
   LogOutIcon
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const UserDropdown = () => {
   const { user, signOut } = useAuth();
@@ -37,13 +38,17 @@ export const UserDropdown = () => {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <UserIcon className="mr-2 h-4 w-4" />
-          <span>My Details</span>
+        <DropdownMenuItem asChild>
+          <Link to="/profile">
+            <UserIcon className="mr-2 h-4 w-4" />
+            <span>My Profile</span>
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <SettingsIcon className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+        <DropdownMenuItem asChild>
+          <Link to="/settings">
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <MessageSquareIcon className="mr-2 h-4 w-4" />
