@@ -18,6 +18,8 @@ import {
   FlaskConicalIcon,
   BarChart3Icon,
   TrendingUpIcon,
+  UserIcon,
+  SettingsIcon,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -43,6 +45,19 @@ const navigationItems = [
   },
 ];
 
+const accountItems = [
+  {
+    title: 'Profile',
+    url: '/profile',
+    icon: UserIcon,
+  },
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: SettingsIcon,
+  },
+];
+
 export function AppSidebar() {
   const location = useLocation();
 
@@ -61,6 +76,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {accountItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild
