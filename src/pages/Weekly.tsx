@@ -12,6 +12,7 @@ import {
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const Weekly = () => {
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
@@ -31,10 +32,64 @@ const Weekly = () => {
     calories: 2245
   };
 
+  // Calculate calorie distribution (protein: 4 cal/g, carbs: 4 cal/g, fats: 9 cal/g)
+  const proteinCalories = weeklyAverages.protein * 4;
+  const carbCalories = weeklyAverages.carbs * 4;
+  const fatCalories = weeklyAverages.fats * 9;
+
+  const calorieDistribution = [
+    { name: 'Protein', value: proteinCalories, color: '#3b82f6' },
+    { name: 'Carbs', value: carbCalories, color: '#10b981' },
+    { name: 'Fats', value: fatCalories, color: '#f59e0b' }
+  ];
+
+  // Mock trend data for the last 8 weeks
+  const trendData = [
+    { week: 'W1', weight: 76.5, steps: 7500, systolic: 125, diastolic: 80 },
+    { week: 'W2', weight: 76.1, steps: 8200, systolic: 123, diastolic: 79 },
+    { week: 'W3', weight: 75.8, steps: 8100, systolic: 124, diastolic: 81 },
+    { week: 'W4', weight: 75.5, steps: 8300, systolic: 122, diastolic: 78 },
+    { week: 'W5', weight: 75.3, steps: 8600, systolic: 121, diastolic: 77 },
+    { week: 'W6', weight: 75.1, steps: 8400, systolic: 123, diastolic: 79 },
+    { week: 'W7', weight: 75.0, steps: 8500, systolic: 122, diastolic: 78 },
+    { week: 'W8', weight: 75.2, steps: 8547, systolic: 122, diastolic: 78 }
+  ];
+
   const navigateWeek = (direction: 'prev' | 'next') => {
     setSelectedWeek(prev => 
       direction === 'prev' ? subWeeks(prev, 1) : addWeeks(prev, 1)
     );
+  };
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
+          <p className="font-medium">{`Week: ${data.week}`}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }}>
+              {`${entry.dataKey}: ${entry.value}${entry.dataKey === 'weight' ? 'kg' : entry.dataKey === 'steps' ? ' steps' : ' mmHg'}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CalorieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const percentage = ((data.value / weeklyAverages.calories) * 100).toFixed(1);
+      return (
+        <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
+          <p className="font-medium">{data.name}</p>
+          <p>{`${data.value} calories (${percentage}%)`}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -43,7 +98,7 @@ const Weekly = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Weekly Overview</h2>
-            <p className="text-muted-foreground">View your weekly average metrics.</p>
+            <p className="text-muted-foreground">View your weekly average metrics and trends.</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -88,6 +143,7 @@ const Weekly = () => {
           </div>
         </div>
 
+        {/* Summary Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
@@ -129,10 +185,60 @@ const Weekly = () => {
           </Card>
         </div>
 
+        {/* Calorie Distribution and Nutrition Summary */}
         <div className="grid gap-6 md:grid-cols-3">
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Calorie Distribution</CardTitle>
+              <p className="text-sm text-muted-foreground">Weekly average breakdown of macronutrients</p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-8">
+                <div className="h-[200px] w-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={calorieDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {calorieDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CalorieTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  <div className="text-lg font-semibold">Total Value</div>
+                  <div className="text-2xl font-bold">{weeklyAverages.calories} kcal</div>
+                  <div className="space-y-2 mt-4">
+                    {calorieDistribution.map((item) => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-sm" 
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="text-sm font-medium">{item.name}</span>
+                        <span className="text-sm text-muted-foreground ml-auto">
+                          {item.value} cal
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>Nutrition Averages</CardTitle>
+              <CardTitle>Nutrition Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
@@ -147,21 +253,94 @@ const Weekly = () => {
                 <span className="text-sm font-medium">Fats:</span>
                 <span className="text-sm">{weeklyAverages.fats.toFixed(1)}g</span>
               </div>
+              <div className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                  Protein & Carbs: 4 cal/g<br/>
+                  Fats: 9 cal/g
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Trend Charts */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Weight Trend</CardTitle>
+              <p className="text-sm text-muted-foreground">Weekly average weight over time</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2">
+          <Card>
             <CardHeader>
-              <CardTitle>Week Details</CardTitle>
+              <CardTitle>Steps Trend</CardTitle>
+              <p className="text-sm text-muted-foreground">Daily average steps over time</p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm">
-                  <span className="font-medium">Week of:</span> {format(weekStart, "MMMM d")} - {format(weekEnd, "MMMM d, yyyy")}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Showing averages for all metrics tracked during this week period (Monday to Sunday).
-                </p>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="steps" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Systolic Blood Pressure</CardTitle>
+              <p className="text-sm text-muted-foreground">Weekly average systolic BP</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="systolic" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Diastolic Blood Pressure</CardTitle>
+              <p className="text-sm text-muted-foreground">Weekly average diastolic BP</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="diastolic" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444' }} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
