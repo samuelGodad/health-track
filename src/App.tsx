@@ -21,51 +21,49 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <CycleProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/sign-in" element={<SignIn />} />
-                <Route path="/sign-up" element={<SignUp />} />
-                
-                <Route 
-                  path="/onboarding" 
-                  element={<AuthWrapper><Onboarding /></AuthWrapper>} 
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={<AuthWrapper><Dashboard /></AuthWrapper>} 
-                />
-                <Route 
-                  path="/cycle-planner" 
-                  element={<AuthWrapper><CyclePlanner /></AuthWrapper>} 
-                />
-                <Route 
-                  path="/injection-assistant" 
-                  element={<AuthWrapper><InjectionAssistant /></AuthWrapper>} 
-                />
-                <Route 
-                  path="/blood-tests" 
-                  element={<AuthWrapper><BloodTests /></AuthWrapper>} 
-                />
-                
-                <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/supplements" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/targets" element={<Navigate to="/dashboard" replace />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </CycleProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <CycleProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} />
+              
+              <Route 
+                path="/onboarding" 
+                element={<AuthWrapper><Onboarding /></AuthWrapper>} 
+              />
+              <Route 
+                path="/dashboard" 
+                element={<AuthWrapper><Dashboard /></AuthWrapper>} 
+              />
+              <Route 
+                path="/cycle-planner" 
+                element={<AuthWrapper><CyclePlanner /></AuthWrapper>} 
+              />
+              <Route 
+                path="/injection-assistant" 
+                element={<AuthWrapper><InjectionAssistant /></AuthWrapper>} 
+              />
+              <Route 
+                path="/blood-tests" 
+                element={<AuthWrapper><BloodTests /></AuthWrapper>} 
+              />
+              
+              <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/supplements" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/targets" element={<Navigate to="/dashboard" replace />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </CycleProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
