@@ -15,7 +15,6 @@ import {
   InfoIcon,
   CheckCircleIcon
 } from 'lucide-react';
-import { Toggle } from '@/components/ui/toggle';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -148,14 +147,8 @@ const BloodTests = () => {
       
       toast.success(`Successfully uploaded ${uploadedFiles.length} file(s)`);
       
-      if (showAIProcessing) {
-        await processFilesWithAI(uploadedFiles);
-      } else {
-        setSelectedFiles([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }
+      // Always process files with AI after upload
+      await processFilesWithAI(uploadedFiles);
       
       fetchBloodTestResults();
     } catch (error) {
@@ -333,7 +326,7 @@ const BloodTests = () => {
                   <InfoIcon className="h-4 w-4" />
                   <AlertTitle>About PDF Processing</AlertTitle>
                   <AlertDescription>
-                    Our system attempts to automatically extract data from blood test PDFs. 
+                    Our system automatically extracts data from blood test PDFs using AI. 
                     Due to the variety of formats, this may not always work perfectly.
                     If automatic extraction fails, please use manual entry.
                   </AlertDescription>
@@ -384,28 +377,6 @@ const BloodTests = () => {
                       </div>
                     ))}
                     
-                    <div className="p-3 bg-blue-50 border border-blue-100 text-blue-700 rounded-md flex items-center gap-2">
-                      <div className="text-blue-600">
-                        <AlertCircleIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">AI Processing Available</p>
-                        <p className="text-xs">Your PDF will be analyzed to automatically extract test results</p>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-2 flex items-center gap-2">
-                      <Toggle
-                        variant="outline"
-                        aria-label="Enable AI processing"
-                        pressed={showAIProcessing}
-                        onPressedChange={setShowAIProcessing}
-                        className="data-[state=on]:bg-blue-50 data-[state=on]:text-blue-700 data-[state=on]:border-blue-200"
-                      >
-                        Use AI to extract results
-                      </Toggle>
-                    </div>
-                    
                     <Button 
                       onClick={uploadFiles}
                       disabled={isUploading || isProcessing}
@@ -422,7 +393,7 @@ const BloodTests = () => {
                           Processing with AI...
                         </>
                       ) : (
-                        `Upload ${selectedFiles.length} File(s)${showAIProcessing ? ' & Process with AI' : ''}`
+                        `Upload & Process ${selectedFiles.length} File(s) with AI`
                       )}
                     </Button>
                   </div>
