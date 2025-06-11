@@ -242,7 +242,7 @@ const BloodTests = () => {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Blood Test Results</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Enter your blood results below</h1>
             <p className="text-muted-foreground">Track and monitor your blood test results over time</p>
           </div>
           
@@ -266,31 +266,22 @@ const BloodTests = () => {
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="by-date">By Date</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          </TabsList>
+        <div className="w-full">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4">Your Blood Test Results</h2>
+          </div>
           
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <>
-              <TabsContent value="by-date">
-                <BloodTestsByDate 
-                  bloodTestResults={bloodTestResults} 
-                  onDataUpdate={fetchBloodTestResults}
-                />
-              </TabsContent>
-              
-              <TabsContent value="timeline">
-                <BloodTestTimeline bloodTestResults={bloodTestResults} />
-              </TabsContent>
-            </>
+            <BloodTestsByDate 
+              bloodTestResults={bloodTestResults} 
+              onDataUpdate={fetchBloodTestResults}
+            />
           )}
-        </Tabs>
+        </div>
         
         <div>
           <h2 className="text-xl font-semibold mb-4">Upload New Results</h2>

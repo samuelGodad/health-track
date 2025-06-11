@@ -46,7 +46,7 @@ const navigationItems = [
     icon: FlaskConicalIcon,
   },
   {
-    title: 'Analytics',
+    title: 'Blood Analytics',
     url: '/analytics',
     icon: BarChart3Icon,
   },
