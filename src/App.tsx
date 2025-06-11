@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import CyclePlanner from "./pages/CyclePlanner"; 
 import BloodTests from "./pages/BloodTests";
 import InjectionAssistant from "./pages/InjectionAssistant";
+import Analytics from "./pages/Analytics";
+import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
