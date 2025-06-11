@@ -1,15 +1,14 @@
+
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { LineChart } from "@/components/ui/line-chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   BarChart3Icon,
   TrendingUpIcon,
   ActivityIcon,
   PieChartIcon,
 } from 'lucide-react';
-import BloodTestTimeline from '@/components/bloodTests/BloodTestTimeline';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +27,6 @@ const Analytics = () => {
   const [bloodTestResults, setBloodTestResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>("1M");
   const [selectedTest1, setSelectedTest1] = useState<string | null>(null);
   const [selectedTest2, setSelectedTest2] = useState<string | null>(null);
 
@@ -176,7 +174,7 @@ const Analytics = () => {
       .map(test => {
         let formattedDate;
         try {
-          formattedDate = format(parseISO(test.test_date), 'MMM d, yyyy');
+          formattedDate = format(parseISO(test.test_date), 'MMM d');
         } catch (e) {
           formattedDate = test.test_date;
         }
@@ -205,8 +203,6 @@ const Analytics = () => {
 
   const test1Details = getTestDetails(selectedTest1 || '');
   const test2Details = getTestDetails(selectedTest2 || '');
-
-  const timeframes = ["1D", "1W", "1M", "3M", "1Y", "All"];
 
   const handleTestClick = (testName: string) => {
     if (!selectedTest1) {
@@ -259,7 +255,7 @@ const Analytics = () => {
               <CardHeader>
                 <CardTitle>{bloodTestCategories[selectedCategory as keyof typeof bloodTestCategories]}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
                 {isLoading ? (
                   <div className="text-center text-muted-foreground">Loading...</div>
                 ) : filteredTests.length === 0 ? (
@@ -276,7 +272,7 @@ const Analytics = () => {
                       onClick={() => handleTestClick(test.test_name)}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-medium text-sm">{test.test_name}</h4>
                           <p className="text-xs text-muted-foreground">{test.category}</p>
                         </div>
@@ -314,32 +310,15 @@ const Analytics = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>Test Trends</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Select tests from the left to compare their trends over time
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {timeframes.map((timeframe) => (
-                      <Button
-                        key={timeframe}
-                        variant={selectedTimeframe === timeframe ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedTimeframe(timeframe)}
-                        className="text-xs"
-                      >
-                        {timeframe}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <CardTitle>Test Trends</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Select tests from the left to compare their trends over time
+                </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
                 {/* Selected Tests Display */}
                 {(selectedTest1 || selectedTest2) && (
-                  <div className="mb-4 space-y-2">
+                  <div className="space-y-2">
                     {selectedTest1 && (
                       <div className="flex items-center justify-between bg-primary/10 rounded p-2">
                         <span className="text-sm font-medium">Test 1: {selectedTest1}</span>
@@ -369,64 +348,61 @@ const Analytics = () => {
                   </div>
                 )}
 
-                <div className="space-y-6">
-                  {/* First Test Chart */}
-                  {selectedTest1 && chartData1.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">{selectedTest1}</h4>
-                      <div className="h-[200px] w-full">
-                        <LineChart
-                          data={chartData1}
-                          dataKey="value"
-                          color="hsl(var(--primary))"
-                          tooltipLabel={selectedTest1}
-                          valueFormatter={(value) => `${value} ${test1Details.unit}`}
-                          referenceMin={test1Details.min}
-                          referenceMax={test1Details.max}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Reference Range: {test1Details.min !== null && test1Details.max !== null 
-                          ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
-                          : 'No reference range available'} | {chartData1.length} data points
-                      </div>
+                {/* Charts */}
+                {selectedTest1 && chartData1.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">{selectedTest1}</h4>
+                    <div className="h-[250px] w-full">
+                      <LineChart
+                        data={chartData1}
+                        dataKey="value"
+                        color="hsl(var(--primary))"
+                        tooltipLabel={selectedTest1}
+                        valueFormatter={(value) => `${value} ${test1Details.unit}`}
+                        referenceMin={test1Details.min}
+                        referenceMax={test1Details.max}
+                      />
                     </div>
-                  )}
+                    <div className="text-xs text-muted-foreground">
+                      Reference Range: {test1Details.min !== null && test1Details.max !== null 
+                        ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
+                        : 'No reference range available'} | {chartData1.length} data points
+                    </div>
+                  </div>
+                )}
 
-                  {/* Second Test Chart */}
-                  {selectedTest2 && chartData2.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">{selectedTest2}</h4>
-                      <div className="h-[200px] w-full">
-                        <LineChart
-                          data={chartData2}
-                          dataKey="value"
-                          color="hsl(var(--secondary))"
-                          tooltipLabel={selectedTest2}
-                          valueFormatter={(value) => `${value} ${test2Details.unit}`}
-                          referenceMin={test2Details.min}
-                          referenceMax={test2Details.max}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Reference Range: {test2Details.min !== null && test2Details.max !== null 
-                          ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
-                          : 'No reference range available'} | {chartData2.length} data points
-                      </div>
+                {selectedTest2 && chartData2.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">{selectedTest2}</h4>
+                    <div className="h-[250px] w-full">
+                      <LineChart
+                        data={chartData2}
+                        dataKey="value"
+                        color="hsl(var(--destructive))"
+                        tooltipLabel={selectedTest2}
+                        valueFormatter={(value) => `${value} ${test2Details.unit}`}
+                        referenceMin={test2Details.min}
+                        referenceMax={test2Details.max}
+                      />
                     </div>
-                  )}
+                    <div className="text-xs text-muted-foreground">
+                      Reference Range: {test2Details.min !== null && test2Details.max !== null 
+                        ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
+                        : 'No reference range available'} | {chartData2.length} data points
+                    </div>
+                  </div>
+                )}
 
-                  {/* Empty State */}
-                  {!selectedTest1 && !selectedTest2 && (
-                    <div className="h-[400px] w-full flex items-center justify-center border border-dashed rounded-lg">
-                      <div className="text-center">
-                        <BarChart3Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">Click on tests from the left to view and compare trends</p>
-                        <p className="text-xs text-muted-foreground mt-2">You can select up to 2 tests for comparison</p>
-                      </div>
+                {/* Empty State */}
+                {!selectedTest1 && !selectedTest2 && (
+                  <div className="h-[400px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                    <div className="text-center">
+                      <BarChart3Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Click on tests from the left to view and compare trends</p>
+                      <p className="text-xs text-muted-foreground mt-2">You can select up to 2 tests for comparison</p>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

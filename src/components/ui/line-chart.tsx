@@ -34,6 +34,14 @@ export function LineChart({
   referenceMin,
   referenceMax,
 }: LineChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-full w-full flex items-center justify-center border border-dashed rounded-lg">
+        <p className="text-muted-foreground text-sm">No data available</p>
+      </div>
+    );
+  }
+
   return (
     <ChartContainer
       className={className}
@@ -47,7 +55,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 30, right: 40, left: 15, bottom: 35 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -55,36 +63,18 @@ export function LineChart({
             stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
-            padding={{ left: 10, right: 10 }}
-            tick={(props) => {
-              const { x, y, payload } = props;
-              return (
-                <g transform={`translate(${x},${y})`}>
-                  <text
-                    x={0}
-                    y={0}
-                    dy={10}
-                    textAnchor="end"
-                    fill="hsl(var(--muted-foreground))"
-                    fontSize={11}
-                    transform="rotate(-45)"
-                  >
-                    {payload.value}
-                  </text>
-                </g>
-              );
-            }}
-            tickMargin={5}
+            tick={{ fontSize: 11 }}
+            angle={-45}
+            textAnchor="end"
             height={60}
+            interval={0}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
             tickFormatter={valueFormatter}
-            padding={{ top: 10, bottom: 10 }}
             tick={{ fontSize: 11 }}
-            tickMargin={10}
             width={60}
           />
           <Tooltip
@@ -105,7 +95,7 @@ export function LineChart({
               />
             )}
           />
-          {showLegend && <Legend wrapperStyle={{ paddingTop: 10 }} />}
+          {showLegend && <Legend />}
           {referenceMin !== null && referenceMin !== undefined && (
             <ReferenceLine
               y={referenceMin}
@@ -113,12 +103,11 @@ export function LineChart({
                 value: 'Min', 
                 position: 'right', 
                 fill: 'hsl(var(--warning))', 
-                fontSize: 10,
-                offset: 5
+                fontSize: 10
               }}
               stroke="hsl(var(--warning))"
               strokeDasharray="3 3"
-              opacity={0.5}
+              opacity={0.7}
             />
           )}
           {referenceMax !== null && referenceMax !== undefined && (
@@ -128,12 +117,11 @@ export function LineChart({
                 value: 'Max', 
                 position: 'right', 
                 fill: 'hsl(var(--warning))', 
-                fontSize: 10,
-                offset: 5
+                fontSize: 10
               }}
               stroke="hsl(var(--warning))"
               strokeDasharray="3 3"
-              opacity={0.5}
+              opacity={0.7}
             />
           )}
           <Line
@@ -142,30 +130,14 @@ export function LineChart({
             stroke={color}
             strokeWidth={2}
             dot={{ 
-              fill: "hsl(var(--background))", 
-              stroke: color, 
+              fill: color, 
               strokeWidth: 2, 
               r: 4 
             }}
             activeDot={{ 
               r: 6, 
-              stroke: "hsl(var(--background))", 
-              strokeWidth: 2 
-            }}
-            label={(props) => {
-              const { x, y, value } = props;
-              return (
-                <text
-                  x={x}
-                  y={y - 10}
-                  fill={color}
-                  fontSize={11}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                >
-                  {valueFormatter(Number(value))}
-                </text>
-              );
+              strokeWidth: 2,
+              fill: color
             }}
           />
         </RechartsLineChart>
