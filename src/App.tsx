@@ -52,6 +52,14 @@ function App() {
                 path="/blood-tests" 
                 element={<AuthWrapper><BloodTests /></AuthWrapper>} 
               />
+              <Route 
+                path="/analytics" 
+                element={<AuthWrapper><Analytics /></AuthWrapper>} 
+              />
+              <Route 
+                path="/trends" 
+                element={<AuthWrapper><Trends /></AuthWrapper>} 
+              />
               
               <Route path="/daily-metrics" element={<Navigate to="/dashboard" replace />} />
               <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
