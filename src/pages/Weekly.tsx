@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,15 +44,21 @@ const Weekly = () => {
 
   // Mock trend data for the last 8 weeks
   const trendData = [
-    { week: 'W1', weight: 76.5, steps: 7500, systolic: 125, diastolic: 80 },
-    { week: 'W2', weight: 76.1, steps: 8200, systolic: 123, diastolic: 79 },
-    { week: 'W3', weight: 75.8, steps: 8100, systolic: 124, diastolic: 81 },
-    { week: 'W4', weight: 75.5, steps: 8300, systolic: 122, diastolic: 78 },
-    { week: 'W5', weight: 75.3, steps: 8600, systolic: 121, diastolic: 77 },
-    { week: 'W6', weight: 75.1, steps: 8400, systolic: 123, diastolic: 79 },
-    { week: 'W7', weight: 75.0, steps: 8500, systolic: 122, diastolic: 78 },
-    { week: 'W8', weight: 75.2, steps: 8547, systolic: 122, diastolic: 78 }
+    { weekStart: startOfWeek(addWeeks(new Date(), -7), { weekStartsOn: 1 }), weight: 76.5, steps: 7500, systolic: 125, diastolic: 80 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -6), { weekStartsOn: 1 }), weight: 76.1, steps: 8200, systolic: 123, diastolic: 79 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -5), { weekStartsOn: 1 }), weight: 75.8, steps: 8100, systolic: 124, diastolic: 81 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -4), { weekStartsOn: 1 }), weight: 75.5, steps: 8300, systolic: 122, diastolic: 78 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -3), { weekStartsOn: 1 }), weight: 75.3, steps: 8600, systolic: 121, diastolic: 77 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -2), { weekStartsOn: 1 }), weight: 75.1, steps: 8400, systolic: 123, diastolic: 79 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 }), weight: 75.0, steps: 8500, systolic: 122, diastolic: 78 },
+    { weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }), weight: 75.2, steps: 8547, systolic: 122, diastolic: 78 }
   ];
+
+  // Use a formatted weekStart string, e.g. "Jun 10"
+  const trendDataWithDates = trendData.map(d => ({
+    ...d,
+    week: format(d.weekStart, 'MMM d')
+  }));
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     setSelectedWeek(prev => 
@@ -258,89 +263,6 @@ const Weekly = () => {
                   Protein & Carbs: 4 cal/g<br/>
                   Fats: 9 cal/g
                 </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Trend Charts */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Weight Trend</CardTitle>
-              <p className="text-sm text-muted-foreground">Weekly average weight over time</p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                    <YAxis stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Steps Trend</CardTitle>
-              <p className="text-sm text-muted-foreground">Daily average steps over time</p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                    <YAxis stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="steps" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Systolic Blood Pressure</CardTitle>
-              <p className="text-sm text-muted-foreground">Weekly average systolic BP</p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                    <YAxis stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="systolic" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Diastolic Blood Pressure</CardTitle>
-              <p className="text-sm text-muted-foreground">Weekly average diastolic BP</p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                    <YAxis stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="diastolic" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444' }} />
-                  </LineChart>
-                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
