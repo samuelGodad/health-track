@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -42,6 +41,42 @@ export function LineChart({
     );
   }
 
+  // --- Y-Axis Domain Calculation ---
+  const getYAxisDomain = () => {
+    let allValues = data.map((d) => d[dataKey]);
+    let min = Math.min(...allValues);
+    let max = Math.max(...allValues);
+
+    // Optionally include min/max from reference if present 
+    if (referenceMin !== null && referenceMin !== undefined) {
+      min = Math.min(min, referenceMin);
+    }
+    if (referenceMax !== null && referenceMax !== undefined) {
+      max = Math.max(max, referenceMax);
+    }
+
+    // If there is only 1 data point, pad above/below for visual centering
+    if (min === max) {
+      if (min === 0) { max = 1; } // guard for 0
+      else {
+        min = min - Math.abs(min) * 0.1;
+        max = max + Math.abs(max) * 0.1;
+      }
+    } else {
+      // pad slightly for multi-point charts
+      const range = max - min;
+      min = min - range * 0.05;
+      max = max + range * 0.05;
+    }
+
+    // Prevent min/max being exactly the same (would throw recharts warning)
+    if (min === max) {
+      max = min + 1;
+    }
+
+    return [min, max];
+  };
+
   return (
     <ChartContainer
       className={className}
@@ -76,6 +111,7 @@ export function LineChart({
             tickFormatter={valueFormatter}
             tick={{ fontSize: 11 }}
             width={60}
+            domain={getYAxisDomain()}
           />
           <Tooltip
             content={({
