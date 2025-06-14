@@ -1,7 +1,12 @@
 
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, addWeeks, startOfWeek } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format, addWeeks, startOfWeek, endOfWeek, isWithinInterval, isAfter, isBefore } from "date-fns";
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 // --- Mock data (with totalSleep & restingHeartRate included) ---
@@ -15,10 +20,6 @@ const trendData = [
   { weekStart: startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 }), weight: 75.0, steps: 8500, systolic: 122, diastolic: 78, totalSleep: 7.2, restingHeartRate: 56 },
   { weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }), weight: 75.2, steps: 8547, systolic: 122, diastolic: 78, totalSleep: 7.4, restingHeartRate: 55 }
 ];
-const chartData = trendData.map(d => ({
-  ...d,
-  week: format(d.weekStart, 'MMM d')
-}));
 
 // Small font size config for axes and tooltips
 const axisStyle = { fontSize: 11 };
@@ -93,17 +94,133 @@ const trends = [
   }
 ];
 
-// Responsive grid: 2 cols on lg+; 1 col (full width) on md and below
 const gridCls = "grid gap-6 grid-cols-1 lg:grid-cols-2";
 
+// --- Date Range Picker Logic ---
+function WeekRangePicker({
+  from,
+  to,
+  setFrom,
+  setTo,
+  minDate,
+  maxDate,
+}: {
+  from: Date | null;
+  to: Date | null;
+  setFrom: (date: Date | null) => void;
+  setTo: (date: Date | null) => void;
+  minDate: Date;
+  maxDate: Date;
+}) {
+  return (
+    <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-6 w-fit">
+      <div>
+        <span className="text-xs font-medium text-muted-foreground">From</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-[140px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {from ? format(from, "MMM d, yyyy") : <span>Pick start</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={from ?? undefined}
+              onSelect={date => setFrom(date ? startOfWeek(date, { weekStartsOn: 1 }) : null)}
+              disabled={date =>
+                (to && isAfter(date, to)) ||
+                isBefore(date, minDate) ||
+                isAfter(date, maxDate)
+              }
+              initialFocus
+              className="p-3 pointer-events-auto"
+              
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div>
+        <span className="text-xs font-medium text-muted-foreground">To</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-[140px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {to ? format(to, "MMM d, yyyy") : <span>Pick end</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={to ?? undefined}
+              onSelect={date => setTo(date ? endOfWeek(date, { weekStartsOn: 1 }) : null)}
+              disabled={date =>
+                (from && isBefore(date, from)) ||
+                isBefore(date, minDate) ||
+                isAfter(date, maxDate)
+              }
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
+
 const Trends = () => {
+  // Setup for week range by default (all available data)
+  const chartMinDate = trendData[0].weekStart;
+  const chartMaxDate = endOfWeek(trendData[trendData.length - 1].weekStart, { weekStartsOn: 1 });
+
+  // State for date range
+  const [from, setFrom] = useState<Date | null>(chartMinDate);
+  const [to, setTo] = useState<Date | null>(chartMaxDate);
+
+  // Filter data based on range
+  const filteredChartData = useMemo(() => {
+    return trendData
+      .filter(d => {
+        const weekStartDate = d.weekStart;
+        // Show week if its start is within [from, to]
+        return (
+          (!from || !isBefore(weekStartDate, from)) &&
+          (!to || !isAfter(weekStartDate, to))
+        );
+      })
+      .map(d => ({
+        ...d,
+        week: format(d.weekStart, 'MMM d')
+      }));
+  }, [from, to]);
+
   return (
     <DashboardLayout>
       <div>
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
-        <p className="text-sm md:text-base text-muted-foreground mb-4">Week-over-week averages for all tracked metrics.</p>
+        {/* Header area */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-3">
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-1">Week-over-week averages for all tracked metrics.</p>
+          </div>
+          <WeekRangePicker
+            from={from}
+            to={to}
+            setFrom={setFrom}
+            setTo={setTo}
+            minDate={chartMinDate}
+            maxDate={chartMaxDate}
+          />
+        </div>
+        {/* The trend charts grid */}
         <div className={gridCls}>
-          {/* Standard metric charts */}
           {trends.map((t) => (
             <Card key={t.key}>
               <CardHeader>
@@ -113,7 +230,7 @@ const Trends = () => {
               <CardContent>
                 <div className="h-[240px] md:h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
+                    <LineChart data={filteredChartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="week"
@@ -148,7 +265,6 @@ const Trends = () => {
               </CardContent>
             </Card>
           ))}
-          {/* Blood Pressure (systolic & diastolic together) */}
           <Card key="bp">
             <CardHeader>
               <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
@@ -157,7 +273,7 @@ const Trends = () => {
             <CardContent>
               <div className="h-[240px] md:h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
+                  <LineChart data={filteredChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis
                       dataKey="week"
@@ -213,3 +329,4 @@ const Trends = () => {
 };
 
 export default Trends;
+
