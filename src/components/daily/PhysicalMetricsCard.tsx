@@ -9,6 +9,8 @@ interface PhysicalMetricsCardProps {
     systolicBP: string;
     diastolicBP: string;
     steps: string;
+    totalSleep: string;
+    restingHeartRate: string;
   };
   onChange: (field: string, value: string) => void;
 }
@@ -63,6 +65,29 @@ export function PhysicalMetricsCard({ metrics, onChange }: PhysicalMetricsCardPr
             value={metrics.steps}
             onChange={(e) => onChange('steps', e.target.value)}
             placeholder="Enter step count"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="totalSleep">Total Sleep (hours)</Label>
+          <Input
+            id="totalSleep"
+            type="number"
+            step="0.1"
+            value={metrics.totalSleep}
+            onChange={(e) => onChange('totalSleep', e.target.value)}
+            placeholder="e.g. 7.5"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="restingHeartRate">Resting Heart Rate (bpm)</Label>
+          <Input
+            id="restingHeartRate"
+            type="number"
+            value={metrics.restingHeartRate}
+            onChange={(e) => onChange('restingHeartRate', e.target.value)}
+            placeholder="e.g. 55"
           />
         </div>
       </CardContent>

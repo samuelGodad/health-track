@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DatePickerPopover } from "@/components/daily/DatePickerPopover";
@@ -13,6 +12,8 @@ const Daily = () => {
     systolicBP: '',
     diastolicBP: '',
     steps: '',
+    totalSleep: '',
+    restingHeartRate: '',
     protein: '',
     carbs: '',
     fats: '',
@@ -100,6 +101,8 @@ const Daily = () => {
                   systolicBP: metrics.systolicBP,
                   diastolicBP: metrics.diastolicBP,
                   steps: metrics.steps,
+                  totalSleep: metrics.totalSleep,
+                  restingHeartRate: metrics.restingHeartRate,
                 }}
                 onChange={handleInputChange}
               />
