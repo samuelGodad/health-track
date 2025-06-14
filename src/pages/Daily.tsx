@@ -221,9 +221,7 @@ const Daily = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="calories">
-                      Enter Macros and your calories will be estimated
-                    </Label>
+                    <Label htmlFor="calories">Calories</Label>
                     <Input
                       id="calories"
                       type="number"
