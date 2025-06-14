@@ -44,20 +44,21 @@ const Weekly = () => {
 
   // Mock trend data for the last 8 weeks
   const trendData = [
-    { weekStart: startOfWeek(addWeeks(new Date(), -7), { weekStartsOn: 1 }), weight: 76.5, steps: 7500, systolic: 125, diastolic: 80 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -6), { weekStartsOn: 1 }), weight: 76.1, steps: 8200, systolic: 123, diastolic: 79 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -5), { weekStartsOn: 1 }), weight: 75.8, steps: 8100, systolic: 124, diastolic: 81 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -4), { weekStartsOn: 1 }), weight: 75.5, steps: 8300, systolic: 122, diastolic: 78 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -3), { weekStartsOn: 1 }), weight: 75.3, steps: 8600, systolic: 121, diastolic: 77 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -2), { weekStartsOn: 1 }), weight: 75.1, steps: 8400, systolic: 123, diastolic: 79 },
-    { weekStart: startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 }), weight: 75.0, steps: 8500, systolic: 122, diastolic: 78 },
-    { weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }), weight: 75.2, steps: 8547, systolic: 122, diastolic: 78 }
+    { weekStart: startOfWeek(addWeeks(new Date(), -7), { weekStartsOn: 1 }), weight: 76.5, steps: 7500, systolic: 125, diastolic: 80, totalSleep: 6.7, restingHeartRate: 56 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -6), { weekStartsOn: 1 }), weight: 76.1, steps: 8200, systolic: 123, diastolic: 79, totalSleep: 7.0, restingHeartRate: 55 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -5), { weekStartsOn: 1 }), weight: 75.8, steps: 8100, systolic: 124, diastolic: 81, totalSleep: 7.1, restingHeartRate: 57 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -4), { weekStartsOn: 1 }), weight: 75.5, steps: 8300, systolic: 122, diastolic: 78, totalSleep: 6.8, restingHeartRate: 58 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -3), { weekStartsOn: 1 }), weight: 75.3, steps: 8600, systolic: 121, diastolic: 77, totalSleep: 7.3, restingHeartRate: 54 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -2), { weekStartsOn: 1 }), weight: 75.1, steps: 8400, systolic: 123, diastolic: 79, totalSleep: 7.0, restingHeartRate: 55 },
+    { weekStart: startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 }), weight: 75.0, steps: 8500, systolic: 122, diastolic: 78, totalSleep: 7.2, restingHeartRate: 56 },
+    { weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }), weight: 75.2, steps: 8547, systolic: 122, diastolic: 78, totalSleep: 7.4, restingHeartRate: 55 }
   ];
 
   // Use a formatted weekStart string, e.g. "Jun 10"
   const trendDataWithDates = trendData.map(d => ({
     ...d,
-    week: format(d.weekStart, 'MMM d')
+    week: format(d.weekStart, 'MMM d'),
+    date: format(d.weekStart, 'MMM d')
   }));
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -263,6 +264,50 @@ const Weekly = () => {
                   Protein & Carbs: 4 cal/g<br/>
                   Fats: 9 cal/g
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sleep & Heart Rate Trends */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Total Sleep Trend */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Sleep</CardTitle>
+              <p className="text-sm text-muted-foreground">Avg. hours per night per week</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendDataWithDates}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" domain={['auto', 'auto']} unit="h"/>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="totalSleep" stroke="#6366f1" strokeWidth={2} dot={{ fill: '#6366f1' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Resting Heart Rate Trend */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Resting Heart Rate</CardTitle>
+              <p className="text-sm text-muted-foreground">Avg. bpm per week</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendDataWithDates}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" domain={['auto', 'auto']} unit="bpm"/>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="restingHeartRate" stroke="#d946ef" strokeWidth={2} dot={{ fill: '#d946ef' }} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
