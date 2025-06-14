@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format, addWeeks, getISOWeek } from "date-fns";
-import { ChevronDown, ChevronRight, Copy, Plus } from "lucide-react";
+import { format, addWeeks } from "date-fns";
+import { ChevronDown, ChevronRight, Copy } from "lucide-react";
 import { useCycle, CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -77,12 +77,6 @@ const WeekByWeekTable = ({
     return addWeeks(selectedCyclePeriod.startDate, weeksDiff);
   };
 
-  // Get week of year
-  const getWeekOfYear = (weekNumber: number) => {
-    const weekDate = getWeekStartDate(weekNumber);
-    return getISOWeek(weekDate);
-  };
-
   // Get week of cycle (1-based)
   const getWeekOfCycle = (weekNumber: number) => {
     if (selectedCyclePeriod.startWeek <= selectedCyclePeriod.endWeek) {
@@ -143,12 +137,6 @@ const WeekByWeekTable = ({
     });
   };
 
-  // Function to increment dose by 10%
-  const incrementDose = (weekNumber: number, compound: string, currentDose: number) => {
-    const newDose = Math.round(currentDose * 1.1);
-    onUpdateCyclePlan(weekNumber, newDose, compound);
-  };
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">
@@ -159,7 +147,6 @@ const WeekByWeekTable = ({
         <div className="space-y-2">
           {weeks.map(weekNumber => {
             const weekDate = getWeekStartDate(weekNumber);
-            const weekOfYear = getWeekOfYear(weekNumber);
             const weekOfCycle = getWeekOfCycle(weekNumber);
             const isExpanded = expandedWeeks.has(weekNumber);
             const currentWeekIndex = weeks.indexOf(weekNumber);
@@ -172,7 +159,7 @@ const WeekByWeekTable = ({
               >
                 <div className="border rounded-md">
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer">
+                    <div className="flex items-center justify-between p-3 hover:bg-muted/50 cursor-pointer">
                       <div className="flex items-center space-x-3">
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4" />
@@ -180,7 +167,7 @@ const WeekByWeekTable = ({
                           <ChevronRight className="h-4 w-4" />
                         )}
                         <div>
-                          <h4 className="font-medium">Week {weekOfCycle} (Week {weekOfYear} of year)</h4>
+                          <h4 className="font-medium">Week {weekOfCycle} of cycle</h4>
                           <p className="text-sm text-muted-foreground">
                             {format(weekDate, 'MMM d, yyyy')}
                           </p>
@@ -205,13 +192,12 @@ const WeekByWeekTable = ({
                   </CollapsibleTrigger>
                   
                   <CollapsibleContent>
-                    <div className="border-t p-4">
+                    <div className="border-t p-3">
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Compound</TableHead>
                             <TableHead>Weekly Dose (mg)</TableHead>
-                            <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -222,9 +208,9 @@ const WeekByWeekTable = ({
                             const weeklyDose = plan?.weeklyDose || 0;
                             
                             return (
-                              <TableRow key={`${compound}-week-${weekNumber}`}>
-                                <TableCell className="font-medium">{compound}</TableCell>
-                                <TableCell>
+                              <TableRow key={`${compound}-week-${weekNumber}`} className="h-10">
+                                <TableCell className="font-medium py-2">{compound}</TableCell>
+                                <TableCell className="py-2">
                                   <Input
                                     type="number"
                                     value={weeklyDose || ''}
@@ -232,20 +218,9 @@ const WeekByWeekTable = ({
                                       const value = e.target.value === '' ? 0 : Number(e.target.value);
                                       onUpdateCyclePlan(weekNumber, value, compound);
                                     }}
-                                    className="w-24"
+                                    className="w-24 h-8"
                                     placeholder="0"
                                   />
-                                </TableCell>
-                                <TableCell>
-                                  <Button 
-                                    variant="outline" 
-                                    size="icon" 
-                                    className="h-8 w-8"
-                                    onClick={() => incrementDose(weekNumber, compound, weeklyDose)}
-                                    title="Increase by 10%"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
                                 </TableCell>
                               </TableRow>
                             );
