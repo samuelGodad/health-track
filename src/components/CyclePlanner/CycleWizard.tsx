@@ -17,7 +17,7 @@ interface Step {
 }
 
 const CycleWizard = () => {
-  const { cyclePeriods, cyclePlans, setCyclePeriods } = useCycle();
+  const { cyclePeriods, cyclePlans, setCyclePeriods, setCyclePlans } = useCycle();
   const [activeStep, setActiveStep] = useState<string>("create-cycle");
   const [showCyclePeriodForm, setShowCyclePeriodForm] = useState(false);
   const [selectedCyclePeriod, setSelectedCyclePeriod] = useState<any>(null);
@@ -52,6 +52,10 @@ const CycleWizard = () => {
   const handleSelectCycle = (period: any) => {
     setSelectedCyclePeriod(period);
     setActiveStep("select-compounds");
+  };
+
+  const handleAddCyclePlan = (newPlan: any) => {
+    setCyclePlans([...cyclePlans, newPlan]);
   };
 
   const renderStepContent = () => {
@@ -124,6 +128,13 @@ const CycleWizard = () => {
             </div>
           );
         }
+        
+        // Filter cycle plans for the selected period
+        const periodCyclePlans = cyclePlans.filter(plan => 
+          plan.weekNumber >= selectedCyclePeriod.startWeek && 
+          plan.weekNumber <= selectedCyclePeriod.endWeek
+        );
+
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -135,12 +146,16 @@ const CycleWizard = () => {
               </div>
               <Button 
                 onClick={() => setActiveStep("plan-doses")}
-                disabled={cyclePlans.length === 0}
+                disabled={periodCyclePlans.length === 0}
               >
                 Next: Plan Doses
               </Button>
             </div>
-            <CycleCompoundSelector cyclePeriod={selectedCyclePeriod} />
+            <CycleCompoundSelector 
+              cyclePlanEntries={periodCyclePlans}
+              onAddCyclePlan={handleAddCyclePlan}
+              currentWeek={selectedCyclePeriod.startWeek}
+            />
           </div>
         );
 
@@ -173,7 +188,7 @@ const CycleWizard = () => {
               currentWeek={selectedCyclePeriod.startWeek}
               cyclePeriods={[selectedCyclePeriod]}
               cyclePlans={cyclePlans}
-              onAddCyclePlan={() => {}}
+              onAddCyclePlan={handleAddCyclePlan}
               onUpdateCyclePlan={() => {}}
               onRemoveCompound={() => {}}
             />
