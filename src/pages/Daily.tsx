@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,48 @@ const Daily = () => {
   });
   const [isSaved, setIsSaved] = useState(false);
 
+  // Ref to track if calories were autofilled or edited by user
+  const caloriesAutofilled = useRef(true);
+
   const handleInputChange = (field: string, value: string) => {
-    setMetrics(prev => ({ ...prev, [field]: value }));
+    let newMetrics = { ...metrics, [field]: value };
+
+    // If user edits calories, mark as NOT autofilled, else continue as normal
+    if (field === 'calories') {
+      caloriesAutofilled.current = false;
+      setMetrics(newMetrics);
+      return;
+    }
+
+    // Handle macros logic:
+    if (['protein', 'carbs', 'fats'].includes(field)) {
+      // Only auto-calculate if all macros have a value (and are valid numbers)
+      const protein = parseFloat(field === 'protein' ? value : newMetrics.protein);
+      const carbs = parseFloat(field === 'carbs' ? value : newMetrics.carbs);
+      const fats = parseFloat(field === 'fats' ? value : newMetrics.fats);
+
+      if (
+        !isNaN(protein) && protein !== null &&
+        !isNaN(carbs) && carbs !== null &&
+        !isNaN(fats) && fats !== null &&
+        caloriesAutofilled.current // Only auto-fill if user hasn't manually edited
+      ) {
+        const calcCalories = (protein * 4) + (carbs * 4) + (fats * 9);
+        newMetrics.calories = calcCalories ? calcCalories.toString() : '';
+      }
+    }
+
+    // If user clears any macro field, resume autofill for calories
+    if (
+      (field === 'protein' && value === '') ||
+      (field === 'carbs' && value === '') ||
+      (field === 'fats' && value === '')
+    ) {
+      caloriesAutofilled.current = true;
+      newMetrics.calories = '';
+    }
+
+    setMetrics(newMetrics);
   };
 
   const handleSave = () => {
@@ -182,13 +221,15 @@ const Daily = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="calories">Calories</Label>
+                    <Label htmlFor="calories">
+                      Enter Macros and your calories will be estimated
+                    </Label>
                     <Input
                       id="calories"
                       type="number"
                       value={metrics.calories}
                       onChange={(e) => handleInputChange('calories', e.target.value)}
-                      placeholder="Enter total calories"
+                      placeholder="Estimated calories will appear here"
                     />
                   </div>
                 </CardContent>
