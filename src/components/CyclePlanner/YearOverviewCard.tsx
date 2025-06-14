@@ -13,7 +13,6 @@ const YearOverviewCard = () => {
       <CardContent>
         <CyclePeriodOverview 
           cyclePeriods={cyclePeriods}
-          onViewCycle={setCurrentWeek}
         />
       </CardContent>
     </Card>

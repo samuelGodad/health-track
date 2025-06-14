@@ -4,8 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format, addWeeks, getISOWeek } from "date-fns";
-import { Plus, Copy } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Plus } from "lucide-react";
 import { useCycle, CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface WeekByWeekTableProps {
   selectedCyclePeriod: CyclePeriod | null;
@@ -18,6 +19,8 @@ const WeekByWeekTable = ({
   cyclePlans,
   onUpdateCyclePlan
 }: WeekByWeekTableProps) => {
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+
   if (!selectedCyclePeriod) {
     return (
       <div className="text-center py-4 text-muted-foreground">
@@ -61,6 +64,17 @@ const WeekByWeekTable = ({
       .map(plan => plan.compound)
   )];
 
+  // Toggle week expansion
+  const toggleWeek = (weekNumber: number) => {
+    const newExpanded = new Set(expandedWeeks);
+    if (newExpanded.has(weekNumber)) {
+      newExpanded.delete(weekNumber);
+    } else {
+      newExpanded.add(weekNumber);
+    }
+    setExpandedWeeks(newExpanded);
+  };
+
   // Function to get the previous week's dose for a compound
   const getPreviousWeekDose = (weekNumber: number, compound: string) => {
     if (weekNumber <= selectedCyclePeriod.startWeek) return 0;
@@ -72,10 +86,16 @@ const WeekByWeekTable = ({
     return prevWeekPlan?.weeklyDose || 0;
   };
 
-  // Function to copy dose from previous week
-  const copyFromPreviousWeek = (weekNumber: number, compound: string) => {
-    const previousDose = getPreviousWeekDose(weekNumber, compound);
-    onUpdateCyclePlan(weekNumber, previousDose, compound);
+  // Function to duplicate all doses from previous week
+  const duplicateFromPreviousWeek = (weekNumber: number) => {
+    if (weekNumber <= selectedCyclePeriod.startWeek) return;
+    
+    uniqueCompounds.forEach(compound => {
+      const previousDose = getPreviousWeekDose(weekNumber, compound);
+      if (previousDose > 0) {
+        onUpdateCyclePlan(weekNumber, previousDose, compound);
+      }
+    });
   };
 
   // Function to increment dose by 10%
@@ -91,86 +111,111 @@ const WeekByWeekTable = ({
       </h3>
       
       {uniqueCompounds.length > 0 ? (
-        uniqueCompounds.map(compound => {
-          return (
-            <div key={compound} className="border rounded-md p-2 mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">{compound}</h4>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-20">Week of Year</TableHead>
-                      <TableHead className="w-20">Week of Cycle</TableHead>
-                      <TableHead className="w-32">Date</TableHead>
-                      <TableHead className="w-28">Weekly Dose (mg)</TableHead>
-                      <TableHead className="w-28">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {weeks.map(weekNumber => {
-                      const plan = cyclePlans.find(
-                        p => p.weekNumber === weekNumber && p.compound === compound
-                      );
-                      const weekDate = getWeekStartDate(weekNumber);
-                      const weeklyDose = plan?.weeklyDose || 0;
-                      const weekOfYear = getWeekOfYear(weekNumber);
-                      const weekOfCycle = getWeekOfCycle(weekNumber);
-                      
-                      return (
-                        <TableRow key={`${compound}-week-${weekNumber}`} className="h-10">
-                          <TableCell className="py-1 text-center font-medium">{weekOfYear}</TableCell>
-                          <TableCell className="py-1 text-center font-medium">{weekOfCycle}</TableCell>
-                          <TableCell className="py-1 text-xs">{format(weekDate, 'MMM d, yyyy')}</TableCell>
-                          <TableCell className="py-1">
-                            <Input
-                              type="number"
-                              value={weeklyDose || ''}
-                              onChange={(e) => {
-                                const value = e.target.value === '' ? 0 : Number(e.target.value);
-                                onUpdateCyclePlan(weekNumber, value, compound);
-                              }}
-                              className="h-8 w-24 text-sm"
-                              placeholder="0"
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <div className="flex space-x-1">
-                              <Button 
-                                variant="outline" 
-                                size="icon" 
-                                className="h-7 w-7"
-                                onClick={() => copyFromPreviousWeek(weekNumber, compound)}
-                                disabled={weekNumber <= selectedCyclePeriod.startWeek}
-                                title="Copy from previous week"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="icon" 
-                                className="h-7 w-7"
-                                onClick={() => incrementDose(weekNumber, compound, weeklyDose)}
-                                title="Increase by 10%"
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          );
-        })
+        <div className="space-y-2">
+          {weeks.map(weekNumber => {
+            const weekDate = getWeekStartDate(weekNumber);
+            const weekOfYear = getWeekOfYear(weekNumber);
+            const weekOfCycle = getWeekOfCycle(weekNumber);
+            const isExpanded = expandedWeeks.has(weekNumber);
+            
+            return (
+              <Collapsible 
+                key={weekNumber} 
+                open={isExpanded} 
+                onOpenChange={() => toggleWeek(weekNumber)}
+              >
+                <div className="border rounded-md">
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer">
+                      <div className="flex items-center space-x-3">
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <div>
+                          <h4 className="font-medium">Week {weekOfCycle} (Week {weekOfYear} of year)</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {format(weekDate, 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            duplicateFromPreviousWeek(weekNumber);
+                          }}
+                          disabled={weekNumber <= selectedCyclePeriod.startWeek}
+                          title="Duplicate doses from previous week"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicate Previous Week
+                        </Button>
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="border-t p-4">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Compound</TableHead>
+                            <TableHead>Weekly Dose (mg)</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {uniqueCompounds.map(compound => {
+                            const plan = cyclePlans.find(
+                              p => p.weekNumber === weekNumber && p.compound === compound
+                            );
+                            const weeklyDose = plan?.weeklyDose || 0;
+                            
+                            return (
+                              <TableRow key={`${compound}-week-${weekNumber}`}>
+                                <TableCell className="font-medium">{compound}</TableCell>
+                                <TableCell>
+                                  <Input
+                                    type="number"
+                                    value={weeklyDose || ''}
+                                    onChange={(e) => {
+                                      const value = e.target.value === '' ? 0 : Number(e.target.value);
+                                      onUpdateCyclePlan(weekNumber, value, compound);
+                                    }}
+                                    className="w-24"
+                                    placeholder="0"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Button 
+                                    variant="outline" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => incrementDose(weekNumber, compound, weeklyDose)}
+                                    title="Increase by 10%"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            );
+          })}
+        </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground border rounded-md">
-          No compounds added to this cycle yet. Add compounds on the Week by Week Grid tab.
+          No compounds added to this cycle yet. Add compounds in step 2 first.
         </div>
       )}
     </div>
