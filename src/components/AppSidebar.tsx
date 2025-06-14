@@ -24,12 +24,8 @@ import {
   CalendarDaysIcon,
 } from 'lucide-react';
 
+// Remove "Overview" from the navigationItems array below
 const navigationItems = [
-  {
-    title: 'Overview',
-    url: '/dashboard',
-    icon: LayoutDashboardIcon,
-  },
   {
     title: 'Daily',
     url: '/daily',
@@ -134,3 +130,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
