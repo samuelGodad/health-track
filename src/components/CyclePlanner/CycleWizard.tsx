@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,6 +93,18 @@ const CycleWizard = () => {
       weekNumber: selectedCyclePeriod?.startWeek || 1
     };
     setCyclePlans([...cyclePlans, planWithWeek]);
+  };
+
+  const handleDeleteCompound = (compound: string) => {
+    if (!selectedCyclePeriod) return;
+    
+    // Remove all cycle plans for this compound within the selected cycle period
+    setCyclePlans(prevPlans => 
+      prevPlans.filter(plan => 
+        !(plan.compound === compound && 
+          isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek))
+      )
+    );
   };
 
   const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number, compound: string) => {
@@ -239,6 +250,7 @@ const CycleWizard = () => {
             <CycleCompoundSelector 
               cyclePlanEntries={periodCyclePlans}
               onAddCyclePlan={handleAddCyclePlan}
+              onDeleteCompound={handleDeleteCompound}
               currentWeek={selectedCyclePeriod.startWeek}
               selectedCyclePeriod={selectedCyclePeriod}
             />

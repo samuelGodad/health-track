@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Trash2 } from "lucide-react";
 
 const compounds = [
   "Testosterone Enanthate",
@@ -21,6 +22,7 @@ const compounds = [
 interface CycleCompoundSelectorProps {
   cyclePlanEntries: any[];
   onAddCyclePlan: (plan: any) => void;
+  onDeleteCompound?: (compound: string) => void;
   currentWeek: number;
   selectedCyclePeriod: any;
 }
@@ -28,6 +30,7 @@ interface CycleCompoundSelectorProps {
 const CycleCompoundSelector = ({ 
   cyclePlanEntries, 
   onAddCyclePlan, 
+  onDeleteCompound,
   currentWeek,
   selectedCyclePeriod
 }: CycleCompoundSelectorProps) => {
@@ -89,6 +92,12 @@ const CycleCompoundSelector = ({
     });
   };
 
+  const handleDeleteCompound = (compound: string) => {
+    if (onDeleteCompound) {
+      onDeleteCompound(compound);
+    }
+  };
+
   // Filter out compounds that are already added to this cycle
   const availableCompounds = compounds.filter(compound => !uniqueCompounds.includes(compound));
 
@@ -99,6 +108,7 @@ const CycleCompoundSelector = ({
         <TableHeader>
           <TableRow>
             <TableHead>PED To Inject</TableHead>
+            <TableHead className="w-[50px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -106,11 +116,21 @@ const CycleCompoundSelector = ({
             uniqueCompounds.map(compound => (
               <TableRow key={compound}>
                 <TableCell>{compound}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCompound(compound)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={1} className="text-center py-4 text-muted-foreground">
+              <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
                 No compounds planned for this cycle
               </TableCell>
             </TableRow>

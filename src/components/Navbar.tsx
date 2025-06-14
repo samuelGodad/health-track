@@ -27,15 +27,17 @@ const Navbar = () => {
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-screen-xl mx-auto px-4 py-2">
         <div className="flex items-center justify-between h-14">
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 text-xl font-semibold text-foreground"
-          >
-            <HeartPulseIcon className="h-6 w-6 text-primary" />
-            <span>Your Vita Health</span>
-          </Link>
+          <div className="flex items-center min-w-0 flex-shrink-0">
+            <Link 
+              to="/" 
+              className="flex items-center gap-2 text-xl font-semibold text-foreground"
+            >
+              <HeartPulseIcon className="h-6 w-6 text-primary flex-shrink-0" />
+              <span className="whitespace-nowrap">Your Vita Health</span>
+            </Link>
+          </div>
 
-          <nav className="hidden md:flex items-center">
+          <nav className="hidden md:flex items-center flex-1 justify-center">
             {showBloodResults && (
               <NavItem 
                 to="/blood-tests" 
@@ -46,12 +48,16 @@ const Navbar = () => {
             )}
           </nav>
 
-          <div className="flex items-center gap-4">
-            {user && <UserDropdown />}
+          <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
+            {user && (
+              <div className="flex-shrink-0">
+                <UserDropdown />
+              </div>
+            )}
             
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-muted-foreground"
+              className="md:hidden text-muted-foreground flex-shrink-0"
             >
               <MenuIcon className="h-6 w-6" />
             </button>
