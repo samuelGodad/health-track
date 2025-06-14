@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { addWeeks, startOfWeek, endOfWeek, format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,7 +13,6 @@ import CyclePeriodOverview from "./CyclePeriodOverview";
 import CycleDetails from "./CycleDetails";
 
 const WeeklyPlanner = () => {
-  // Use the enhanced CycleContext
   const { 
     cyclePlans, 
     setCyclePlans,
@@ -49,7 +49,6 @@ const WeeklyPlanner = () => {
       );
       
       if (existingPlanIndex >= 0) {
-        // Update existing plan
         const updated = [...prev];
         updated[existingPlanIndex] = {
           ...updated[existingPlanIndex],
@@ -57,12 +56,11 @@ const WeeklyPlanner = () => {
         };
         return updated;
       } else {
-        // Create new plan entry
         const newPlan = {
           id: Date.now().toString(),
           compound,
           weeklyDose,
-          dosingPer1ML: 250, // Default dosing
+          dosingPer1ML: 250,
           unit: "mg",
           frequency: 2,
           weekNumber,
@@ -87,25 +85,22 @@ const WeeklyPlanner = () => {
     );
   };
 
-  // Get the current cycle type based on the week
-  const getCurrentCycleType = () => {
-    const currentPeriod = cyclePeriods.find(
+  const getCurrentCyclePeriod = () => {
+    return cyclePeriods.find(
       period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
     );
-    
+  };
+
+  const getCurrentCycleType = () => {
+    const currentPeriod = getCurrentCyclePeriod();
     return currentPeriod?.type || null;
   };
 
-  // Get the current cycle name based on the week
   const getCurrentCycleName = () => {
-    const currentPeriod = cyclePeriods.find(
-      period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
-    );
-    
+    const currentPeriod = getCurrentCyclePeriod();
     return currentPeriod?.name || null;
   };
 
-  // Get background color based on cycle type
   const getCycleTypeColor = (type: CycleType) => {
     switch (type) {
       case CycleType.BLAST:
@@ -121,24 +116,7 @@ const WeeklyPlanner = () => {
     }
   };
 
-  // Get the current cycle's injection information
-  const getCurrentCycleInjectionInfo = () => {
-    const currentPeriod = cyclePeriods.find(
-      period => currentWeek >= period.startWeek && currentWeek <= period.endWeek
-    );
-    
-    if (!currentPeriod || !currentPeriod.injectionDays) {
-      return null;
-    }
-    
-    return {
-      frequency: currentPeriod.injectionsPerWeek,
-      days: currentPeriod.injectionDays
-    };
-  };
-
-  const injectionInfo = getCurrentCycleInjectionInfo();
-
+  // UI section begins
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -189,12 +167,7 @@ const WeeklyPlanner = () => {
             <div>
               <p className="font-semibold">{getCurrentCycleName()}</p>
               <p className="text-sm text-muted-foreground">{getCurrentCycleType()} Cycle</p>
-              {injectionInfo && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Injections: {injectionInfo.frequency}x/week on{' '}
-                  {injectionInfo.days.map(day => day.charAt(0).toUpperCase() + day.slice(1, 3)).join(', ')}
-                </p>
-              )}
+              {/* Removed: injections per week and injection days display */}
             </div>
           ) : (
             <p className="text-muted-foreground">No cycle defined for this week</p>
@@ -226,7 +199,6 @@ const WeeklyPlanner = () => {
         </Card>
       )}
 
-      {/* Cycle Details - Updated with proper handleUpdateCyclePlan */}
       <CycleDetails 
         currentWeek={currentWeek}
         cyclePeriods={cyclePeriods}
@@ -236,7 +208,6 @@ const WeeklyPlanner = () => {
         onRemoveCompound={handleRemoveCompound}
       />
       
-      {/* Cycle Periods Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="text-md">Year Overview</CardTitle>
@@ -253,3 +224,4 @@ const WeeklyPlanner = () => {
 };
 
 export default WeeklyPlanner;
+
