@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { addWeeks, startOfWeek, endOfWeek, format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,6 +10,9 @@ import { CycleType, useCycle, dateToWeekNumber } from "@/contexts/CycleContext";
 import CyclePeriodForm from "./CyclePeriodForm";
 import CyclePeriodOverview from "./CyclePeriodOverview";
 import CycleDetails from "./CycleDetails";
+import PlannerHeader from "./PlannerHeader";
+import CyclePeriodIndicator from "./CyclePeriodIndicator";
+import YearOverviewCard from "./YearOverviewCard";
 
 const WeeklyPlanner = () => {
   const { 
@@ -119,70 +121,13 @@ const WeeklyPlanner = () => {
   // UI section begins
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Cycle Planner</h2>
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentWeek(prev => Math.max(1, prev - 1))}
-            disabled={currentWeek === 1}
-          >
-            Previous Week
-          </Button>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="min-w-[240px] justify-start text-left font-normal">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Week {currentWeek} ({weekStart} - {weekEnd})
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentWeek(prev => Math.min(52, prev + 1))}
-          >
-            Next Week
-          </Button>
-        </div>
-      </div>
-
-      {/* Cycle Period Indicator */}
-      <Card className={cn(
-        "border-2",
-        getCurrentCycleType() ? getCycleTypeColor(getCurrentCycleType()!) : "border-dashed border-gray-300"
-      )}>
-        <CardContent className="p-4 flex justify-between items-center">
-          {getCurrentCycleType() ? (
-            <div>
-              <p className="font-semibold">{getCurrentCycleName()}</p>
-              <p className="text-sm text-muted-foreground">{getCurrentCycleType()} Cycle</p>
-              {/* Removed: injections per week and injection days display */}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">No cycle defined for this week</p>
-          )}
-          
-          <Button 
-            variant="outline" 
-            onClick={() => setShowCyclePeriodForm(!showCyclePeriodForm)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {showCyclePeriodForm ? "Cancel" : "Define Cycle"}
-          </Button>
-        </CardContent>
-      </Card>
-      
+      <PlannerHeader />
+      <CyclePeriodIndicator
+        showForm={showCyclePeriodForm}
+        setShowForm={setShowCyclePeriodForm}
+        getCurrentCycleType={getCurrentCycleType}
+        getCurrentCycleName={getCurrentCycleName}
+      />
       {/* Cycle Period Form */}
       {showCyclePeriodForm && (
         <Card>
@@ -198,7 +143,6 @@ const WeeklyPlanner = () => {
           </CardContent>
         </Card>
       )}
-
       <CycleDetails 
         currentWeek={currentWeek}
         cyclePeriods={cyclePeriods}
@@ -207,21 +151,9 @@ const WeeklyPlanner = () => {
         onUpdateCyclePlan={handleUpdateCyclePlan}
         onRemoveCompound={handleRemoveCompound}
       />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-md">Year Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CyclePeriodOverview 
-            cyclePeriods={cyclePeriods}
-            onViewCycle={(weekNumber) => setCurrentWeek(weekNumber)}
-          />
-        </CardContent>
-      </Card>
+      <YearOverviewCard />
     </div>
   );
 };
 
 export default WeeklyPlanner;
-
