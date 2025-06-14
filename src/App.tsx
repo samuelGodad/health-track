@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AuthWrapper from "./components/AuthWrapper";
+import CyclePlanner from "./pages/CyclePlanner";
 
 const queryClient = new QueryClient();
 
@@ -66,9 +66,14 @@ function App() {
               path="/settings" 
               element={<AuthWrapper><Settings /></AuthWrapper>} 
             />
-            
-            {/* Redirect old routes to dashboard */}
-            <Route path="/cycle-planner" element={<Navigate to="/dashboard" replace />} />
+
+            {/* Cycle Planner page displays the actual planner UI */}
+            <Route
+              path="/cycle-planner"
+              element={<AuthWrapper><CyclePlanner /></AuthWrapper>}
+            />
+
+            {/* Redirects for legacy/old routes */}
             <Route path="/injection-assistant" element={<Navigate to="/dashboard" replace />} />
             <Route path="/daily-metrics" element={<Navigate to="/daily" replace />} />
             <Route path="/body-progress" element={<Navigate to="/dashboard" replace />} />
