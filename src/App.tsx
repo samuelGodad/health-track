@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,7 +19,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AuthWrapper from "./components/AuthWrapper";
 import CyclePlanner from "./pages/CyclePlanner";
-import DashboardLayout from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 const queryClient = new QueryClient();
 
