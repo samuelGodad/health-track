@@ -227,7 +227,7 @@ const Daily = () => {
                       type="number"
                       value={metrics.calories}
                       onChange={(e) => handleInputChange('calories', e.target.value)}
-                      placeholder="Estimated calories will appear here"
+                      placeholder="Enter Macros and your calories will be estimated here"
                     />
                   </div>
                 </CardContent>
