@@ -20,6 +20,9 @@ const Navbar = () => {
 
   if (!mounted) return null;
 
+  // Don't show blood results nav item on cycle planner page
+  const showBloodResults = location.pathname !== '/cycle-planner';
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-screen-xl mx-auto px-4 py-2">
@@ -33,12 +36,14 @@ const Navbar = () => {
           </Link>
 
           <nav className="hidden md:flex items-center">
-            <NavItem 
-              to="/blood-tests" 
-              icon={FlaskConicalIcon} 
-              label="Blood Results" 
-              isActive={location.pathname === '/blood-tests'} 
-            />
+            {showBloodResults && (
+              <NavItem 
+                to="/blood-tests" 
+                icon={FlaskConicalIcon} 
+                label="Blood Results" 
+                isActive={location.pathname === '/blood-tests'} 
+              />
+            )}
           </nav>
 
           <div className="flex items-center gap-4">

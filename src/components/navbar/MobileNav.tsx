@@ -10,15 +10,20 @@ interface MobileNavProps {
 export const MobileNav = ({ isOpen, currentPath }: MobileNavProps) => {
   if (!isOpen) return null;
 
+  // Don't show blood results nav item on cycle planner page
+  const showBloodResults = currentPath !== '/cycle-planner';
+
   return (
     <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
       <div className="max-w-screen-xl mx-auto px-4 py-2 space-y-1">
-        <NavItem 
-          to="/blood-tests" 
-          icon={FlaskConicalIcon} 
-          label="Blood Results" 
-          isActive={currentPath === '/blood-tests'} 
-        />
+        {showBloodResults && (
+          <NavItem 
+            to="/blood-tests" 
+            icon={FlaskConicalIcon} 
+            label="Blood Results" 
+            isActive={currentPath === '/blood-tests'} 
+          />
+        )}
       </div>
     </div>
   );

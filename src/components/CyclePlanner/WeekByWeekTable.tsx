@@ -29,19 +29,51 @@ const WeekByWeekTable = ({
     );
   }
   
-  // Generate weeks for the selected cycle period
+  // Helper function to check if a week is within the cycle period (handles year crossing)
+  const isWeekInCyclePeriod = (weekNumber: number, startWeek: number, endWeek: number) => {
+    if (startWeek <= endWeek) {
+      // Normal case: cycle doesn't cross years
+      return weekNumber >= startWeek && weekNumber <= endWeek;
+    } else {
+      // Year crossing case: cycle spans across year boundary
+      return weekNumber >= startWeek || weekNumber <= endWeek;
+    }
+  };
+
+  // Generate weeks for the selected cycle period (handles year crossing)
   const weeks = [];
-  for (
-    let weekNum = selectedCyclePeriod.startWeek; 
-    weekNum <= selectedCyclePeriod.endWeek; 
-    weekNum++
-  ) {
-    weeks.push(weekNum);
+  if (selectedCyclePeriod.startWeek <= selectedCyclePeriod.endWeek) {
+    // Normal case: cycle doesn't cross years
+    for (let weekNum = selectedCyclePeriod.startWeek; weekNum <= selectedCyclePeriod.endWeek; weekNum++) {
+      weeks.push(weekNum);
+    }
+  } else {
+    // Year crossing case: cycle spans across year boundary
+    // Add weeks from start week to end of year (week 52)
+    for (let weekNum = selectedCyclePeriod.startWeek; weekNum <= 52; weekNum++) {
+      weeks.push(weekNum);
+    }
+    // Add weeks from beginning of year to end week
+    for (let weekNum = 1; weekNum <= selectedCyclePeriod.endWeek; weekNum++) {
+      weeks.push(weekNum);
+    }
   }
 
   // Get Monday date for each week
   const getWeekStartDate = (weekNumber: number) => {
-    const weeksDiff = weekNumber - selectedCyclePeriod.startWeek;
+    let weeksDiff;
+    if (selectedCyclePeriod.startWeek <= selectedCyclePeriod.endWeek) {
+      // Normal case
+      weeksDiff = weekNumber - selectedCyclePeriod.startWeek;
+    } else {
+      // Year crossing case
+      if (weekNumber >= selectedCyclePeriod.startWeek) {
+        weeksDiff = weekNumber - selectedCyclePeriod.startWeek;
+      } else {
+        // Week in the next year
+        weeksDiff = (52 - selectedCyclePeriod.startWeek + 1) + (weekNumber - 1);
+      }
+    }
     return addWeeks(selectedCyclePeriod.startDate, weeksDiff);
   };
 
@@ -53,14 +85,24 @@ const WeekByWeekTable = ({
 
   // Get week of cycle (1-based)
   const getWeekOfCycle = (weekNumber: number) => {
-    return weekNumber - selectedCyclePeriod.startWeek + 1;
+    if (selectedCyclePeriod.startWeek <= selectedCyclePeriod.endWeek) {
+      // Normal case
+      return weekNumber - selectedCyclePeriod.startWeek + 1;
+    } else {
+      // Year crossing case
+      if (weekNumber >= selectedCyclePeriod.startWeek) {
+        return weekNumber - selectedCyclePeriod.startWeek + 1;
+      } else {
+        // Week in the next year
+        return (52 - selectedCyclePeriod.startWeek + 1) + weekNumber;
+      }
+    }
   };
 
-  // Find unique compounds in the cycle
+  // Find unique compounds in the cycle (accounting for year crossing)
   const uniqueCompounds = [...new Set(
     cyclePlans
-      .filter(plan => plan.weekNumber >= selectedCyclePeriod.startWeek && 
-                    plan.weekNumber <= selectedCyclePeriod.endWeek)
+      .filter(plan => isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek))
       .map(plan => plan.compound)
   )];
 
@@ -77,10 +119,12 @@ const WeekByWeekTable = ({
 
   // Function to get the previous week's dose for a compound
   const getPreviousWeekDose = (weekNumber: number, compound: string) => {
-    if (weekNumber <= selectedCyclePeriod.startWeek) return 0;
+    const currentWeekIndex = weeks.indexOf(weekNumber);
+    if (currentWeekIndex <= 0) return 0;
     
+    const previousWeek = weeks[currentWeekIndex - 1];
     const prevWeekPlan = cyclePlans.find(
-      plan => plan.weekNumber === (weekNumber - 1) && plan.compound === compound
+      plan => plan.weekNumber === previousWeek && plan.compound === compound
     );
     
     return prevWeekPlan?.weeklyDose || 0;
@@ -88,7 +132,8 @@ const WeekByWeekTable = ({
 
   // Function to duplicate all doses from previous week
   const duplicateFromPreviousWeek = (weekNumber: number) => {
-    if (weekNumber <= selectedCyclePeriod.startWeek) return;
+    const currentWeekIndex = weeks.indexOf(weekNumber);
+    if (currentWeekIndex <= 0) return;
     
     uniqueCompounds.forEach(compound => {
       const previousDose = getPreviousWeekDose(weekNumber, compound);
@@ -117,6 +162,7 @@ const WeekByWeekTable = ({
             const weekOfYear = getWeekOfYear(weekNumber);
             const weekOfCycle = getWeekOfCycle(weekNumber);
             const isExpanded = expandedWeeks.has(weekNumber);
+            const currentWeekIndex = weeks.indexOf(weekNumber);
             
             return (
               <Collapsible 
@@ -148,7 +194,7 @@ const WeekByWeekTable = ({
                             e.stopPropagation();
                             duplicateFromPreviousWeek(weekNumber);
                           }}
-                          disabled={weekNumber <= selectedCyclePeriod.startWeek}
+                          disabled={currentWeekIndex <= 0}
                           title="Duplicate doses from previous week"
                         >
                           <Copy className="h-4 w-4 mr-2" />

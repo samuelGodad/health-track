@@ -39,8 +39,23 @@ const CycleCompoundSelector = ({
     setNewCyclePlan((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Get unique compounds that have been added to this cycle
-  const uniqueCompounds = [...new Set(cyclePlanEntries.map(plan => plan.compound))];
+  // Helper function to check if a week is within the cycle period (handles year crossing)
+  const isWeekInCyclePeriod = (weekNumber: number, startWeek: number, endWeek: number) => {
+    if (startWeek <= endWeek) {
+      // Normal case: cycle doesn't cross years
+      return weekNumber >= startWeek && weekNumber <= endWeek;
+    } else {
+      // Year crossing case: cycle spans across year boundary
+      return weekNumber >= startWeek || weekNumber <= endWeek;
+    }
+  };
+
+  // Get unique compounds that have been added to this cycle (accounting for year crossing)
+  const uniqueCompounds = [...new Set(
+    cyclePlanEntries
+      .filter(plan => isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek))
+      .map(plan => plan.compound)
+  )];
 
   const handleAddCompound = () => {
     if (!newCyclePlan.compound || !selectedCyclePeriod) {
