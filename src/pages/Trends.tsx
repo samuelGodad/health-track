@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, addWeeks, startOfWeek } from "date-fns";
@@ -99,60 +98,14 @@ const gridCls = "grid gap-6 grid-cols-1 lg:grid-cols-2";
 const Trends = () => {
   return (
     <DashboardLayout>
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
-        <p className="text-sm md:text-base text-muted-foreground mb-4">Week-over-week averages for all tracked metrics.</p>
-        <div className={gridCls}>
-          {/* Standard metric charts */}
-          {trends.map((t) => (
-            <Card key={t.key}>
-              <CardHeader>
-                <CardTitle className="text-base md:text-lg">{t.title}</CardTitle>
-                <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[240px] md:h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="week"
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={axisStyle}
-                        tickLine={false}
-                        axisLine={false}
-                        interval={0}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        domain={['auto', 'auto']}
-                        unit={t.yAxisUnit}
-                        tick={axisStyle}
-                        tickLine={false}
-                        axisLine={false}
-                        width={40}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line
-                        type="monotone"
-                        dataKey={t.key}
-                        stroke={t.stroke}
-                        strokeWidth={2}
-                        dot={{ fill: t.stroke }}
-                        activeDot={{ r: 5 }}
-                        name={t.title}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {/* Blood Pressure (systolic & diastolic together) */}
-          <Card key="bp">
+      {/* REMOVE the overview section */}
+      <div className={gridCls}>
+        {/* Standard metric charts */}
+        {trends.map((t) => (
+          <Card key={t.key}>
             <CardHeader>
-              <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
-              <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
+              <CardTitle className="text-base md:text-lg">{t.title}</CardTitle>
+              <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
             </CardHeader>
             <CardContent>
               <div className="h-[240px] md:h-[250px]">
@@ -170,43 +123,86 @@ const Trends = () => {
                     <YAxis
                       stroke="hsl(var(--muted-foreground))"
                       domain={['auto', 'auto']}
-                      unit="mmHg"
+                      unit={t.yAxisUnit}
                       tick={axisStyle}
                       tickLine={false}
                       axisLine={false}
-                      width={43}
+                      width={40}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      verticalAlign="top"
-                      align="right"
-                      iconType="line"
-                      wrapperStyle={{ fontSize: 11, paddingBottom: '1.5rem' }}
-                    />
                     <Line
                       type="monotone"
-                      dataKey="systolic"
-                      stroke="#f59e0b"
+                      dataKey={t.key}
+                      stroke={t.stroke}
                       strokeWidth={2}
-                      dot={{ fill: "#f59e0b" }}
+                      dot={{ fill: t.stroke }}
                       activeDot={{ r: 5 }}
-                      name="Systolic"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="diastolic"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      dot={{ fill: "#ef4444" }}
-                      activeDot={{ r: 5 }}
-                      name="Diastolic"
+                      name={t.title}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
-        </div>
+        ))}
+        {/* Blood pressure combined chart */}
+        <Card key="bp">
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
+            <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[240px] md:h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="week"
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={axisStyle}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    domain={['auto', 'auto']}
+                    unit="mmHg"
+                    tick={axisStyle}
+                    tickLine={false}
+                    axisLine={false}
+                    width={43}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="line"
+                    wrapperStyle={{ fontSize: 11, paddingBottom: '1.5rem' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="systolic"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    dot={{ fill: "#f59e0b" }}
+                    activeDot={{ r: 5 }}
+                    name="Systolic"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="diastolic"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={{ fill: "#ef4444" }}
+                    activeDot={{ r: 5 }}
+                    name="Diastolic"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
