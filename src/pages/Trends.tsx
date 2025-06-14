@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, addWeeks, startOfWeek } from "date-fns";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
+// --- Mock data (with totalSleep & restingHeartRate included) ---
 const trendData = [
   { weekStart: startOfWeek(addWeeks(new Date(), -7), { weekStartsOn: 1 }), weight: 76.5, steps: 7500, systolic: 125, diastolic: 80, totalSleep: 6.7, restingHeartRate: 56 },
   { weekStart: startOfWeek(addWeeks(new Date(), -6), { weekStartsOn: 1 }), weight: 76.1, steps: 8200, systolic: 123, diastolic: 79, totalSleep: 7.0, restingHeartRate: 55 },
@@ -15,20 +15,40 @@ const trendData = [
   { weekStart: startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 }), weight: 75.0, steps: 8500, systolic: 122, diastolic: 78, totalSleep: 7.2, restingHeartRate: 56 },
   { weekStart: startOfWeek(new Date(), { weekStartsOn: 1 }), weight: 75.2, steps: 8547, systolic: 122, diastolic: 78, totalSleep: 7.4, restingHeartRate: 55 }
 ];
-// Format for recharts, with week: "MMM d"
 const chartData = trendData.map(d => ({
   ...d,
   week: format(d.weekStart, 'MMM d')
 }));
 
+// Small font size config for axes and tooltips
+const axisStyle = { fontSize: 11 };
+const tooltipStyle = {
+  fontSize: '12px',
+  borderRadius: '0.5rem',
+  boxShadow: '0 4px 20px 0 rgba(0,0,0,0.09)',
+  background: 'var(--background, white)',
+  padding: '0.7rem 1rem'
+};
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
-        <p className="font-medium">{`Start: ${label}`}</p>
+      <div style={tooltipStyle}>
+        <p style={{ marginBottom: 4, fontWeight: 500 }}>{`Start: ${label}`}</p>
         {payload.map((entry: any, idx: number) => (
-          <p key={idx} style={{ color: entry.color }}>
-            {`${entry.dataKey}: ${entry.value}${entry.dataKey === 'weight' ? 'kg' : entry.dataKey === 'steps' ? ' steps' : entry.dataKey === 'systolic' || entry.dataKey === 'diastolic' ? ' mmHg' : entry.dataKey === 'totalSleep' ? ' h' : entry.dataKey === 'restingHeartRate' ? ' bpm' : ''}`}
+          <p key={idx} style={{ color: entry.color, fontSize: '11px', margin: 0 }}>
+            {entry.name}:{" "}
+            {entry.dataKey === "weight"
+              ? entry.value + "kg"
+              : entry.dataKey === "steps"
+              ? entry.value + " steps"
+              : entry.dataKey === "systolic" || entry.dataKey === "diastolic"
+              ? entry.value + " mmHg"
+              : entry.dataKey === "totalSleep"
+              ? entry.value + " h"
+              : entry.dataKey === "restingHeartRate"
+              ? entry.value + " bpm"
+              : entry.value}
           </p>
         ))}
       </div>
@@ -37,79 +57,155 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// --- Trend chart definitions ---
 const trends = [
   {
-    key: 'weight',
-    title: 'Weight Trend',
-    subtitle: 'Weekly average weight',
-    stroke: '#3b82f6',
-    unit: 'kg'
+    key: "weight",
+    title: "Weight Trend",
+    subtitle: "Weekly average weight",
+    stroke: "#3b82f6",
+    unit: "kg",
+    yAxisUnit: "kg",
   },
   {
-    key: 'steps',
-    title: 'Steps Trend',
-    subtitle: 'Average steps per day',
-    stroke: '#10b981',
-    unit: 'steps'
+    key: "steps",
+    title: "Steps Trend",
+    subtitle: "Average steps per day",
+    stroke: "#10b981",
+    unit: "steps",
+    yAxisUnit: "steps"
   },
   {
-    key: 'systolic',
-    title: 'Systolic BP',
-    subtitle: 'Weekly average systolic BP',
-    stroke: '#f59e0b',
-    unit: 'mmHg'
+    key: "totalSleep",
+    title: "Total Sleep",
+    subtitle: "Weekly avg. hours/night",
+    stroke: "#6366f1",
+    unit: "h",
+    yAxisUnit: "h"
   },
   {
-    key: 'diastolic',
-    title: 'Diastolic BP',
-    subtitle: 'Weekly average diastolic BP',
-    stroke: '#ef4444',
-    unit: 'mmHg'
-  },
-  {
-    key: 'totalSleep',
-    title: 'Total Sleep',
-    subtitle: 'Weekly avg. hours per night',
-    stroke: '#6366f1',
-    unit: 'h'
-  },
-  {
-    key: 'restingHeartRate',
-    title: 'Resting Heart Rate',
-    subtitle: 'Weekly avg. bpm',
-    stroke: '#d946ef',
-    unit: 'bpm'
+    key: "restingHeartRate",
+    title: "Resting Heart Rate",
+    subtitle: "Weekly avg. bpm",
+    stroke: "#d946ef",
+    unit: "bpm",
+    yAxisUnit: "bpm"
   }
 ];
+
+// Responsive grid: 2 cols on lg+; 1 col (full width) on md and below
+const gridCls = "grid gap-6 grid-cols-1 lg:grid-cols-2";
 
 const Trends = () => {
   return (
     <DashboardLayout>
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
-        <p className="text-muted-foreground mb-4">Week-over-week averages for all tracked metrics.</p>
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
+        <p className="text-sm md:text-base text-muted-foreground mb-4">Week-over-week averages for all tracked metrics.</p>
+        <div className={gridCls}>
+          {/* Standard metric charts */}
           {trends.map((t) => (
             <Card key={t.key}>
               <CardHeader>
-                <CardTitle>{t.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">{t.subtitle}</p>
+                <CardTitle className="text-base md:text-lg">{t.title}</CardTitle>
+                <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px]">
+                <div className="h-[240px] md:h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" />
-                      <YAxis stroke="hsl(var(--muted-foreground))" domain={['auto', 'auto']} unit={t.unit}/>
+                      <XAxis
+                        dataKey="week"
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={axisStyle}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={0}
+                      />
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        domain={['auto', 'auto']}
+                        unit={t.yAxisUnit}
+                        tick={axisStyle}
+                        tickLine={false}
+                        axisLine={false}
+                        width={40}
+                      />
                       <Tooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey={t.key} stroke={t.stroke} strokeWidth={2} dot={{ fill: t.stroke }} />
+                      <Line
+                        type="monotone"
+                        dataKey={t.key}
+                        stroke={t.stroke}
+                        strokeWidth={2}
+                        dot={{ fill: t.stroke }}
+                        activeDot={{ r: 5 }}
+                        name={t.title}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
           ))}
+          {/* Blood Pressure (systolic & diastolic together) */}
+          <Card key="bp">
+            <CardHeader>
+              <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
+              <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[240px] md:h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="week"
+                      stroke="hsl(var(--muted-foreground))"
+                      tick={axisStyle}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={0}
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      domain={['auto', 'auto']}
+                      unit="mmHg"
+                      tick={axisStyle}
+                      tickLine={false}
+                      axisLine={false}
+                      width={43}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      iconType="line"
+                      wrapperStyle={{ fontSize: 11, paddingBottom: '1.5rem' }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="systolic"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={{ fill: "#f59e0b" }}
+                      activeDot={{ r: 5 }}
+                      name="Systolic"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="diastolic"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      dot={{ fill: "#ef4444" }}
+                      activeDot={{ r: 5 }}
+                      name="Diastolic"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>
