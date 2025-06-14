@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const Daily = () => {
@@ -82,6 +82,15 @@ const Daily = () => {
     setIsSaved(false);
   };
 
+  // Show the correct message on save:
+  const getMetricsSavedMessage = () => {
+    const today = new Date();
+    if (isSameDay(selectedDate, today)) {
+      return "Great job! Your metrics for today have been saved.";
+    }
+    return `Great job! Your metrics for ${format(selectedDate, "PPP")} have been saved.`;
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -118,7 +127,9 @@ const Daily = () => {
 
         {isSaved ? (
           <div className="flex flex-col items-center justify-center min-h-[200px] animate-fade-in">
-            <div className="text-lg font-semibold mb-4 text-green-600">Metrics Saved</div>
+            <div className="text-lg font-semibold mb-4 text-green-600">
+              {getMetricsSavedMessage()}
+            </div>
             <Button onClick={handleEdit} size="lg" variant="outline">
               Change Daily Metrics
             </Button>
