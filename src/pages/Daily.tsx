@@ -27,6 +27,7 @@ const Daily = () => {
     fats: '',
     calories: ''
   });
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setMetrics(prev => ({ ...prev, [field]: value }));
@@ -35,6 +36,11 @@ const Daily = () => {
   const handleSave = () => {
     // TODO: Save to database
     console.log('Saving daily metrics:', { date: selectedDate, ...metrics });
+    setIsSaved(true);
+  };
+
+  const handleEdit = () => {
+    setIsSaved(false);
   };
 
   return (
@@ -45,7 +51,6 @@ const Daily = () => {
             <h2 className="text-2xl font-bold tracking-tight">Daily Tracking</h2>
             <p className="text-muted-foreground">Track your daily health metrics.</p>
           </div>
-          
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -54,6 +59,7 @@ const Daily = () => {
                   "w-[240px] justify-start text-left font-normal",
                   !selectedDate && "text-muted-foreground"
                 )}
+                disabled={isSaved}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
@@ -63,7 +69,7 @@ const Daily = () => {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
+                onSelect={(date) => date && !isSaved && setSelectedDate(date)}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
               />
@@ -71,120 +77,131 @@ const Daily = () => {
           </Popover>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Physical Metrics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (kg)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  value={metrics.weight}
-                  onChange={(e) => handleInputChange('weight', e.target.value)}
-                  placeholder="Enter weight"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="systolic">Systolic BP</Label>
-                  <Input
-                    id="systolic"
-                    type="number"
-                    value={metrics.systolicBP}
-                    onChange={(e) => handleInputChange('systolicBP', e.target.value)}
-                    placeholder="120"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="diastolic">Diastolic BP</Label>
-                  <Input
-                    id="diastolic"
-                    type="number"
-                    value={metrics.diastolicBP}
-                    onChange={(e) => handleInputChange('diastolicBP', e.target.value)}
-                    placeholder="80"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="steps">Step Count</Label>
-                <Input
-                  id="steps"
-                  type="number"
-                  value={metrics.steps}
-                  onChange={(e) => handleInputChange('steps', e.target.value)}
-                  placeholder="Enter step count"
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {isSaved ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px] animate-fade-in">
+            <div className="text-lg font-semibold mb-4 text-green-600">Metrics Saved</div>
+            <Button onClick={handleEdit} size="lg" variant="outline">
+              Change Daily Metrics
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Physical Metrics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Weight (kg)</Label>
+                    <Input
+                      id="weight"
+                      type="number"
+                      step="0.1"
+                      value={metrics.weight}
+                      onChange={(e) => handleInputChange('weight', e.target.value)}
+                      placeholder="Enter weight"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="systolic">Systolic BP</Label>
+                      <Input
+                        id="systolic"
+                        type="number"
+                        value={metrics.systolicBP}
+                        onChange={(e) => handleInputChange('systolicBP', e.target.value)}
+                        placeholder="120"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="diastolic">Diastolic BP</Label>
+                      <Input
+                        id="diastolic"
+                        type="number"
+                        value={metrics.diastolicBP}
+                        onChange={(e) => handleInputChange('diastolicBP', e.target.value)}
+                        placeholder="80"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="steps">Step Count</Label>
+                    <Input
+                      id="steps"
+                      type="number"
+                      value={metrics.steps}
+                      onChange={(e) => handleInputChange('steps', e.target.value)}
+                      placeholder="Enter step count"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Nutrition</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="protein">Protein (g)</Label>
-                <Input
-                  id="protein"
-                  type="number"
-                  step="0.1"
-                  value={metrics.protein}
-                  onChange={(e) => handleInputChange('protein', e.target.value)}
-                  placeholder="Enter protein intake"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="carbs">Carbs (g)</Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  step="0.1"
-                  value={metrics.carbs}
-                  onChange={(e) => handleInputChange('carbs', e.target.value)}
-                  placeholder="Enter carb intake"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="fats">Fats (g)</Label>
-                <Input
-                  id="fats"
-                  type="number"
-                  step="0.1"
-                  value={metrics.fats}
-                  onChange={(e) => handleInputChange('fats', e.target.value)}
-                  placeholder="Enter fat intake"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="calories">Calories</Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={metrics.calories}
-                  onChange={(e) => handleInputChange('calories', e.target.value)}
-                  placeholder="Enter total calories"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Nutrition</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="protein">Protein (g)</Label>
+                    <Input
+                      id="protein"
+                      type="number"
+                      step="0.1"
+                      value={metrics.protein}
+                      onChange={(e) => handleInputChange('protein', e.target.value)}
+                      placeholder="Enter protein intake"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="carbs">Carbs (g)</Label>
+                    <Input
+                      id="carbs"
+                      type="number"
+                      step="0.1"
+                      value={metrics.carbs}
+                      onChange={(e) => handleInputChange('carbs', e.target.value)}
+                      placeholder="Enter carb intake"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="fats">Fats (g)</Label>
+                    <Input
+                      id="fats"
+                      type="number"
+                      step="0.1"
+                      value={metrics.fats}
+                      onChange={(e) => handleInputChange('fats', e.target.value)}
+                      placeholder="Enter fat intake"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="calories">Calories</Label>
+                    <Input
+                      id="calories"
+                      type="number"
+                      value={metrics.calories}
+                      onChange={(e) => handleInputChange('calories', e.target.value)}
+                      placeholder="Enter total calories"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} size="lg">
-            Save Daily Metrics
-          </Button>
-        </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSave} size="lg">
+                Save Daily Metrics
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
