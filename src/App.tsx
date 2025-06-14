@@ -18,6 +18,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AuthWrapper from "./components/AuthWrapper";
 import CyclePlanner from "./pages/CyclePlanner";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const queryClient = new QueryClient();
 
@@ -36,35 +37,35 @@ function App() {
             {/* Removed onboarding route */}
             <Route 
               path="/dashboard" 
-              element={<AuthWrapper><Dashboard /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Dashboard /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/daily" 
-              element={<AuthWrapper><Daily /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Daily /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/weekly" 
-              element={<AuthWrapper><Weekly /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Weekly /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/blood-tests" 
-              element={<AuthWrapper><BloodTests /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><BloodTests /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/analytics" 
-              element={<AuthWrapper><Analytics /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Analytics /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/trends" 
-              element={<AuthWrapper><Trends /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Trends /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/profile" 
-              element={<AuthWrapper><Profile /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Profile /></DashboardLayout></AuthWrapper>} 
             />
             <Route 
               path="/settings" 
-              element={<AuthWrapper><Settings /></AuthWrapper>} 
+              element={<AuthWrapper><DashboardLayout><Settings /></DashboardLayout></AuthWrapper>} 
             />
 
             {/* Cycle Planner page displays the actual planner UI */}
