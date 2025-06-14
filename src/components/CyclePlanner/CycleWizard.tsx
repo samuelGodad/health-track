@@ -7,7 +7,7 @@ import { CheckCircle, Circle, Plus } from "lucide-react";
 import { useCycle } from "@/contexts/CycleContext";
 import CyclePeriodForm from "./CyclePeriodForm";
 import CycleCompoundSelector from "./CycleCompoundSelector";
-import CycleDetails from "./CycleDetails";
+import WeekByWeekTable from "./WeekByWeekTable";
 
 interface Step {
   id: string;
@@ -58,6 +58,36 @@ const CycleWizard = () => {
 
   const handleAddCyclePlan = (newPlan: any) => {
     setCyclePlans([...cyclePlans, newPlan]);
+  };
+
+  const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number, compound: string) => {
+    setCyclePlans(prevPlans => {
+      const existingPlanIndex = prevPlans.findIndex(
+        plan => plan.weekNumber === weekNumber && plan.compound === compound
+      );
+
+      if (existingPlanIndex >= 0) {
+        // Update existing plan
+        const updatedPlans = [...prevPlans];
+        updatedPlans[existingPlanIndex] = {
+          ...updatedPlans[existingPlanIndex],
+          weeklyDose
+        };
+        return updatedPlans;
+      } else {
+        // Create new plan
+        const newPlan = {
+          id: Date.now().toString(),
+          compound,
+          weeklyDose,
+          dosingPer1ML: 250, // Default value for internal calculations
+          unit: "mg",
+          frequency: 2,
+          weekNumber
+        };
+        return [...prevPlans, newPlan];
+      }
+    });
   };
 
   const renderStepContent = () => {
@@ -186,13 +216,10 @@ const CycleWizard = () => {
                 </p>
               </div>
             </div>
-            <CycleDetails 
-              currentWeek={selectedCyclePeriod.startWeek}
-              cyclePeriods={[selectedCyclePeriod]}
+            <WeekByWeekTable 
+              selectedCyclePeriod={selectedCyclePeriod}
               cyclePlans={cyclePlans}
-              onAddCyclePlan={handleAddCyclePlan}
-              onUpdateCyclePlan={() => {}}
-              onRemoveCompound={() => {}}
+              onUpdateCyclePlan={handleUpdateCyclePlan}
             />
           </div>
         );
