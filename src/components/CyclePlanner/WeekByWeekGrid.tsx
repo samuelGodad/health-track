@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, addWeeks } from "date-fns";
-import { Plus, Copy, Trash2 } from "lucide-react";
+import { Copy } from "lucide-react";
 import { CyclePeriod, CyclePlanEntry } from "@/contexts/CycleContext";
 
 // List of available compounds
@@ -163,8 +162,6 @@ const WeekByWeekGrid = ({
                       {allCompounds.map(compound => {
                         const plan = getPlanForWeekAndCompound(weekNumber, compound);
                         const weeklyDose = plan?.weeklyDose || 0;
-                        const dosingPer1ML = plan?.dosingPer1ML || 250;
-                        const mlPerWeek = calculateMLPerWeek(weeklyDose, dosingPer1ML);
                         
                         return (
                           <TableCell key={`${weekNumber}-${compound}`} className="p-1">
@@ -190,9 +187,6 @@ const WeekByWeekGrid = ({
                                 >
                                   <Copy className="h-3 w-3" />
                                 </Button>
-                                <div className="text-xs text-muted-foreground">
-                                  {mlPerWeek}ml
-                                </div>
                               </div>
                             </div>
                           </TableCell>

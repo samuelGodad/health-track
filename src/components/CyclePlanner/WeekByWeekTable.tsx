@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -111,7 +110,6 @@ const WeekByWeekTable = ({
                       <TableHead className="w-20">Week of Cycle</TableHead>
                       <TableHead className="w-32">Date</TableHead>
                       <TableHead className="w-28">Weekly Dose</TableHead>
-                      <TableHead className="w-24">ML/Week</TableHead>
                       <TableHead className="w-28">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -122,9 +120,6 @@ const WeekByWeekTable = ({
                       );
                       const weekDate = getWeekStartDate(weekNumber);
                       const weeklyDose = plan?.weeklyDose || 0;
-                      const mlPerWeek = plan?.dosingPer1ML && plan.dosingPer1ML > 0 
-                        ? (weeklyDose / plan.dosingPer1ML).toFixed(1) 
-                        : '0';
                       const weekOfYear = getWeekOfYear(weekNumber);
                       const weekOfCycle = getWeekOfCycle(weekNumber);
                       
@@ -145,7 +140,6 @@ const WeekByWeekTable = ({
                               placeholder="0"
                             />
                           </TableCell>
-                          <TableCell className="py-1 text-sm">{mlPerWeek}</TableCell>
                           <TableCell className="py-1">
                             <div className="flex space-x-1">
                               <Button 
