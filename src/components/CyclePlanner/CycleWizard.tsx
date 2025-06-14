@@ -46,6 +46,8 @@ const CycleWizard = () => {
   const handleAddCyclePeriod = (newPeriod: any) => {
     setCyclePeriods([...cyclePeriods, newPeriod]);
     setShowCyclePeriodForm(false);
+    // Automatically select the newly created cycle and move to next step
+    setSelectedCyclePeriod(newPeriod);
     setActiveStep("select-compounds");
   };
 
