@@ -13,16 +13,6 @@ import { cn } from "@/lib/utils";
 import { CycleType, dateToWeekNumber, ensureStartOfWeek } from "@/contexts/CycleContext";
 import { endOfWeek } from "date-fns";
 
-const daysOfWeek = [
-  { label: "Mon", value: "monday" },
-  { label: "Tue", value: "tuesday" },
-  { label: "Wed", value: "wednesday" },
-  { label: "Thu", value: "thursday" },
-  { label: "Fri", value: "friday" },
-  { label: "Sat", value: "saturday" },
-  { label: "Sun", value: "sunday" },
-];
-
 interface CyclePeriodFormProps {
   onSubmit: (cyclePeriod: any) => void;
   onCancel: () => void;
@@ -36,8 +26,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
     endDate: endOfWeek(ensureStartOfWeek(selectedDate), { weekStartsOn: 1 }),
     name: "",
     notes: "",
-    injectionsPerWeek: 2,
-    injectionDays: ["monday", "thursday"],
   });
 
   const handleCyclePeriodChange = (field: string, value: any) => {
@@ -58,48 +46,9 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
       // Ensure end date is always a Sunday (end of week)
       const adjustedDate = endOfWeek(value, { weekStartsOn: 1 });
       setCyclePeriod((prev) => ({ ...prev, endDate: adjustedDate }));
-    } else if (field === "injectionsPerWeek") {
-      // Update the injection frequency and reset the days if needed
-      const numInjections = Number(value);
-      let injectionDays = [...cyclePeriod.injectionDays];
-      
-      // Limit the number of selected days to the injection frequency
-      if (injectionDays.length > numInjections) {
-        injectionDays = injectionDays.slice(0, numInjections);
-      }
-      
-      setCyclePeriod((prev) => ({ 
-        ...prev, 
-        injectionsPerWeek: numInjections,
-        injectionDays
-      }));
     } else {
       setCyclePeriod((prev) => ({ ...prev, [field]: value }));
     }
-  };
-
-  const toggleInjectionDay = (day: string) => {
-    const currentDays = [...cyclePeriod.injectionDays];
-    
-    // If day is already selected, remove it
-    if (currentDays.includes(day)) {
-      setCyclePeriod((prev) => ({
-        ...prev,
-        injectionDays: prev.injectionDays.filter(d => d !== day)
-      }));
-      return;
-    }
-    
-    // Check if adding would exceed the frequency
-    if (currentDays.length >= cyclePeriod.injectionsPerWeek) {
-      return;
-    }
-    
-    // Add the day
-    setCyclePeriod((prev) => ({
-      ...prev,
-      injectionDays: [...prev.injectionDays, day]
-    }));
   };
 
   // Calculate cycle length in weeks
@@ -227,51 +176,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="injectionsPerWeek">Injections Per Week</Label>
-        <Select
-          value={cyclePeriod.injectionsPerWeek.toString()}
-          onValueChange={(value) => handleCyclePeriodChange("injectionsPerWeek", Number(value))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            {[1, 2, 3, 4, 5, 6, 7].map(num => (
-              <SelectItem key={num} value={num.toString()}>
-                {num} {num === 1 ? "time" : "times"} per week
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Injection Days ({cyclePeriod.injectionDays.length}/{cyclePeriod.injectionsPerWeek} selected)</Label>
-        <div className="flex flex-wrap gap-2">
-          {daysOfWeek.map(day => (
-            <Button
-              key={day.value}
-              type="button"
-              variant={cyclePeriod.injectionDays.includes(day.value) ? "default" : "outline"}
-              onClick={() => toggleInjectionDay(day.value)}
-              className="w-[70px]"
-              disabled={
-                !cyclePeriod.injectionDays.includes(day.value) && 
-                cyclePeriod.injectionDays.length >= cyclePeriod.injectionsPerWeek
-              }
-            >
-              {day.label}
-            </Button>
-          ))}
-        </div>
-        {cyclePeriod.injectionDays.length < cyclePeriod.injectionsPerWeek && (
-          <p className="text-sm text-amber-600">
-            Please select {cyclePeriod.injectionsPerWeek - cyclePeriod.injectionDays.length} more day(s)
-          </p>
-        )}
-      </div>
-      
-      <div className="space-y-2">
         <Label htmlFor="cycleNotes">Notes (Optional)</Label>
         <Textarea
           id="cycleNotes"
@@ -291,8 +195,7 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
           disabled={
             !cyclePeriod.name || 
             !cyclePeriod.startDate || 
-            !cyclePeriod.endDate ||
-            cyclePeriod.injectionDays.length !== cyclePeriod.injectionsPerWeek
+            !cyclePeriod.endDate
           }
         >
           Create Cycle
