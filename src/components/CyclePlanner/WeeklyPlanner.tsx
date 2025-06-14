@@ -11,7 +11,7 @@ const WeeklyPlanner = () => {
     <div className="space-y-6">
       <PlannerHeader />
       <CycleWizard />
-      <YearOverviewCard cyclePeriods={cyclePeriods} />
+      <YearOverviewCard />
     </div>
   );
 };
