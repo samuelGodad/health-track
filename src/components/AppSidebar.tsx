@@ -16,14 +16,14 @@ import {
   HeartPulseIcon,
   CalendarIcon,
   CalendarDaysIcon,
-  FlaskConicalIcon,
+  SyringeIcon, // Use the syringe icon from lucide-react
   BarChart3Icon,
   TrendingUpIcon,
   UserIcon,
   SettingsIcon,
 } from 'lucide-react';
 
-// Updated navigationItems to include Cycle Planner
+// Updated navigationItems to include Cycle Planner with SyringeIcon
 const navigationItems = [
   {
     title: 'Daily',
@@ -38,12 +38,12 @@ const navigationItems = [
   {
     title: 'Cycle Planner',
     url: '/cycle-planner',
-    icon: FlaskConicalIcon,
+    icon: SyringeIcon,
   },
   {
     title: 'Blood Results',
     url: '/blood-tests',
-    icon: FlaskConicalIcon,
+    icon: SyringeIcon, // Optionally update this if you want a different icon, else keep as-is
   },
   {
     title: 'Blood Analytics',
