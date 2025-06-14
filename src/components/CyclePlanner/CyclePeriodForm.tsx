@@ -100,23 +100,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
       
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="cycleType">Cycle Type</Label>
-          <Select
-            value={cyclePeriod.type}
-            onValueChange={(value) => handleCyclePeriodChange("type", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={CycleType.BLAST}>Blast</SelectItem>
-              <SelectItem value={CycleType.CRUISE}>Cruise</SelectItem>
-              <SelectItem value={CycleType.TRT}>TRT</SelectItem>
-              <SelectItem value={CycleType.OFF}>Off Cycle</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
           <Label>Start Date (Monday)</Label>
           <Popover>
             <PopoverTrigger asChild>
@@ -136,9 +119,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
             </PopoverContent>
           </Popover>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>End Date (Sunday)</Label>
           <Popover>
@@ -158,6 +138,26 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
               />
             </PopoverContent>
           </Popover>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="cycleType">Cycle Type</Label>
+          <Select
+            value={cyclePeriod.type}
+            onValueChange={(value) => handleCyclePeriodChange("type", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CycleType.BLAST}>Blast</SelectItem>
+              <SelectItem value={CycleType.CRUISE}>Cruise</SelectItem>
+              <SelectItem value={CycleType.TRT}>TRT</SelectItem>
+              <SelectItem value={CycleType.OFF}>Off Cycle</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="cycleLength">Length</Label>
