@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// List of available compounds
 const compounds = [
   "Testosterone Enanthate",
   "Testosterone Cypionate",
@@ -23,12 +22,14 @@ interface CycleCompoundSelectorProps {
   cyclePlanEntries: any[];
   onAddCyclePlan: (plan: any) => void;
   currentWeek: number;
+  selectedCyclePeriod: any;
 }
 
 const CycleCompoundSelector = ({ 
   cyclePlanEntries, 
   onAddCyclePlan, 
-  currentWeek 
+  currentWeek,
+  selectedCyclePeriod
 }: CycleCompoundSelectorProps) => {
   const [newCyclePlan, setNewCyclePlan] = React.useState({
     compound: "",
@@ -38,19 +39,28 @@ const CycleCompoundSelector = ({
     setNewCyclePlan((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Get unique compounds that have been added to this cycle
+  const uniqueCompounds = [...new Set(cyclePlanEntries.map(plan => plan.compound))];
+
   const handleAddCompound = () => {
-    if (!newCyclePlan.compound) {
+    if (!newCyclePlan.compound || !selectedCyclePeriod) {
       return;
+    }
+
+    // Check if compound already exists in this cycle
+    const compoundExists = uniqueCompounds.includes(newCyclePlan.compound);
+    if (compoundExists) {
+      return; // Don't add duplicate compounds
     }
 
     const newPlan = {
       id: Date.now().toString(),
       compound: newCyclePlan.compound,
-      weeklyDose: 0, // Will be set in the dose planning step
-      dosingPer1ML: 250, // Default value for internal calculations
+      weeklyDose: 0,
+      dosingPer1ML: 250,
       unit: "mg",
       frequency: 2,
-      weekNumber: currentWeek,
+      weekNumber: selectedCyclePeriod.startWeek,
     };
 
     onAddCyclePlan(newPlan);
@@ -60,9 +70,12 @@ const CycleCompoundSelector = ({
     });
   };
 
+  // Filter out compounds that are already added to this cycle
+  const availableCompounds = compounds.filter(compound => !uniqueCompounds.includes(compound));
+
   return (
     <div className="space-y-6">
-      {/* Week Plan Display */}
+      {/* Compounds Display */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -70,10 +83,10 @@ const CycleCompoundSelector = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cyclePlanEntries.length > 0 ? (
-            cyclePlanEntries.map(plan => (
-              <TableRow key={plan.id}>
-                <TableCell>{plan.compound}</TableCell>
+          {uniqueCompounds.length > 0 ? (
+            uniqueCompounds.map(compound => (
+              <TableRow key={compound}>
+                <TableCell>{compound}</TableCell>
               </TableRow>
             ))
           ) : (
@@ -87,34 +100,44 @@ const CycleCompoundSelector = ({
       </Table>
 
       {/* Add Compound Form */}
-      <form 
-        className="space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleAddCompound();
-        }}
-      >
-        <div className="space-y-2">
-          <Label htmlFor="compound">Compound</Label>
-          <Select 
-            value={newCyclePlan.compound}
-            onValueChange={(value) => handleInputChange("compound", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select compound" />
-            </SelectTrigger>
-            <SelectContent>
-              {compounds.map(compound => (
-                <SelectItem key={compound} value={compound}>
-                  {compound}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {availableCompounds.length > 0 && (
+        <form 
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddCompound();
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="compound">Compound</Label>
+            <Select 
+              value={newCyclePlan.compound}
+              onValueChange={(value) => handleInputChange("compound", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select compound" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCompounds.map(compound => (
+                  <SelectItem key={compound} value={compound}>
+                    {compound}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Button type="submit" className="w-full">Add Compound to Cycle</Button>
-      </form>
+          <Button type="submit" className="w-full" disabled={!newCyclePlan.compound}>
+            Add Compound to Cycle
+          </Button>
+        </form>
+      )}
+
+      {availableCompounds.length === 0 && uniqueCompounds.length > 0 && (
+        <div className="text-center py-4 text-muted-foreground border rounded-md">
+          All available compounds have been added to this cycle
+        </div>
+      )}
     </div>
   );
 };

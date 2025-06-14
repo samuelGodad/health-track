@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -17,23 +16,21 @@ interface CyclePeriodFormProps {
   onSubmit: (cyclePeriod: any) => void;
   onCancel: () => void;
   selectedDate: Date;
+  initialData?: any;
 }
 
-const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormProps) => {
+const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate, initialData }: CyclePeriodFormProps) => {
   const [cyclePeriod, setCyclePeriod] = React.useState({
-    type: CycleType.BLAST,
-    startDate: ensureStartOfWeek(selectedDate),
-    endDate: endOfWeek(ensureStartOfWeek(selectedDate), { weekStartsOn: 1 }),
-    name: "",
-    notes: "",
+    type: initialData?.type || CycleType.BLAST,
+    startDate: initialData?.startDate || ensureStartOfWeek(selectedDate),
+    endDate: initialData?.endDate || endOfWeek(ensureStartOfWeek(selectedDate), { weekStartsOn: 1 }),
+    name: initialData?.name || "",
+    notes: initialData?.notes || "",
   });
 
   const handleCyclePeriodChange = (field: string, value: any) => {
     if (field === "startDate") {
-      // Ensure start date is always a Monday (start of week)
       const adjustedDate = ensureStartOfWeek(value);
-      
-      // Also update end date to maintain the same duration from the new start date
       const currentDuration = cyclePeriod.endDate.getTime() - cyclePeriod.startDate.getTime();
       const newEndDate = new Date(adjustedDate.getTime() + currentDuration);
       
@@ -43,7 +40,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
         endDate: newEndDate
       }));
     } else if (field === "endDate") {
-      // Ensure end date is always a Sunday (end of week)
       const adjustedDate = endOfWeek(value, { weekStartsOn: 1 });
       setCyclePeriod((prev) => ({ ...prev, endDate: adjustedDate }));
     } else {
@@ -51,7 +47,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
     }
   };
 
-  // Calculate cycle length in weeks
   const calculateCycleLength = () => {
     if (!cyclePeriod.startDate || !cyclePeriod.endDate) {
       return 0;
@@ -60,7 +55,6 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
     const startWeek = dateToWeekNumber(cyclePeriod.startDate);
     const endWeek = dateToWeekNumber(cyclePeriod.endDate);
     
-    // Handle year boundary
     if (endWeek >= startWeek) {
       return endWeek - startWeek + 1;
     } else {
@@ -71,13 +65,12 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Calculate the week numbers for compatibility
     const startWeek = dateToWeekNumber(cyclePeriod.startDate);
     const endWeek = dateToWeekNumber(cyclePeriod.endDate);
     
     const newCyclePeriod = {
       ...cyclePeriod,
-      id: Date.now().toString(),
+      id: initialData?.id || Date.now().toString(),
       startWeek,
       endWeek,
     };
@@ -198,7 +191,7 @@ const CyclePeriodForm = ({ onSubmit, onCancel, selectedDate }: CyclePeriodFormPr
             !cyclePeriod.endDate
           }
         >
-          Create Cycle
+          {initialData ? "Update Cycle" : "Create Cycle"}
         </Button>
       </div>
     </form>

@@ -1,9 +1,8 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Plus } from "lucide-react";
+import { CheckCircle, Circle, Plus, Edit } from "lucide-react";
 import { useCycle } from "@/contexts/CycleContext";
 import CyclePeriodForm from "./CyclePeriodForm";
 import CycleCompoundSelector from "./CycleCompoundSelector";
@@ -21,6 +20,7 @@ const CycleWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("create-cycle");
   const [showCyclePeriodForm, setShowCyclePeriodForm] = useState(false);
   const [selectedCyclePeriod, setSelectedCyclePeriod] = useState<any>(null);
+  const [editingCyclePeriod, setEditingCyclePeriod] = useState<any>(null);
 
   const steps: Step[] = [
     {
@@ -39,16 +39,30 @@ const CycleWizard = () => {
       id: "plan-doses",
       title: "Plan Doses Week by Week",
       description: "Set specific doses for each week",
-      completed: false // We can add logic to check if doses are planned
+      completed: false
     }
   ];
 
   const handleAddCyclePeriod = (newPeriod: any) => {
-    setCyclePeriods([...cyclePeriods, newPeriod]);
+    if (editingCyclePeriod) {
+      // Update existing cycle period
+      setCyclePeriods(prevPeriods => 
+        prevPeriods.map(period => 
+          period.id === editingCyclePeriod.id ? newPeriod : period
+        )
+      );
+      setEditingCyclePeriod(null);
+      // Keep the same selected period if it was being edited
+      if (selectedCyclePeriod?.id === editingCyclePeriod.id) {
+        setSelectedCyclePeriod(newPeriod);
+      }
+    } else {
+      // Add new cycle period
+      setCyclePeriods([...cyclePeriods, newPeriod]);
+      setSelectedCyclePeriod(newPeriod);
+      setActiveStep("select-compounds");
+    }
     setShowCyclePeriodForm(false);
-    // Automatically select the newly created cycle and move to next step
-    setSelectedCyclePeriod(newPeriod);
-    setActiveStep("select-compounds");
   };
 
   const handleSelectCycle = (period: any) => {
@@ -56,8 +70,18 @@ const CycleWizard = () => {
     setActiveStep("select-compounds");
   };
 
+  const handleEditCycle = (period: any) => {
+    setEditingCyclePeriod(period);
+    setShowCyclePeriodForm(true);
+  };
+
   const handleAddCyclePlan = (newPlan: any) => {
-    setCyclePlans([...cyclePlans, newPlan]);
+    // Make sure to add the cycle plan with the correct week number from selected period
+    const planWithWeek = {
+      ...newPlan,
+      weekNumber: selectedCyclePeriod?.startWeek || 1
+    };
+    setCyclePlans([...cyclePlans, planWithWeek]);
   };
 
   const handleUpdateCyclePlan = (weekNumber: number, weeklyDose: number, compound: string) => {
@@ -67,7 +91,6 @@ const CycleWizard = () => {
       );
 
       if (existingPlanIndex >= 0) {
-        // Update existing plan
         const updatedPlans = [...prevPlans];
         updatedPlans[existingPlanIndex] = {
           ...updatedPlans[existingPlanIndex],
@@ -75,12 +98,11 @@ const CycleWizard = () => {
         };
         return updatedPlans;
       } else {
-        // Create new plan
         const newPlan = {
           id: Date.now().toString(),
           compound,
           weeklyDose,
-          dosingPer1ML: 250, // Default value for internal calculations
+          dosingPer1ML: 250,
           unit: "mg",
           frequency: 2,
           weekNumber
@@ -99,17 +121,28 @@ const CycleWizard = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Existing Cycles</h3>
                 {cyclePeriods.map((period) => (
-                  <Card key={period.id} className="cursor-pointer hover:shadow-md transition-shadow" 
-                        onClick={() => handleSelectCycle(period)}>
+                  <Card key={period.id} className="cursor-pointer hover:shadow-md transition-shadow">
                     <CardContent className="pt-4">
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div onClick={() => handleSelectCycle(period)} className="flex-1">
                           <h4 className="font-medium">{period.name}</h4>
                           <p className="text-sm text-muted-foreground">
                             {period.type} • Week {period.startWeek} - {period.endWeek}
                           </p>
                         </div>
-                        <Badge variant="outline">{period.type}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{period.type}</Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditCycle(period);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -119,7 +152,10 @@ const CycleWizard = () => {
             
             <div className="flex justify-center">
               <Button 
-                onClick={() => setShowCyclePeriodForm(!showCyclePeriodForm)}
+                onClick={() => {
+                  setEditingCyclePeriod(null);
+                  setShowCyclePeriodForm(!showCyclePeriodForm);
+                }}
                 variant={cyclePeriods.length === 0 ? "default" : "outline"}
                 size="lg"
               >
@@ -131,13 +167,19 @@ const CycleWizard = () => {
             {showCyclePeriodForm && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Create New Cycle Period</CardTitle>
+                  <CardTitle>
+                    {editingCyclePeriod ? "Edit Cycle Period" : "Create New Cycle Period"}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CyclePeriodForm 
                     onSubmit={handleAddCyclePeriod}
-                    onCancel={() => setShowCyclePeriodForm(false)}
-                    selectedDate={new Date()}
+                    onCancel={() => {
+                      setShowCyclePeriodForm(false);
+                      setEditingCyclePeriod(null);
+                    }}
+                    selectedDate={editingCyclePeriod?.startDate || new Date()}
+                    initialData={editingCyclePeriod}
                   />
                 </CardContent>
               </Card>
@@ -161,7 +203,6 @@ const CycleWizard = () => {
           );
         }
         
-        // Filter cycle plans for the selected period
         const periodCyclePlans = cyclePlans.filter(plan => 
           plan.weekNumber >= selectedCyclePeriod.startWeek && 
           plan.weekNumber <= selectedCyclePeriod.endWeek
@@ -187,6 +228,7 @@ const CycleWizard = () => {
               cyclePlanEntries={periodCyclePlans}
               onAddCyclePlan={handleAddCyclePlan}
               currentWeek={selectedCyclePeriod.startWeek}
+              selectedCyclePeriod={selectedCyclePeriod}
             />
           </div>
         );
