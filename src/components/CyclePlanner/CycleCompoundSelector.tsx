@@ -50,18 +50,14 @@ const CycleCompoundSelector = ({
     }
   };
 
-  // Get unique compounds that have been added to this cycle (accounting for year crossing)
+  // Get unique compounds that have been added to this cycle
   const uniqueCompounds = React.useMemo(() => {
     if (!selectedCyclePeriod) return [];
     
     const compoundsInCycle = cyclePlanEntries
-      .filter(plan => {
-        console.log('Checking plan:', plan.weekNumber, 'against cycle:', selectedCyclePeriod.startWeek, 'to', selectedCyclePeriod.endWeek);
-        return isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek);
-      })
+      .filter(plan => isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek))
       .map(plan => plan.compound);
     
-    console.log('Compounds in cycle:', compoundsInCycle);
     return [...new Set(compoundsInCycle)];
   }, [cyclePlanEntries, selectedCyclePeriod]);
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,17 @@ const CycleWizard = () => {
   const [showCyclePeriodForm, setShowCyclePeriodForm] = useState(false);
   const [selectedCyclePeriod, setSelectedCyclePeriod] = useState<any>(null);
   const [editingCyclePeriod, setEditingCyclePeriod] = useState<any>(null);
+
+  // Helper function to check if a week is within the cycle period (handles year crossing)
+  const isWeekInCyclePeriod = (weekNumber: number, startWeek: number, endWeek: number) => {
+    if (startWeek <= endWeek) {
+      // Normal case: cycle doesn't cross years
+      return weekNumber >= startWeek && weekNumber <= endWeek;
+    } else {
+      // Year crossing case: cycle spans across year boundary
+      return weekNumber >= startWeek || weekNumber <= endWeek;
+    }
+  };
 
   const steps: Step[] = [
     {
@@ -203,9 +215,9 @@ const CycleWizard = () => {
           );
         }
         
+        // Filter cycle plans using the year-crossing aware function
         const periodCyclePlans = cyclePlans.filter(plan => 
-          plan.weekNumber >= selectedCyclePeriod.startWeek && 
-          plan.weekNumber <= selectedCyclePeriod.endWeek
+          isWeekInCyclePeriod(plan.weekNumber, selectedCyclePeriod.startWeek, selectedCyclePeriod.endWeek)
         );
 
         return (
