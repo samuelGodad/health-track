@@ -14,17 +14,16 @@ import {
 } from '@/components/ui/sidebar';
 import {
   HeartPulseIcon,
-  LayoutDashboardIcon,
+  CalendarIcon,
+  CalendarDaysIcon,
   FlaskConicalIcon,
   BarChart3Icon,
   TrendingUpIcon,
   UserIcon,
   SettingsIcon,
-  CalendarIcon,
-  CalendarDaysIcon,
 } from 'lucide-react';
 
-// Remove "Overview" from the navigationItems array below
+// Updated navigationItems to include Cycle Planner
 const navigationItems = [
   {
     title: 'Daily',
@@ -35,6 +34,11 @@ const navigationItems = [
     title: 'Weekly',
     url: '/weekly',
     icon: CalendarDaysIcon,
+  },
+  {
+    title: 'Cycle Planner',
+    url: '/cycle-planner',
+    icon: FlaskConicalIcon,
   },
   {
     title: 'Blood Results',
