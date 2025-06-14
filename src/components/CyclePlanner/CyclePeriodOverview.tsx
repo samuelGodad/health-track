@@ -1,80 +1,92 @@
 
 import React from "react";
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Calendar, Edit2, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 import { CyclePeriod, CycleType } from "@/contexts/CycleContext";
 
 interface CyclePeriodOverviewProps {
   cyclePeriods: CyclePeriod[];
-  onViewCycle: (weekNumber: number) => void;
+  onEdit?: (period: CyclePeriod) => void;
+  onDelete?: (periodId: string) => void;
 }
 
-// Get background color based on cycle type
-const getCycleTypeColor = (type: CycleType) => {
-  switch (type) {
-    case CycleType.BLAST:
-      return "bg-red-100 border-red-300";
-    case CycleType.CRUISE:
-      return "bg-blue-100 border-blue-300";
-    case CycleType.TRT:
-      return "bg-green-100 border-green-300";
-    case CycleType.OFF:
-      return "bg-gray-100 border-gray-300";
-    default:
-      return "bg-gray-50 border-gray-200";
-  }
-};
+const CyclePeriodOverview = ({ cyclePeriods, onEdit, onDelete }: CyclePeriodOverviewProps) => {
+  const getCycleTypeColor = (type: CycleType) => {
+    switch (type) {
+      case CycleType.BLAST:
+        return "bg-red-100 text-red-800 border-red-300";
+      case CycleType.CRUISE:
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      case CycleType.TRT:
+        return "bg-green-100 text-green-800 border-green-300";
+      case CycleType.OFF:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+      default:
+        return "bg-gray-50 text-gray-600 border-gray-200";
+    }
+  };
 
-const CyclePeriodOverview = ({ cyclePeriods, onViewCycle }: CyclePeriodOverviewProps) => {
+  if (cyclePeriods.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">
+            No cycle periods defined yet. Create your first cycle period to get started.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {cyclePeriods.length > 0 ? (
-        cyclePeriods.map(period => (
-          <div 
-            key={period.id} 
-            className={cn(
-              "p-4 rounded-md border-2", 
-              getCycleTypeColor(period.type)
-            )}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">{period.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {period.type} · Week {period.startWeek} - Week {period.endWeek} 
-                  ({period.endWeek - period.startWeek + 1} weeks)
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {format(period.startDate, 'MMM d')} - {format(period.endDate, 'MMM d, yyyy')}
-                </p>
-                
-                {/* Injection Schedule */}
-                {period.injectionDays && period.injectionDays.length > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Injections: {period.injectionsPerWeek}x/week on{' '}
-                    {period.injectionDays.map(day => day.charAt(0).toUpperCase() + day.slice(1, 3)).join(', ')}
-                  </p>
+      {cyclePeriods.map((period) => (
+        <Card key={period.id} className={`border-l-4 ${getCycleTypeColor(period.type)}`}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-lg">{period.name}</CardTitle>
+                <Badge variant="outline" className={getCycleTypeColor(period.type)}>
+                  {period.type}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                {onEdit && (
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(period)}>
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="ghost" size="sm" onClick={() => onDelete(period.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onViewCycle(period.startWeek)}
-              >
-                View
-              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  {format(period.startDate, "MMM d")} - {format(period.endDate, "MMM d, yyyy")}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Week:</span> {period.startWeek} - {period.endWeek}
+              </div>
             </div>
             {period.notes && (
-              <p className="mt-2 text-sm border-t pt-2 border-dashed">{period.notes}</p>
+              <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
+                {period.notes}
+              </div>
             )}
-          </div>
-        ))
-      ) : (
-        <p className="text-center text-muted-foreground py-4">
-          No cycle periods defined yet. Use the "Define Cycle" button to create one.
-        </p>
-      )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

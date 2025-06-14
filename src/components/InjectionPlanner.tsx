@@ -25,15 +25,10 @@ const InjectionPlanner = () => {
     );
   };
 
-  // Set selected days based on current cycle period
+  // Set default injection days
   useEffect(() => {
-    const currentPeriod = getCurrentCyclePeriod();
-    if (currentPeriod && currentPeriod.injectionDays && currentPeriod.injectionDays.length > 0) {
-      setSelectedDays(currentPeriod.injectionDays);
-    } else {
-      // Default to Monday and Thursday if no days are specified
-      setSelectedDays(["monday", "thursday"]);
-    }
+    // Default to Monday and Thursday if no days are specified
+    setSelectedDays(["monday", "thursday"]);
   }, [currentWeek, cyclePeriods]);
 
   const toggleDay = (day: string) => {
