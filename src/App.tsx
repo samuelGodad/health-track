@@ -17,7 +17,6 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import Onboarding from "./pages/Onboarding";
 import AuthWrapper from "./components/AuthWrapper";
 
 const queryClient = new QueryClient();
@@ -33,11 +32,8 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
-            
-            <Route 
-              path="/onboarding" 
-              element={<AuthWrapper><Onboarding /></AuthWrapper>} 
-            />
+
+            {/* Removed onboarding route */}
             <Route 
               path="/dashboard" 
               element={<AuthWrapper><Dashboard /></AuthWrapper>} 
