@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -91,15 +92,10 @@ const WeekByWeekTable = ({
       
       {uniqueCompounds.length > 0 ? (
         uniqueCompounds.map(compound => {
-          const dosageInfo = cyclePlans.find(plan => plan.compound === compound);
-          
           return (
             <div key={compound} className="border rounded-md p-2 mb-4">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">{compound}</h4>
-                <div className="text-sm text-muted-foreground">
-                  {dosageInfo ? `${dosageInfo.dosingPer1ML} ${dosageInfo.unit}/ml` : ''}
-                </div>
               </div>
               
               <div className="overflow-x-auto">
@@ -109,7 +105,7 @@ const WeekByWeekTable = ({
                       <TableHead className="w-20">Week of Year</TableHead>
                       <TableHead className="w-20">Week of Cycle</TableHead>
                       <TableHead className="w-32">Date</TableHead>
-                      <TableHead className="w-28">Weekly Dose</TableHead>
+                      <TableHead className="w-28">Weekly Dose (mg)</TableHead>
                       <TableHead className="w-28">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

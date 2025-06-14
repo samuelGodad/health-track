@@ -5,13 +5,16 @@ import CycleWizard from "./CycleWizard";
 import YearOverviewCard from "./YearOverviewCard";
 
 const WeeklyPlanner = () => {
-  const { cyclePeriods } = useCycle();
+  const { cyclePeriods, setCurrentWeek } = useCycle();
 
   return (
     <div className="space-y-6">
       <PlannerHeader />
       <CycleWizard />
-      <YearOverviewCard />
+      <YearOverviewCard 
+        cyclePeriods={cyclePeriods}
+        onViewCycle={setCurrentWeek}
+      />
     </div>
   );
 };

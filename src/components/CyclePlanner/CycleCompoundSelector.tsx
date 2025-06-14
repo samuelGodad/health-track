@@ -2,7 +2,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -33,9 +32,6 @@ const CycleCompoundSelector = ({
 }: CycleCompoundSelectorProps) => {
   const [newCyclePlan, setNewCyclePlan] = React.useState({
     compound: "",
-    dosingPer1ML: 0,
-    unit: "mg",
-    frequency: 2, // Default to 2 injections per week
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -43,7 +39,7 @@ const CycleCompoundSelector = ({
   };
 
   const handleAddCompound = () => {
-    if (!newCyclePlan.compound || !newCyclePlan.dosingPer1ML) {
+    if (!newCyclePlan.compound) {
       return;
     }
 
@@ -51,9 +47,9 @@ const CycleCompoundSelector = ({
       id: Date.now().toString(),
       compound: newCyclePlan.compound,
       weeklyDose: 0, // Will be set in the dose planning step
-      dosingPer1ML: newCyclePlan.dosingPer1ML,
-      unit: newCyclePlan.unit,
-      frequency: newCyclePlan.frequency,
+      dosingPer1ML: 250, // Default value for internal calculations
+      unit: "mg",
+      frequency: 2,
       weekNumber: currentWeek,
     };
 
@@ -61,9 +57,6 @@ const CycleCompoundSelector = ({
     
     setNewCyclePlan({
       compound: "",
-      dosingPer1ML: 0,
-      unit: "mg",
-      frequency: 2,
     });
   };
 
@@ -74,7 +67,6 @@ const CycleCompoundSelector = ({
         <TableHeader>
           <TableRow>
             <TableHead>PED To Inject</TableHead>
-            <TableHead>Dosing Per 1ML</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -82,12 +74,11 @@ const CycleCompoundSelector = ({
             cyclePlanEntries.map(plan => (
               <TableRow key={plan.id}>
                 <TableCell>{plan.compound}</TableCell>
-                <TableCell>{plan.dosingPer1ML} {plan.unit}/ml</TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={2} className="text-center py-4 text-muted-foreground">
+              <TableCell colSpan={1} className="text-center py-4 text-muted-foreground">
                 No compounds planned for this cycle
               </TableCell>
             </TableRow>
@@ -103,36 +94,23 @@ const CycleCompoundSelector = ({
           handleAddCompound();
         }}
       >
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="compound">Compound</Label>
-            <Select 
-              value={newCyclePlan.compound}
-              onValueChange={(value) => handleInputChange("compound", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select compound" />
-              </SelectTrigger>
-              <SelectContent>
-                {compounds.map(compound => (
-                  <SelectItem key={compound} value={compound}>
-                    {compound}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dosingPer1ML">Dosing Per 1ML</Label>
-            <Input
-              id="dosingPer1ML"
-              type="number"
-              value={newCyclePlan.dosingPer1ML || ""}
-              onChange={(e) => handleInputChange("dosingPer1ML", Number(e.target.value))}
-              placeholder="Dosing per 1ML"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="compound">Compound</Label>
+          <Select 
+            value={newCyclePlan.compound}
+            onValueChange={(value) => handleInputChange("compound", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select compound" />
+            </SelectTrigger>
+            <SelectContent>
+              {compounds.map(compound => (
+                <SelectItem key={compound} value={compound}>
+                  {compound}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <Button type="submit" className="w-full">Add Compound to Cycle</Button>
