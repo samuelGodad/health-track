@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
@@ -406,34 +405,6 @@ const Analytics = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Total Tests"
-            value={bloodTestResults.length.toString()}
-            icon={<BarChart3Icon className="h-4 w-4" />}
-            trend={{ value: 23, isPositive: true }}
-          />
-          <MetricCard
-            title="Test Categories"
-            value={Object.keys(bloodTestCategories).length.toString()}
-            icon={<ActivityIcon className="h-4 w-4" />}
-            trend={{ value: 8, isPositive: true }}
-          />
-          <MetricCard
-            title="Active Monitoring"
-            value={filteredTests.length.toString()}
-            icon={<PieChartIcon className="h-4 w-4" />}
-            trend={{ value: 2, isPositive: true }}
-          />
-          <MetricCard
-            title="Health Score"
-            value="94%"
-            icon={<TrendingUpIcon className="h-4 w-4" />}
-            trend={{ value: 3, isPositive: true }}
-          />
         </div>
       </div>
     </DashboardLayout>
