@@ -12,8 +12,7 @@ const upload = multer();
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Function to clean response text and extract JSON
@@ -69,9 +68,69 @@ Important:
 - test_name must not be null
 - result must be a number
 - status must be exactly "normal", "high", or "low"
-- For reference ranges like "<5", set reference_max to 5 and reference_min to null
-- For reference ranges like ">10", set reference_min to 10 and reference_max to null
-- For ranges like "10-20", set reference_min to 10 and reference_max to 20`;
+- For reference ranges like "<150" or "≤150", set reference_min: 0, reference_max: 150
+- For reference ranges like ">3.5" or "≥3.5", set reference_min: 3.5, reference_max: null
+- For ranges like "10-20", set reference_min: 10, reference_max: 20
+- For "N/A" or missing, set both to null
+- NEVER return a string for reference_min or reference_max. Only use numbers or null.
+
+Examples:
+- "<150"   => reference_min: 0, reference_max: 150
+- "≤200"   => reference_min: 0, reference_max: 200
+- ">3.5"   => reference_min: 3.5, reference_max: null
+- "≥4.0"   => reference_min: 4.0, reference_max: null
+- "10-20"  => reference_min: 10, reference_max: 20
+- "N/A"    => reference_min: null, reference_max: null
+`;
+
+// Fallback normalization for reference ranges
+function normalizeReferenceRange(item: any): any {
+  // If both are numbers, nothing to do
+  if (typeof item.reference_min === 'number' && typeof item.reference_max === 'number') return item;
+  // If both are null, nothing to do
+  if (item.reference_min == null && item.reference_max == null) return item;
+
+  // Try to parse from string if needed
+  const rawRange = item.reference_range || item.reference || '';
+  const minRaw = item.reference_min;
+  const maxRaw = item.reference_max;
+
+  // Helper to parse numbers
+  const parseNum = (val: any): number | null => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+      const n = parseFloat(val.replace(/[^\d.\-]/g, ''));
+      return isNaN(n) ? null : n;
+    }
+    return null;
+  };
+
+  // < or ≤
+  if ((typeof minRaw === 'string' && /^<|≤/.test(minRaw)) || /^<|≤/.test(rawRange)) {
+    const value = parseNum(maxRaw || minRaw || rawRange);
+    return { ...item, reference_min: 0, reference_max: value };
+  }
+  // > or ≥
+  if ((typeof minRaw === 'string' && /^>|≥/.test(minRaw)) || /^>|≥/.test(rawRange)) {
+    const value = parseNum(maxRaw || minRaw || rawRange);
+    return { ...item, reference_min: value, reference_max: null };
+  }
+  // Range 10-20
+  if (/^\d+(\.\d+)?-\d+(\.\d+)?$/.test(rawRange)) {
+    const [minStr, maxStr] = rawRange.split('-');
+    return { ...item, reference_min: parseNum(minStr), reference_max: parseNum(maxStr) };
+  }
+  // N/A or missing
+  if (/na|n\/a|notavailable|none/i.test(rawRange)) {
+    return { ...item, reference_min: null, reference_max: null };
+  }
+  // If min/max are strings with numbers
+  return {
+    ...item,
+    reference_min: parseNum(minRaw),
+    reference_max: parseNum(maxRaw)
+  };
+}
 
 app.get('/', (req, res) => {
   res.send('Hello World');
@@ -132,19 +191,21 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
         console.log('Cleaned JSON:', cleanedJSON);
         const parsedData = JSON.parse(cleanedJSON);
 
-        // Add only the required additional fields
-        const transformedData = parsedData.map((item: any) => ({
-          test: item.test_name,
-          category: item.category,
-          result: `${item.result}`,
-          reference_min: item.reference_min !== null ? `${item.reference_min}` : null,
-          reference_max: item.reference_max !== null ? `${item.reference_max}` : null,
-          status: item.status,
-          test_date: item.test_date,
-          processed_by_ai: true,
-          source_file_type: 'pdf'
-         
-        }));
+        // Add only the required additional fields and normalize reference ranges
+        const transformedData = parsedData.map((item: any) => {
+          const normalized = normalizeReferenceRange(item);
+          return {
+            test: item.test_name,
+            category: item.category,
+            result: `${item.result}`,
+            reference_min: normalized.reference_min !== null ? `${normalized.reference_min}` : null,
+            reference_max: normalized.reference_max !== null ? `${normalized.reference_max}` : null,
+            status: item.status,
+            test_date: item.test_date,
+            processed_by_ai: true,
+            source_file_type: 'pdf'
+          };
+        });
         
         res.json({ 
           success: true,

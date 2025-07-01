@@ -201,9 +201,17 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                                 {test.result} {test.unit || ''}
                               </p>
                               <p className="text-xs text-muted-foreground whitespace-nowrap">
-                                {test.reference_min !== null && test.reference_max !== null 
-                                  ? `Ref: ${test.reference_min} - ${test.reference_max} ${test.unit || ''}`
-                                  : 'No reference range'}
+                                {(() => {
+                                  if (test.reference_min === null && typeof test.reference_max === 'number') {
+                                    return `Ref: 0 - ${test.reference_max} ${test.unit || ''}`;
+                                  } else if (typeof test.reference_min === 'number' && test.reference_max === null) {
+                                    return `Ref: ${test.reference_min}+ ${test.unit || ''}`;
+                                  } else if (typeof test.reference_min === 'number' && typeof test.reference_max === 'number') {
+                                    return `Ref: ${test.reference_min} - ${test.reference_max} ${test.unit || ''}`;
+                                  } else {
+                                    return 'No reference range';
+                                  }
+                                })()}
                               </p>
                             </div>
                           </div>
