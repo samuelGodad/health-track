@@ -55,19 +55,9 @@ const BloodTests = () => {
   const fetchBloodTestResults = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('blood_test_results')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('test_date', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data) {
-        setBloodTestResults(data);
-      }
+      // Use the bloodTestService which includes metadata fallback logic
+      const results = await bloodTestService.getBloodTestResults();
+      setBloodTestResults(results);
     } catch (error) {
       console.error('Error fetching blood test results:', error);
       toast.error('Failed to fetch blood test results');
