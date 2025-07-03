@@ -102,7 +102,7 @@ class BloodTestService {
   //   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   //   return hashHex;
   // }
- 
+
   private async calculateFileHash(file: File): Promise<string> {
     const buffer = await file.arrayBuffer();
     const hash = createHash('sha256');
@@ -237,7 +237,7 @@ class BloodTestService {
       const formData = new FormData();
       formData.append('file', fileToProcess);
 
-      const response = await fetch('http://localhost:3000/api/parse-pdf', {
+      const response = await fetch('https://health-track-1-x8k4.onrender.com/api/parse-pdf', {
         method: 'POST',
         body: formData
       });
