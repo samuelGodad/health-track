@@ -2,10 +2,10 @@
   "name": "medical-lab-parser-server",
   "version": "1.0.0",
   "description": "Backend server for medical lab results parser",
-  "main": "index.ts",
+  "main": "server.ts",
   "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon --exec ts-node index.ts"
+    "start": "ts-node server.ts",
+    "dev": "nodemon --exec ts-node server.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
