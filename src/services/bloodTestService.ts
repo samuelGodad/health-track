@@ -237,7 +237,7 @@ class BloodTestService {
       const formData = new FormData();
       formData.append('file', fileToProcess);
 
-      const response = await fetch('https://health-track-1-x8k4.onrender.com/api/parse-pdf', {
+      const response = await fetch('https://health-track-pcd5.onrender.com/api/parse-pdf', {
         method: 'POST',
         body: formData
       });

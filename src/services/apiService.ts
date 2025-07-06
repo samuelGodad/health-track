@@ -33,7 +33,7 @@ export interface FileInfo {
 }
 
 // const API_URL = 'http://localhost:3000';
-const API_URL = 'https://health-track-1-x8k4.onrender.com'
+const API_URL = 'https://health-track-pcd5.onrender.com'
 
 export const parsePDF = async (file: File | FileInfo): Promise<ParsePdfResponse> => {
   const formData = new FormData();
