@@ -75,7 +75,7 @@ export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar className="border-r">
+    <Sidebar className="border-r" collapsible="offcanvas">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
           <HeartPulseIcon className="h-6 w-6 text-primary" />
