@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 
 const Analytics = () => {
@@ -28,6 +30,7 @@ const Analytics = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTest1, setSelectedTest1] = useState<string | null>(null);
   const [selectedTest2, setSelectedTest2] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     if (user) {
@@ -110,12 +113,15 @@ const Analytics = () => {
     return true; // for 'all' category
   };
 
-  // Get unique tests for the selected category
+  // Get unique tests for the selected category and search query
   const filteredTests = useMemo(() => {
     const uniqueTests = new Map();
     
     bloodTestResults.forEach(test => {
-      if (selectedCategory === 'all' || categorizeTest(test.test_name, selectedCategory)) {
+      const matchesCategory = selectedCategory === 'all' || categorizeTest(test.test_name, selectedCategory);
+      const matchesSearch = searchQuery === '' || test.test_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (matchesCategory && matchesSearch) {
         if (!uniqueTests.has(test.test_name)) {
           // Get the latest result for this test
           const latestTest = bloodTestResults
@@ -147,7 +153,7 @@ const Analytics = () => {
     });
     
     return Array.from(uniqueTests.values());
-  }, [bloodTestResults, selectedCategory]);
+  }, [bloodTestResults, selectedCategory, searchQuery]);
 
   // Create chart data for selected tests
   const createChartData = (testName: string) => {
@@ -233,7 +239,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Category Selection */}
+        {/* Category Selection and Search */}
         <div className="flex items-center gap-4">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-[200px]">
@@ -245,6 +251,17 @@ const Analytics = () => {
               ))}
             </SelectContent>
           </Select>
+          
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Search blood tests..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
