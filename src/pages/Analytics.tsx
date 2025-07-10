@@ -179,7 +179,7 @@ const Analytics = () => {
       .map(test => {
         let formattedDate;
         try {
-          formattedDate = format(parseISO(test.test_date), 'MMM d');
+          formattedDate = format(parseISO(test.test_date), 'MMM d, yyyy');
         } catch (e) {
           formattedDate = test.test_date;
         }
