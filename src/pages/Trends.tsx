@@ -1,6 +1,5 @@
 
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -202,73 +201,30 @@ const Trends = () => {
   }, [from, to]);
 
   return (
-    <DashboardLayout>
-      <div>
-        {/* Header area */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-3">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
-            <p className="text-sm md:text-base text-muted-foreground mb-1">Week-over-week averages for all tracked metrics.</p>
-          </div>
-          <WeekRangePicker
-            from={from}
-            to={to}
-            setFrom={setFrom}
-            setTo={setTo}
-            minDate={chartMinDate}
-            maxDate={chartMaxDate}
-          />
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
+      {/* Header area */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-3">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">Health Trends</h2>
+          <p className="text-sm md:text-base text-muted-foreground mb-1">Week-over-week averages for all tracked metrics.</p>
         </div>
-        {/* The trend charts grid */}
-        <div className={gridCls}>
-          {trends.map((t) => (
-            <Card key={t.key}>
-              <CardHeader>
-                <CardTitle className="text-base md:text-lg">{t.title}</CardTitle>
-                <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[240px] md:h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={filteredChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="week"
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={axisStyle}
-                        tickLine={false}
-                        axisLine={false}
-                        interval={0}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        domain={['auto', 'auto']}
-                        unit={t.yAxisUnit}
-                        tick={axisStyle}
-                        tickLine={false}
-                        axisLine={false}
-                        width={40}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Line
-                        type="monotone"
-                        dataKey={t.key}
-                        stroke={t.stroke}
-                        strokeWidth={2}
-                        dot={{ fill: t.stroke }}
-                        activeDot={{ r: 5 }}
-                        name={t.title}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          <Card key="bp">
+        <WeekRangePicker
+          from={from}
+          to={to}
+          setFrom={setFrom}
+          setTo={setTo}
+          minDate={chartMinDate}
+          maxDate={chartMaxDate}
+        />
+      </div>
+      {/* The trend charts grid */}
+      <div className={gridCls}>
+        {trends.map((t) => (
+          <Card key={t.key}>
             <CardHeader>
-              <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
-              <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
+              <CardTitle className="text-base md:text-lg">{t.title}</CardTitle>
+              <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
             </CardHeader>
             <CardContent>
               <div className="h-[240px] md:h-[250px]">
@@ -286,45 +242,87 @@ const Trends = () => {
                     <YAxis
                       stroke="hsl(var(--muted-foreground))"
                       domain={['auto', 'auto']}
-                      unit="mmHg"
+                      unit={t.yAxisUnit}
                       tick={axisStyle}
                       tickLine={false}
                       axisLine={false}
-                      width={43}
+                      width={40}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      verticalAlign="top"
-                      align="right"
-                      iconType="line"
-                      wrapperStyle={{ fontSize: 11, paddingBottom: '1.5rem' }}
-                    />
                     <Line
                       type="monotone"
-                      dataKey="systolic"
-                      stroke="#f59e0b"
+                      dataKey={t.key}
+                      stroke={t.stroke}
                       strokeWidth={2}
-                      dot={{ fill: "#f59e0b" }}
+                      dot={{ fill: t.stroke }}
                       activeDot={{ r: 5 }}
-                      name="Systolic"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="diastolic"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      dot={{ fill: "#ef4444" }}
-                      activeDot={{ r: 5 }}
-                      name="Diastolic"
+                      name={t.title}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
-        </div>
+        ))}
+        <Card key="bp">
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg">Blood Pressure</CardTitle>
+            <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[240px] md:h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={filteredChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="week"
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={axisStyle}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    domain={['auto', 'auto']}
+                    unit="mmHg"
+                    tick={axisStyle}
+                    tickLine={false}
+                    axisLine={false}
+                    width={43}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="line"
+                    wrapperStyle={{ fontSize: 11, paddingBottom: '1.5rem' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="systolic"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    dot={{ fill: "#f59e0b" }}
+                    activeDot={{ r: 5 }}
+                    name="Systolic"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="diastolic"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={{ fill: "#ef4444" }}
+                    activeDot={{ r: 5 }}
+                    name="Diastolic"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

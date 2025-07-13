@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -99,7 +98,8 @@ const Weekly = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -313,7 +313,7 @@ const Weekly = () => {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

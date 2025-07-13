@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { DatePickerPopover } from "@/components/daily/DatePickerPopover";
 import { PhysicalMetricsCard } from "@/components/daily/PhysicalMetricsCard";
 import { NutritionCard } from "@/components/daily/NutritionCard";
@@ -76,7 +75,8 @@ const Daily = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -129,7 +129,7 @@ const Daily = () => {
           </>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -228,33 +227,10 @@ const BloodTests = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Enter your blood results below</h1>
-            <p className="text-muted-foreground">Track and monitor your blood test results over time</p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="flex items-center gap-2">
-              <DownloadIcon className="h-4 w-4" />
-              <span>Export Data</span>
-            </Button>
-            <Button className="flex items-center gap-2" onClick={handleUploadClick}>
-              <UploadIcon className="h-4 w-4" />
-              <span>Upload Test Results</span>
-            </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              accept=".pdf" 
-              className="hidden"
-              multiple
-            />
-          </div>
-        </div>
+    <div>
+      {/* Page content only, NO header/hamburger here */}
+      <h2 className="text-2xl font-bold mb-4">Enter your blood results below</h2>
+      <p className="mb-6 text-muted-foreground">Track and monitor your blood test results over time</p>
         
         <div className="w-full">
           <div className="mb-6">
@@ -381,8 +357,7 @@ const BloodTests = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

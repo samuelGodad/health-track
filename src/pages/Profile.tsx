@@ -1,5 +1,4 @@
 
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,8 @@ const Profile = () => {
   const { user } = useAuth();
 
   return (
-    <DashboardLayout>
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -107,7 +107,7 @@ const Profile = () => {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

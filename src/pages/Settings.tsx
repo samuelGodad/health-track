@@ -1,5 +1,4 @@
 
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -15,7 +14,8 @@ import {
 
 const Settings = () => {
   return (
-    <DashboardLayout>
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -170,7 +170,7 @@ const Settings = () => {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
