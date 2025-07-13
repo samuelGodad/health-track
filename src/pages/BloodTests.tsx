@@ -263,6 +263,14 @@ const BloodTests = () => {
                     <UploadIcon className="h-4 w-4 mr-2" />
                     <span>{isUploading ? "Uploading..." : "Upload Test Results PDF"}</span>
                   </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".pdf"
+                    className="hidden"
+                    multiple
+                  />
                   <Button variant="outline" className="flex-1">
                     <PlusIcon className="h-4 w-4 mr-2" />
                     <span>Manual Entry</span>
