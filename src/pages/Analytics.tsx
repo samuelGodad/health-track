@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { LineChart } from "@/components/ui/line-chart";
@@ -230,7 +229,8 @@ const Analytics = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
+      {/* Page content only, NO header/hamburger/sidebar here */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -424,7 +424,7 @@ const Analytics = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
