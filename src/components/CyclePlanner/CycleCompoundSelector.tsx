@@ -7,16 +7,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Trash2 } from "lucide-react";
 
 const compounds = [
-  "Testosterone Enanthate",
-  "Testosterone Cypionate",
-  "Testosterone Propionate",
-  "Nandrolone Decanoate",
-  "Trenbolone Acetate",
-  "Trenbolone Enanthate",
-  "Boldenone Undecylenate",
-  "Methenolone Enanthate",
-  "Stanozolol",
-  "Oxandrolone",
+  // DHT Derivatives
+  "Masteron (Drostanolone)",
+  "Primobolan (Metenolone)",
+  "Anavar (Oxandrolone)",
+  "Anadrol (Oxymetholone)",
+  "Winstrol (Stanozolol)",
+  "Proviron (Mesterolone)",
+  "Superdrol (Methasterone)",
+  "DHB (Dihydroboldenone, 1-Testosterone)",
+  
+  // Testosterone Derivatives
+  "Testosterone",
+  "Equipoise (Boldenone)",
+  "Dianabol (Methandrostenolone)",
+  "Halotestin (Fluoxymesterone)",
+  "Turinabol (Chlorodehydromethyl-testosterone)",
+  
+  // 19-Nortestosterone Derivatives
+  "Nandrolone (19-Nortestosterone)",
+  "Trenbolone (Trienolone)",
+  "Trestolone (MENT)",
+  "Steranabol (Oxabolone)",
+  "Mibolerone (Cheque Drops)",
+  "Metribolone (Methyltrienolone)",
 ];
 
 interface CycleCompoundSelectorProps {
