@@ -56,31 +56,31 @@ const USER_PROMPT = `Analyze this lab report and extract all test results.
 Return ONLY a JSON array where each object has these exact fields:
 {
   "test_name": string,    // Exact test name from report
-  "category": string,     // Test category
-  "result": number,       // Numerical result value
-  "reference_min": number | null,  // Min reference value or null
-  "reference_max": number | null,  // Max reference value or null
-  "status": "normal" | "high" | "low",  // Result status
-  "test_date": "YYYY-MM-DD"  // Test date
+  category": string,     // Test category
+ result": number,       // Numerical result value
+reference_min:number | null,  // Min reference value or null
+reference_max:number | null,  // Max reference value or null
+  status":normal" | "high" |low  // Result status
+  test_date": "YYYY-MM-DD"  // Test date
 }
 
 Important:
 - test_name must not be null
 - result must be a number
-- status must be exactly "normal", "high", or "low"
-- For reference ranges like "<150" or "≤150", set reference_min: 0, reference_max: 150
-- For reference ranges like ">3.5" or "≥3.5", set reference_min: 3.5, reference_max: null
-- For ranges like "10-20", set reference_min: 10, reference_max: 20
-- For "N/A" or missing, set both to null
+- status must be exactlynormal, high", or "low"
+- For reference ranges like<15050 set reference_min: 0reference_max: 150r reference ranges like>30.50.5 set reference_min: 30.5eference_max: null
+- For ranges like "10-20 set reference_min: 10 reference_max:20rN/A" or missing, set both to null
 - NEVER return a string for reference_min or reference_max. Only use numbers or null.
+- For test_date: Use the most relevant date from the report (usually the collection date or report date)
+- Convert any date format to YYYY-MM-DD format
 
 Examples:
-- "<150"   => reference_min: 0, reference_max: 150
-- "≤200"   => reference_min: 0, reference_max: 200
-- ">3.5"   => reference_min: 3.5, reference_max: null
-- "≥4.0"   => reference_min: 4.0, reference_max: null
-- "10-20"  => reference_min: 10, reference_max: 20
+- "<150  => reference_min: 0reference_max:1500  => reference_min: 0reference_max:2000.5  => reference_min: 30.5eference_max: null
+- "≥40  => reference_min: 40eference_max: null
+- "10-20  => reference_min: 10 reference_max: 20
 - "N/A"    => reference_min: null, reference_max: null
+- "02 Sep 222=> test_date: "2022-09-02
+- September 2, 2022=> test_date: "2022-09-02"
 `;
 
 // Fallback normalization for reference ranges

@@ -32,6 +32,28 @@ type TimelineProps = {
   bloodTestResults: BloodTest[];
 };
 
+// Utility function to normalize dates to YYYY-MM-DD format
+const normalizeDate = (dateString: string): string => {
+  try {
+    // Try to parse the date string and format it consistently
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // If parsing fails, try to extract date parts manually
+      const parts = dateString.split(/[-/]/);
+      if (parts.length >= 3) {
+        const year = parts[0].padStart(4, '20'); // Assume 20xx if year is short
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    }
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.warn('Failed to normalize date:', dateString, error);
+    return dateString; // Return original if all parsing fails
+  }
+};
+
 const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
   const [selectedTest, setSelectedTest] = useState<string | null>(null);
   
@@ -50,7 +72,7 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
     const relevantTests = bloodTestResults
       .filter(test => test.test_name === selectedTest);
     
-    // Deduplicate by date - only keep the most recent result for each day
+    // Deduplicate by normalized date - only keep the most recent result for each day
     const deduplicated = new Map<string, BloodTest>();
     
     // Sort by ID (descending) to get the most recent test first
@@ -58,21 +80,23 @@ const BloodTestTimeline = ({ bloodTestResults }: TimelineProps) => {
       new Date(b.id).getTime() - new Date(a.id).getTime()
     );
     
-    // Only keep the first (most recent) entry for each test date
+    // Only keep the first (most recent) entry for each normalized test date
     sortedTests.forEach(test => {
-      if (!deduplicated.has(test.test_date)) {
-        deduplicated.set(test.test_date, test);
+      const normalizedDate = normalizeDate(test.test_date);
+      if (!deduplicated.has(normalizedDate)) {
+        deduplicated.set(normalizedDate, test);
       }
     });
     
     // Convert to array and sort by date (ascending)
     return Array.from(deduplicated.values())
-      .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
+      .sort((a, b) => new Date(normalizeDate(a.test_date)).getTime() - new Date(normalizeDate(b.test_date)).getTime())
       .map(test => {
         let formattedDate;
         try {
           // Try to parse and format the date nicely
-          formattedDate = format(parseISO(test.test_date), 'MMM d, yyyy');
+          const normalizedDate = normalizeDate(test.test_date);
+          formattedDate = format(parseISO(normalizedDate), 'MMM d, yyyy');
         } catch (e) {
           // Fallback to the original date string if parsing fails
           formattedDate = test.test_date;

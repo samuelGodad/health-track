@@ -60,6 +60,28 @@ type DateSpecificResultsProps = {
   onDataUpdate?: () => void;
 };
 
+// Utility function to normalize dates to YYYY-MM-DD format
+const normalizeDate = (dateString: string): string => {
+  try {
+    // Try to parse the date string and format it consistently
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // If parsing fails, try to extract date parts manually
+      const parts = dateString.split(/[-/]/);
+      if (parts.length >= 3) {
+        const year = parts[0].padStart(4, '20'); // Assume 20xx if year is short
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    }
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.warn('Failed to normalize date:', dateString, error);
+    return dateString; // Return original if all parsing fails
+  }
+};
+
 const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpecificResultsProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [notes, setNotes] = useState<string>("");
@@ -67,8 +89,8 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
   const [isSavingNotes, setIsSavingNotes] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   
-  // Extract unique test dates from results
-  const testDates = [...new Set(bloodTestResults.map(test => test.test_date))].sort((a, b) => 
+  // Extract unique test dates from results (using normalized dates)
+  const testDates = [...new Set(bloodTestResults.map(test => normalizeDate(test.test_date)))].sort((a, b) => 
     new Date(b).getTime() - new Date(a).getTime()
   );
   
@@ -77,7 +99,8 @@ const DateSpecificResults = ({ bloodTestResults, userId, onDataUpdate }: DateSpe
     if (!selectedDate) return [];
     
     const dateStr = selectedDate.toISOString().split('T')[0];
-    const testsOnDate = bloodTestResults.filter(test => test.test_date === dateStr);
+    // Use normalized dates for comparison
+    const testsOnDate = bloodTestResults.filter(test => normalizeDate(test.test_date) === dateStr);
     
     // Deduplicate by test name, keeping only the most recent entry
     const deduplicated = new Map<string, BloodTest>();
