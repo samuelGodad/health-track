@@ -43,6 +43,12 @@ You must analyze the content and identify:
 - Test status (normal/high/low)
 - Test dates
 
+IMPORTANT FOR DATE EXTRACTION:
+- ALWAYS prioritize the COLLECTION DATE or SPECIMEN DATE over the report date
+- Look specifically for labels like "Collection Date", "Specimen Date", "Sample Date", "Drawn Date"
+- Pay EXTREME attention to the exact digits in dates - "02" is different from "12"
+- Read dates very carefully, digit by digit
+
 You must return a JSON array where each test result has these EXACT field names:
 - test_name (string): The exact name of the test as shown in the report
 - category (string): The test category (e.g., "Complete Blood Count", "Lipid Profile")
@@ -55,32 +61,48 @@ You must return a JSON array where each test result has these EXACT field names:
 const USER_PROMPT = `Analyze this lab report and extract all test results.
 Return ONLY a JSON array where each object has these exact fields:
 {
-  "test_name": string,    // Exact test name from report
-  category": string,     // Test category
- result": number,       // Numerical result value
-reference_min:number | null,  // Min reference value or null
-reference_max:number | null,  // Max reference value or null
-  status":normal" | "high" |low  // Result status
-  test_date": "YYYY-MM-DD"  // Test date
+  "test_name": "string",    // Exact test name from report
+  "category": "string",     // Test category
+  "result": number,         // Numerical result value
+  "reference_min": number | null,  // Min reference value or null
+  "reference_max": number | null,  // Max reference value or null
+  "status": "normal" | "high" | "low",  // Result status
+  "test_date": "YYYY-MM-DD"  // Test date
 }
 
-Important:
+CRITICAL REQUIREMENTS:
 - test_name must not be null
 - result must be a number
-- status must be exactlynormal, high", or "low"
-- For reference ranges like<15050 set reference_min: 0reference_max: 150r reference ranges like>30.50.5 set reference_min: 30.5eference_max: null
-- For ranges like "10-20 set reference_min: 10 reference_max:20rN/A" or missing, set both to null
+- status must be exactly "normal", "high", or "low"
+- For reference ranges like "<150" set reference_min: 0, reference_max: 150
+- For reference ranges like ">30.5" set reference_min: 30.5, reference_max: null
+- For ranges like "10-20" set reference_min: 10, reference_max: 20
+- For "N/A" or missing, set both to null
 - NEVER return a string for reference_min or reference_max. Only use numbers or null.
-- For test_date: Use the most relevant date from the report (usually the collection date or report date)
-- Convert any date format to YYYY-MM-DD format
 
-Examples:
-- "<150  => reference_min: 0reference_max:1500  => reference_min: 0reference_max:2000.5  => reference_min: 30.5eference_max: null
-- "≥40  => reference_min: 40eference_max: null
-- "10-20  => reference_min: 10 reference_max: 20
-- "N/A"    => reference_min: null, reference_max: null
-- "02 Sep 222=> test_date: "2022-09-02
-- September 2, 2022=> test_date: "2022-09-02"
+CRITICAL DATE EXTRACTION RULES:
+1. ALWAYS use the COLLECTION DATE or SPECIMEN DATE, NOT the printed/report date
+2. Look for dates labeled as "Collection Date", "Specimen Date", "Sample Date", or "Drawn Date"
+3. If you see "02 Sep 2022", read it as day=02, month=09 (September), year=2022
+4. If you see "12 Sep 2022", read it as day=12, month=09 (September), year=2022
+5. Pay EXTREME attention to the exact digits - "02" is different from "12"
+6. Do NOT confuse "02" with "12" - they are completely different numbers
+7. Convert any date format to YYYY-MM-DD format
+8. If no collection date found, use the earliest date on the report
+
+Examples of CORRECT date extraction:
+- "02 Sep 2022" => test_date: "2022-09-02" (day 02, month 09)
+- "12 Sep 2022" => test_date: "2022-09-12" (day 12, month 09)
+- "2/9/2022" => test_date: "2022-09-02" (day 02, month 09)
+- "9/2/2022" => test_date: "2022-09-02" (day 02, month 09)
+- "2022-09-02" => test_date: "2022-09-02"
+- "September 2, 2022" => test_date: "2022-09-02"
+
+IMPORTANT: When reading dates, look for:
+- "Collection Date: 02 Sep 2022" → use "2022-09-02"
+- "Specimen Date: 02 Sep 2022" → use "2022-09-02"
+- "Drawn: 02 Sep 2022" → use "2022-09-02"
+- "Sample Date: 02 Sep 2022" → use "2022-09-02"
 `;
 
 // Fallback normalization for reference ranges
@@ -194,6 +216,14 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
         // Add only the required additional fields and normalize reference ranges
         const transformedData = parsedData.map((item: any) => {
           const normalized = normalizeReferenceRange(item);
+          
+          // Log date extraction for debugging
+          console.log(`Date extraction for ${item.test_name}:`, {
+            original_date: item.test_date,
+            type: typeof item.test_date,
+            is_valid: item.test_date && /^\d{4}-\d{2}-\d{2}$/.test(item.test_date)
+          });
+          
           return {
             test: item.test_name,
             category: item.category,
