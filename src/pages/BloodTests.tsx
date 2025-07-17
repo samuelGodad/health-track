@@ -167,6 +167,11 @@ const BloodTests = () => {
     }, {} as Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>);
     setProcessingStatus(initialStatus);
 
+    // Use local counters for immediate toast messages
+    let successfulCount = 0;
+    let duplicateCount = 0;
+    let failedCount = 0;
+
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -185,9 +190,11 @@ const BloodTests = () => {
           if (results && results.length > 0) {
             setSuccessfullyProcessed(prev => [...prev, file.name]);
             setProcessingStatus(prev => ({ ...prev, [file.name]: 'success' }));
+            successfulCount++;
           } else {
             setFailedToProcess(prev => [...prev, file.name]);
             setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
+            failedCount++;
           }
         } catch (error) {
           console.error(`Error processing file ${file.name}:`, error);
@@ -195,23 +202,26 @@ const BloodTests = () => {
             if (error.message === 'This PDF has already been processed and results exist') {
               setDuplicateFiles(prev => [...prev, file.name]);
               setProcessingStatus(prev => ({ ...prev, [file.name]: 'duplicate' }));
+              duplicateCount++;
             } else {
               setFailedToProcess(prev => [...prev, file.name]);
               setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
               toast.error(`Failed to process ${file.name}: ${error.message}`);
+              failedCount++;
             }
           }
         }
       }
 
+      // Show summary toasts using file names (single file upload)
       if (successfullyProcessed.length > 0) {
-        toast.success(`Successfully processed ${successfullyProcessed.length} file(s)`);
+        toast.success(`${successfullyProcessed[0]} was processed successfully`);
       }
       if (duplicateFiles.length > 0) {
-        toast.warning(`${duplicateFiles.length} file(s) were already processed and have existing results`);
+        toast.warning(`${duplicateFiles[0]} was already processed and has existing results`);
       }
       if (failedToProcess.length > 0) {
-        toast.error(`Failed to process ${failedToProcess.length} file(s)`);
+        toast.error(`Failed to process ${failedToProcess[0]}`);
       }
     } catch (error) {
       console.error('Error processing files:', error);
