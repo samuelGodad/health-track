@@ -72,7 +72,7 @@ function App() {
             {/* Cycle Planner page displays the actual planner UI */}
             <Route
               path="/cycle-planner"
-              element={<AuthWrapper><CyclePlanner /></AuthWrapper>}
+              element={<AuthWrapper><DashboardLayout><CyclePlanner /></DashboardLayout></AuthWrapper>}
             />
 
             {/* Redirects for legacy/old routes */}
