@@ -32,8 +32,8 @@ export interface FileInfo {
   path: string;
 }
 
-const API_URL = 'http://localhost:3000';
-// const API_URL = 'https://health-track-pcd5.onrender.com'; // Use deployed backend
+// const API_URL = 'http://localhost:3000';
+const API_URL = 'https://health-track-1-x8k4.onrender.com'; // Use deployed backend
 
 export const parsePDF = async (file: File | FileInfo): Promise<ParsePdfResponse> => {
   const formData = new FormData();
