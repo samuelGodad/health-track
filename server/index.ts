@@ -34,10 +34,29 @@ function extractJSON(text: string): string {
   return cleaned.trim();
 }
 
+// Standardized test categories
+const STANDARD_CATEGORIES = [
+  "Liver Function",
+  "Kidney Function", 
+  "Electrolytes & Minerals",
+  "Blood Sugar & Metabolism",
+  "Thyroid & Endocrine",
+  "Lipids & Cardiovascular",
+  "Hormonal (Reproductive & Cortisol)",
+  "Cardiac Markers",
+  "Oncology Markers", 
+  "Bone Health",
+  "Micronutrients",
+  "Hematology",
+  "Fluid & Osmotic Balance",
+  "Biochemistry",
+  "Panel Tests"
+];
+
 const SYSTEM_PROMPT = `You are a medical lab report parser. Your task is to extract lab test results from PDF documents.
 You must analyze the content and identify:
 - Test names (exactly as shown in the report)
-- Test categories
+- Test categories (as found in the report)
 - Numerical results
 - Reference ranges
 - Test status (normal/high/low)
@@ -51,7 +70,7 @@ IMPORTANT FOR DATE EXTRACTION:
 
 You must return a JSON array where each test result has these EXACT field names:
 - test_name (string): The exact name of the test as shown in the report
-- category (string): The test category (e.g., "Complete Blood Count", "Lipid Profile")
+- category (string): The test category as found in the report (e.g., "Complete Blood Count", "Lipid Profile")
 - result (number): The numerical result value
 - reference_min (number or null): The minimum reference value if available
 - reference_max (number or null): The maximum reference value if available
@@ -104,6 +123,90 @@ IMPORTANT: When reading dates, look for:
 - "Drawn: 02 Sep 2022" → use "2022-09-02"
 - "Sample Date: 02 Sep 2022" → use "2022-09-02"
 `;
+
+// Function to map test categories to standardized categories using AI
+async function mapCategoriesToStandard(extractedTests: any[]): Promise<any[]> {
+  if (!extractedTests || extractedTests.length === 0) {
+    return extractedTests;
+  }
+
+  const categoryMappingPrompt = `You are a medical expert. Your task is to map each test to the most appropriate standardized category.
+
+AVAILABLE STANDARD CATEGORIES:
+${STANDARD_CATEGORIES.map(cat => `- ${cat}`).join('\n')}
+
+INSTRUCTIONS:
+1. Analyze each test name and its original category
+2. Map it to the most appropriate standard category based on medical knowledge
+3. Consider both the test name and original category when making the decision
+4. Use your medical expertise to determine the best fit
+
+EXAMPLES:
+- Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function"
+- Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function"
+- Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals"
+- Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism"
+- Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine"
+- Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular"
+- Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal (Reproductive & Cortisol)"
+- Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Cardiac Markers"
+- Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers"
+- Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients"
+- Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Hematology"
+- Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health"
+
+Return ONLY a JSON array with the same structure as input, but with standardized categories:
+[
+  {
+    "test_name": "string",
+    "category": "STANDARD_CATEGORY_NAME",
+    "result": number,
+    "reference_min": number | null,
+    "reference_max": number | null,
+    "status": "normal" | "high" | "low",
+    "test_date": "YYYY-MM-DD"
+  }
+]`;
+
+  try {
+    console.log('=== Starting Category Mapping ===');
+    console.log('Extracted tests to map:', extractedTests.length);
+    
+    const mappingResponse = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are a medical expert specializing in laboratory test categorization."
+        },
+        {
+          role: "user",
+          content: categoryMappingPrompt + '\n\nEXTRACTED TESTS:\n' + JSON.stringify(extractedTests, null, 2)
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 4000
+    });
+
+    const mappingText = mappingResponse.choices[0]?.message?.content;
+    if (!mappingText) {
+      console.error('No response from category mapping AI');
+      return extractedTests;
+    }
+
+    console.log('Category mapping response:', mappingText);
+    const cleanedMappingJSON = extractJSON(mappingText);
+    const mappedData = JSON.parse(cleanedMappingJSON);
+    
+    console.log('Category mapping completed. Mapped tests:', mappedData.length);
+    
+    return mappedData;
+  } catch (error) {
+    console.error('Error in category mapping:', error);
+    // Return original data if mapping fails
+    return extractedTests;
+  }
+}
 
 // Fallback normalization for reference ranges
 function normalizeReferenceRange(item: any): any {
@@ -213,8 +316,14 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
         console.log('Cleaned JSON:', cleanedJSON);
         const parsedData = JSON.parse(cleanedJSON);
 
+        // Step 2: Map categories to standardized categories using AI
+        console.log('=== Step 2: Category Mapping ===');
+        console.log('Original categories found:', [...new Set(parsedData.map((item: any) => item.category))]);
+        const mappedData = await mapCategoriesToStandard(parsedData);
+        console.log('Standardized categories applied:', [...new Set(mappedData.map((item: any) => item.category))]);
+        
         // Add only the required additional fields and normalize reference ranges
-        const transformedData = parsedData.map((item: any) => {
+        const transformedData = mappedData.map((item: any) => {
           const normalized = normalizeReferenceRange(item);
           
           // Log date extraction for debugging
@@ -226,7 +335,7 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
           
           return {
             test: item.test_name,
-            category: item.category,
+            category: item.category, // Now using standardized category
             result: `${item.result}`,
             reference_min: normalized.reference_min !== null ? `${normalized.reference_min}` : null,
             reference_max: normalized.reference_max !== null ? `${normalized.reference_max}` : null,
