@@ -1,14 +1,4 @@
 services:
-  # Frontend service (static site)
-  - type: web
-    name: enhanced-health-frontend
-    env: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://enhanced-health-backend.onrender.com
-
   # Backend service (web service)
   - type: web
     name: enhanced-health-backend
@@ -21,4 +11,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000 
+        value: 3000
+    healthCheckPath: /api/health
+    autoDeploy: true 

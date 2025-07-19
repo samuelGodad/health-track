@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#10B981" stroke="#059669" stroke-width="2"/>
+  
+  <!-- Heart symbol -->
+  <path d="M32 20C32 20 36 16 40 20C44 24 32 36 32 36C32 36 20 24 24 20C28 16 32 20 32 20Z" fill="white"/>
+  
+  <!-- Plus symbol for health -->
+  <path d="M32 28V36M28 32H36" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- AI/Technology elements -->
+  <circle cx="48" cy="16" r="3" fill="#3B82F6" opacity="0.8"/>
+  <circle cx="16" cy="48" r="2" fill="#8B5CF6" opacity="0.8"/>
+  <circle cx="48" cy="48" r="2" fill="#F59E0B" opacity="0.8"/>
+  
+  <!-- Connection lines -->
+  <path d="M32 20L48 16" stroke="#3B82F6" stroke-width="1" opacity="0.6"/>
+  <path d="M32 20L16 48" stroke="#8B5CF6" stroke-width="1" opacity="0.6"/>
+  <path d="M32 20L48 48" stroke="#F59E0B" stroke-width="1" opacity="0.6"/>
+</svg> 
