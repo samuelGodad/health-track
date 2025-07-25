@@ -227,9 +227,9 @@ const Trends = () => {
               <p className="text-xs md:text-sm text-muted-foreground">{t.subtitle}</p>
             </CardHeader>
             <CardContent>
-              <div className="h-[240px] md:h-[250px]">
+              <div className="h-[260px] md:h-[270px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={filteredChartData}>
+                  <LineChart data={filteredChartData} margin={{ top: 20, right: 30, left: 60, bottom: 150 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis
                       dataKey="week"
@@ -238,6 +238,8 @@ const Trends = () => {
                       tickLine={false}
                       axisLine={false}
                       interval={0}
+                      height={100}
+                      dy={15}
                     />
                     <YAxis
                       stroke="hsl(var(--muted-foreground))"
@@ -270,9 +272,9 @@ const Trends = () => {
             <p className="text-xs md:text-sm text-muted-foreground">Weekly average systolic / diastolic BP</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[240px] md:h-[250px]">
+            <div className="h-[260px] md:h-[270px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={filteredChartData}>
+                <LineChart data={filteredChartData} margin={{ top: 20, right: 30, left: 60, bottom: 150 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="week"
@@ -281,6 +283,8 @@ const Trends = () => {
                     tickLine={false}
                     axisLine={false}
                     interval={0}
+                    height={100}
+                    dy={15}
                   />
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"

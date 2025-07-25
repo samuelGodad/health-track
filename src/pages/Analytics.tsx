@@ -331,7 +331,7 @@ const Analytics = () => {
                   Select tests from the left to compare their trends over time
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-8 p-6">
                 {/* Selected Tests Display */}
                 {(selectedTest1 || selectedTest2) && (
                   <div className="space-y-2">
@@ -366,9 +366,9 @@ const Analytics = () => {
 
                 {/* Charts */}
                 {selectedTest1 && chartData1.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-4 mb-12">
                     <h4 className="font-medium text-sm">{selectedTest1}</h4>
-                    <div className="h-[250px] w-full">
+                    <div className="h-[280px] w-full">
                       <LineChart
                         data={chartData1}
                         dataKey="value"
@@ -379,7 +379,7 @@ const Analytics = () => {
                         referenceMax={test1Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground pt-4 pb-2">
                       Reference Range: {test1Details.min !== null && test1Details.max !== null 
                         ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
                         : 'No reference range available'} | {chartData1.length} data points
@@ -388,9 +388,9 @@ const Analytics = () => {
                 )}
 
                 {selectedTest2 && chartData2.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <h4 className="font-medium text-sm">{selectedTest2}</h4>
-                    <div className="h-[250px] w-full">
+                    <div className="h-[280px] w-full">
                       <LineChart
                         data={chartData2}
                         dataKey="value"
@@ -401,7 +401,7 @@ const Analytics = () => {
                         referenceMax={test2Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground pt-4 pb-2">
                       Reference Range: {test2Details.min !== null && test2Details.max !== null 
                         ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
                         : 'No reference range available'} | {chartData2.length} data points
