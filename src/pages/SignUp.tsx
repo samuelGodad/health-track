@@ -17,7 +17,7 @@ const SignUp = () => {
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -169,6 +169,22 @@ const SignUp = () => {
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
+            {/* Google Sign-Up Button */}
+            <div className="my-4 flex items-center justify-center">
+              <span className="h-px w-full bg-border" />
+              <span className="mx-2 text-xs text-muted-foreground">or</span>
+              <span className="h-px w-full bg-border" />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              onClick={signInWithGoogle}
+            >
+              {/* Google SVG icon */}
+              <svg className="h-5 w-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.22l6.85-6.85C36.68 2.7 30.74 0 24 0 14.82 0 6.73 5.48 2.69 13.44l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.42-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.6C43.98 37.13 46.1 31.3 46.1 24.55z"/><path fill="#FBBC05" d="M9.67 28.09c-1.13-3.36-1.13-6.97 0-10.33l-7.98-6.2C-1.13 17.09-1.13 30.91 1.69 37.56l7.98-6.2z"/><path fill="#EA4335" d="M24 46c6.74 0 12.68-2.7 17.04-7.44l-7.19-5.6c-2.01 1.35-4.6 2.14-7.85 2.14-6.38 0-11.87-3.63-14.33-8.94l-7.98 6.2C6.73 42.52 14.82 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
+              Sign up with Google
+            </Button>
             
             <div className="mt-4 text-center text-sm">
               <span className="text-muted-foreground">Already have an account?</span>{" "}

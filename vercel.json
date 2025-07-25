@@ -4,5 +4,13 @@
   "framework": "vite",
   "installCommand": "npm install --legacy-peer-deps",
   "devCommand": "npm run dev",
-  "regions": ["iad1"]
-} 
+  "regions": [
+    "iad1"
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

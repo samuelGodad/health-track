@@ -88,6 +88,30 @@ const Onboarding = () => {
     Object.fromEntries(AVAILABLE_METRICS.map(metric => [metric.id, ""]))
   );
 
+  // Pre-fill data from Google OAuth if available
+  useEffect(() => {
+    if (user?.user_metadata) {
+      const { first_name, last_name, full_name, name } = user.user_metadata;
+      
+      // If we have first_name and last_name from Google, pre-fill them
+      if (first_name && last_name) {
+        // These will be saved to the profile in handleSubmit
+        console.log('Pre-filling with Google data:', { first_name, last_name });
+      }
+      
+      // If we have full_name but no first/last, try to parse it
+      if (!first_name && !last_name && (full_name || name)) {
+        const fullName = full_name || name;
+        const nameParts = fullName.split(' ');
+        if (nameParts.length >= 2) {
+          const firstName = nameParts[0];
+          const lastName = nameParts.slice(1).join(' ');
+          console.log('Parsed name from Google:', { firstName, lastName });
+        }
+      }
+    }
+  }, [user]);
+  
   const validateStep1 = () => {
     const errors: Record<string, string> = {};
     
@@ -164,6 +188,24 @@ const Onboarding = () => {
       // Calculate height in cm
       const heightInCm = calculateHeightInCm();
       
+      // Extract user data from Google OAuth or form
+      let firstName = user.user_metadata?.first_name;
+      let lastName = user.user_metadata?.last_name;
+      
+      // If Google didn't provide first/last name, try to parse from full_name
+      if (!firstName && !lastName && user.user_metadata?.full_name) {
+        const nameParts = user.user_metadata.full_name.split(' ');
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ');
+      }
+      
+      // If still no names, try the 'name' field
+      if (!firstName && !lastName && user.user_metadata?.name) {
+        const nameParts = user.user_metadata.name.split(' ');
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ');
+      }
+      
       // Update profile with basic information
       const { error: profileError } = await supabase
         .from('profiles')
@@ -179,8 +221,8 @@ const Onboarding = () => {
           takes_supplements: takesSupplement,
           takes_peds: takesPeds,
           weekly_data_day: weeklyDataDay,
-          first_name: user.user_metadata?.first_name,
-          last_name: user.user_metadata?.last_name,
+          first_name: firstName,
+          last_name: lastName,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -237,8 +279,18 @@ const Onboarding = () => {
             </div>
             
             <div className="text-center mb-8">
-              <h2 className="text-xl font-semibold text-gray-800">Welcome, let's customize your dashboard for you</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {user?.user_metadata?.first_name 
+                  ? `Welcome, ${user.user_metadata.first_name}! Let's customize your dashboard`
+                  : "Welcome, let's customize your dashboard for you"
+                }
+              </h2>
               <p className="text-sm text-gray-500 mt-2">
+                {user?.user_metadata?.first_name && (
+                  <span className="text-blue-600 font-medium">
+                    Thanks for signing up with Google! 
+                  </span>
+                )}
                 {step === 1 
                   ? "First, we'll collect some basic information to personalize your experience" 
                   : "Next, let's set up which metrics you'd like to track and how often"}
