@@ -35,43 +35,10 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state changed:", event);
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Handle redirects for new Google users
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log("User signed in:", session.user.email);
-          
-          try {
-            // Check if user has completed onboarding
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('id, first_name')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (error && error.code !== 'PGRST116') {
-              console.error("Error checking profile:", error);
-            }
-            
-            console.log("Profile check result:", { profile, hasFirstName: profile?.first_name });
-            
-            // If no profile exists or no first_name, user needs onboarding
-            if (!profile || !profile.first_name) {
-              console.log("New user - redirecting to onboarding...");
-              window.location.href = '/onboarding';
-            } else {
-              console.log("Existing user - redirecting to dashboard...");
-              window.location.href = '/dashboard';
-            }
-          } catch (error) {
-            console.error("Error in auth state change handler:", error);
-            // Default to dashboard if there's an error
-            window.location.href = '/dashboard';
-          }
-        }
       }
     );
 
@@ -126,10 +93,7 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
   const signInWithGoogle = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
+        provider: 'google'
       });
       
       if (error) {

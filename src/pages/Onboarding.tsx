@@ -111,6 +111,34 @@ const Onboarding = () => {
       }
     }
   }, [user]);
+
+  // Check if user already has a profile and redirect to dashboard
+  useEffect(() => {
+    const checkExistingProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id, first_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error("Error checking profile:", error);
+        }
+        
+        // If user already has a profile, redirect to dashboard
+        if (profile?.first_name) {
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error("Error checking existing profile:", error);
+      }
+    };
+
+    checkExistingProfile();
+  }, [user, navigate]);
   
   const validateStep1 = () => {
     const errors: Record<string, string> = {};
