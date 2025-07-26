@@ -60,64 +60,46 @@ const Analytics = () => {
     }
   };
 
-  // Blood test categories
-  const bloodTestCategories = {
-    all: "All Tests",
-    cardiac: "Cardiac Health",
-    liver: "Liver Function",
-    kidney: "Kidney Function",
-    hormones: "Hormones",
-    metabolic: "Metabolic Panel",
-    lipids: "Lipid Profile",
-    vitamins: "Vitamins & Minerals",
-    inflammation: "Inflammation Markers"
-  };
+  // Get unique categories from the database
+  const availableCategories = useMemo(() => {
+    const categories = new Set<string>();
+    bloodTestResults.forEach(test => {
+      if (test.category) {
+        categories.add(test.category);
+      }
+    });
+    const sortedCategories = Array.from(categories).sort();
+    console.log('Available categories from database:', sortedCategories);
+    return sortedCategories;
+  }, [bloodTestResults]);
 
-  // Group tests by category
-  const categorizeTest = (testName: string, category: string) => {
-    const test = testName.toLowerCase();
+  // Blood test categories - dynamically generated from available data
+  const bloodTestCategories = useMemo(() => {
+    const categories: { [key: string]: string } = {
+      all: "All Tests"
+    };
     
-    if (category === 'cardiac') {
-      return test.includes('cholesterol') || test.includes('hdl') || test.includes('ldl') || 
-             test.includes('triglycerides') || test.includes('crp') || test.includes('troponin');
-    }
-    if (category === 'liver') {
-      return test.includes('alt') || test.includes('ast') || test.includes('bilirubin') || 
-             test.includes('albumin') || test.includes('alp');
-    }
-    if (category === 'kidney') {
-      return test.includes('creatinine') || test.includes('urea') || test.includes('egfr') || 
-             test.includes('protein');
-    }
-    if (category === 'hormones') {
-      return test.includes('testosterone') || test.includes('estrogen') || test.includes('thyroid') || 
-             test.includes('tsh') || test.includes('t3') || test.includes('t4');
-    }
-    if (category === 'metabolic') {
-      return test.includes('glucose') || test.includes('sodium') || test.includes('potassium') || 
-             test.includes('chloride');
-    }
-    if (category === 'lipids') {
-      return test.includes('cholesterol') || test.includes('hdl') || test.includes('ldl') || 
-             test.includes('triglycerides');
-    }
-    if (category === 'vitamins') {
-      return test.includes('vitamin') || test.includes('b12') || test.includes('folate') || 
-             test.includes('iron') || test.includes('ferritin');
-    }
-    if (category === 'inflammation') {
-      return test.includes('crp') || test.includes('esr') || test.includes('il-6');
-    }
+    // Add all available categories from the database
+    availableCategories.forEach(category => {
+      categories[category] = category;
+    });
     
-    return true; // for 'all' category
-  };
+    return categories;
+  }, [availableCategories]);
 
   // Get unique tests for the selected category and search query
   const filteredTests = useMemo(() => {
     const uniqueTests = new Map();
     
+    console.log('Filtering tests:', {
+      selectedCategory,
+      searchQuery,
+      totalTests: bloodTestResults.length
+    });
+    
     bloodTestResults.forEach(test => {
-      const matchesCategory = selectedCategory === 'all' || categorizeTest(test.test_name, selectedCategory);
+      // Use the actual category field from the database instead of categorizing test names
+      const matchesCategory = selectedCategory === 'all' || test.category === selectedCategory;
       const matchesSearch = searchQuery === '' || test.test_name.toLowerCase().includes(searchQuery.toLowerCase());
       
       if (matchesCategory && matchesSearch) {
@@ -151,7 +133,14 @@ const Analytics = () => {
       }
     });
     
-    return Array.from(uniqueTests.values());
+    const filteredArray = Array.from(uniqueTests.values());
+    console.log('Filtered tests result:', {
+      selectedCategory,
+      filteredCount: filteredArray.length,
+      tests: filteredArray.map(t => ({ name: t.test_name, category: t.category }))
+    });
+    
+    return filteredArray;
   }, [bloodTestResults, selectedCategory, searchQuery]);
 
   // Create chart data for selected tests
