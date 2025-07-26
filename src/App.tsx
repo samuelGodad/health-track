@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Onboarding from "./pages/Onboarding";
+import AuthCallback from "./pages/AuthCallback";
 import AuthWrapper from "./components/AuthWrapper";
 import CyclePlanner from "./pages/CyclePlanner";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -36,6 +37,7 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/onboarding" element={<AuthWrapper><Onboarding /></AuthWrapper>} />
+            <Route path="/auth-callback" element={<AuthCallback />} />
 
             <Route 
               path="/dashboard" 

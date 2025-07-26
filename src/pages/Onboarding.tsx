@@ -120,7 +120,7 @@ const Onboarding = () => {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('id, first_name')
+          .select('id, first_name, last_name')
           .eq('id', user.id)
           .single();
         
@@ -128,9 +128,26 @@ const Onboarding = () => {
           console.error("Error checking profile:", error);
         }
         
-        // If user already has a profile, redirect to dashboard
+        // If user already has a complete profile (with first_name), check metric preferences
         if (profile?.first_name) {
-          navigate('/dashboard');
+          console.log('Complete profile found, checking metric preferences...');
+          
+          const { data: metricPreferences, error: metricError } = await supabase
+            .from('user_metric_preferences')
+            .select('metric_name, tracking_frequency')
+            .eq('user_id', user.id);
+
+          console.log('Metric preferences check:', {
+            hasPreferences: !!metricPreferences && metricPreferences.length > 0,
+            preferenceCount: metricPreferences?.length || 0
+          });
+
+          // If user has both complete profile AND metric preferences, redirect to dashboard
+          if (metricPreferences && metricPreferences.length > 0) {
+            console.log('User has complete profile and metric preferences, redirecting to dashboard');
+            navigate('/dashboard');
+          }
+          // If no metric preferences, stay on onboarding to complete them
         }
       } catch (error) {
         console.error("Error checking existing profile:", error);
@@ -234,10 +251,11 @@ const Onboarding = () => {
         lastName = nameParts.slice(1).join(' ');
       }
       
-      // Update profile with basic information
+      // Create or update profile with basic information
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
           gender,
           height_cm: heightInCm,
           height_unit: heightUnit,
@@ -252,8 +270,7 @@ const Onboarding = () => {
           first_name: firstName,
           last_name: lastName,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        });
 
       if (profileError) throw profileError;
 
