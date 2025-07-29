@@ -90,7 +90,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 20, right: 30, left: 60, bottom: 180 }}
+          margin={{ top: 20, right: 30, left: 60, bottom: 200 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -101,9 +101,9 @@ export function LineChart({
             tick={{ fontSize: 10 }}
             angle={-45}
             textAnchor="end"
-            height={120}
+            height={140}
             interval={0}
-            dy={20}
+            dy={30}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"

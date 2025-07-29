@@ -355,7 +355,7 @@ const Analytics = () => {
 
                 {/* Charts */}
                 {selectedTest1 && chartData1.length > 0 && (
-                  <div className="space-y-4 mb-12">
+                  <div className="space-y-4 mb-16">
                     <h4 className="font-medium text-sm">{selectedTest1}</h4>
                     <div className="h-[280px] w-full">
                       <LineChart
@@ -368,7 +368,7 @@ const Analytics = () => {
                         referenceMax={test1Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground pt-4 pb-2">
+                    <div className="text-xs text-muted-foreground pt-8 pb-4">
                       Reference Range: {test1Details.min !== null && test1Details.max !== null 
                         ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
                         : 'No reference range available'} | {chartData1.length} data points
@@ -390,7 +390,7 @@ const Analytics = () => {
                         referenceMax={test2Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground pt-4 pb-2">
+                    <div className="text-xs text-muted-foreground pt-8 pb-4">
                       Reference Range: {test2Details.min !== null && test2Details.max !== null 
                         ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
                         : 'No reference range available'} | {chartData2.length} data points
