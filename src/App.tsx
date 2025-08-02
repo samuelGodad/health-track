@@ -22,6 +22,7 @@ import AuthCallback from "./pages/AuthCallback";
 import AuthWrapper from "./components/AuthWrapper";
 import CyclePlanner from "./pages/CyclePlanner";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { CycleProvider } from "@/contexts/CycleContext";
 
 const queryClient = new QueryClient();
 
@@ -39,43 +40,98 @@ function App() {
             <Route path="/onboarding" element={<AuthWrapper><Onboarding /></AuthWrapper>} />
             <Route path="/auth-callback" element={<AuthCallback />} />
 
+            {/* Wrap authenticated routes with CycleProvider */}
             <Route 
               path="/dashboard" 
-              element={<AuthWrapper><DashboardLayout><Dashboard /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Dashboard /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/daily" 
-              element={<AuthWrapper><DashboardLayout><Daily /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Daily /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/weekly" 
-              element={<AuthWrapper><DashboardLayout><Weekly /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Weekly /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/blood-tests" 
-              element={<AuthWrapper><DashboardLayout><BloodTests /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><BloodTests /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/analytics" 
-              element={<AuthWrapper><DashboardLayout><Analytics /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Analytics /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/trends" 
-              element={<AuthWrapper><DashboardLayout><Trends /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Trends /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/profile" 
-              element={<AuthWrapper><DashboardLayout><Profile /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Profile /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
             <Route 
               path="/settings" 
-              element={<AuthWrapper><DashboardLayout><Settings /></DashboardLayout></AuthWrapper>} 
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><Settings /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              } 
             />
 
             {/* Cycle Planner page displays the actual planner UI */}
             <Route
               path="/cycle-planner"
-              element={<AuthWrapper><DashboardLayout><CyclePlanner /></DashboardLayout></AuthWrapper>}
+              element={
+                <AuthWrapper>
+                  <CycleProvider>
+                    <DashboardLayout><CyclePlanner /></DashboardLayout>
+                  </CycleProvider>
+                </AuthWrapper>
+              }
             />
 
             {/* Redirects for legacy/old routes */}

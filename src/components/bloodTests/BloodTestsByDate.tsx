@@ -45,7 +45,7 @@ const normalizeDate = (dateString: string): string => {
     console.warn('Failed to normalize date:', dateString, error);
     return dateString; // Return original if all parsing fails
   }
-};
+};    
 
 // Utility function to normalize test names by detecting common variations
 const normalizeTestName = (testName: string): string => {
