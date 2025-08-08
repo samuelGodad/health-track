@@ -94,12 +94,30 @@ const Profile = () => {
     if (!user) return;
     
     try {
-      // Load avatar from localStorage
+      // First try to load from localStorage (fastest)
       const avatarKey = `avatar_${user.id}`;
       const savedAvatar = localStorage.getItem(avatarKey);
       
       if (savedAvatar) {
         setAvatarUrl(savedAvatar);
+        return; // Use cached version
+      }
+
+      // If not in localStorage, try to load from database
+      const { data, error } = await supabase
+        .from('daily_metrics')
+        .select('notes')
+        .eq('user_id', user.id)
+        .eq('metric_name', 'avatar_data')
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!error && data?.notes) {
+        const avatarData = data.notes;
+        setAvatarUrl(avatarData);
+        // Cache it in localStorage for next time
+        localStorage.setItem(avatarKey, avatarData);
       }
     } catch (error) {
       console.log('No avatar found, using fallback');
@@ -207,14 +225,40 @@ const Profile = () => {
       reader.onload = async (e) => {
         const base64String = e.target?.result as string;
         
-        // Store avatar as base64 in localStorage (simple solution)
-        const avatarKey = `avatar_${user.id}`;
-        localStorage.setItem(avatarKey, base64String);
+        try {
+          // Store avatar in database using daily_metrics table (creative solution!)
+          const { error } = await supabase
+            .from('daily_metrics')
+            .upsert({
+              user_id: user.id,
+              date: new Date().toISOString().split('T')[0], // Today's date
+              metric_name: 'avatar_data',
+              value: 1, // Dummy numeric value (required field)
+              notes: base64String, // Store base64 in notes field (text field)
+            });
+
+          if (error) {
+            console.error('Error saving avatar to database:', error);
+            // Fall back to localStorage
+            const avatarKey = `avatar_${user.id}`;
+            localStorage.setItem(avatarKey, base64String);
+            toast.success('Avatar updated successfully (stored locally)');
+          } else {
+            // Also store in localStorage for faster loading
+            const avatarKey = `avatar_${user.id}`;
+            localStorage.setItem(avatarKey, base64String);
+            toast.success('Avatar updated successfully');
+          }
+        } catch (dbError) {
+          console.error('Database error:', dbError);
+          // Fall back to localStorage only
+          const avatarKey = `avatar_${user.id}`;
+          localStorage.setItem(avatarKey, base64String);
+          toast.success('Avatar updated successfully (stored locally)');
+        }
         
         // Update state to show new avatar
         setAvatarUrl(base64String);
-        
-        toast.success('Avatar updated successfully');
         setIsUploadingAvatar(false);
       };
       
