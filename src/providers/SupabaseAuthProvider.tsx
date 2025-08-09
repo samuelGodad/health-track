@@ -94,7 +94,8 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
     try {
       // Prefer an explicit public site URL to avoid localhost fallback in prod
       const appUrl = (import.meta as any).env?.VITE_PUBLIC_SITE_URL || window.location.origin;
-      const redirectTo = `${appUrl.replace(/\/$/, "")}/auth-callback`;
+      // Use /auth/callback to match most provider configs; we also keep a route alias
+      const redirectTo = `${appUrl.replace(/\/$/, "")}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
