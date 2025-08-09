@@ -92,21 +92,26 @@ export const SupabaseAuthProvider = ({ children }: SupabaseAuthProviderProps) =>
 
   const signInWithGoogle = async () => {
     try {
-      // Determine the correct redirect URL based on environment
-      const redirectTo = `${window.location.origin}/auth-callback`;
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({ 
+      // Prefer an explicit public site URL to avoid localhost fallback in prod
+      const appUrl = (import.meta as any).env?.VITE_PUBLIC_SITE_URL || window.location.origin;
+      const redirectTo = `${appUrl.replace(/\/$/, "")}/auth-callback`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
-      
+
       if (error) {
-        console.error("Error with Google sign-in:", error);
+        console.error('Error with Google sign-in:', error);
       }
     } catch (error) {
-      console.error("Error with Google sign-in:", error);
+      console.error('Error with Google sign-in:', error);
     }
   };
 
