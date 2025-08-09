@@ -39,6 +39,8 @@ function App() {
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/onboarding" element={<AuthWrapper><Onboarding /></AuthWrapper>} />
             <Route path="/auth-callback" element={<AuthCallback />} />
+            {/* Alias to support configs that use /auth/callback */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
             {/* Wrap authenticated routes with CycleProvider */}
             <Route 
