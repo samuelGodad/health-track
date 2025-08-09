@@ -57,7 +57,10 @@ const Profile = () => {
 
   // Load user profile on component mount
   useEffect(() => {
-    loadUserProfile();
+    if (user) {
+      loadUserProfile();
+      loadAvatar();
+    }
   }, [user]);
 
   const loadUserProfile = async () => {
@@ -94,33 +97,36 @@ const Profile = () => {
     if (!user) return;
     
     try {
-      // First try to load from localStorage (fastest)
-      const avatarKey = `avatar_${user.id}`;
-      const savedAvatar = localStorage.getItem(avatarKey);
+      // Try all common image formats (both lowercase and uppercase)
+      const formats = ['jpg', 'JPG', 'png', 'PNG', 'jpeg', 'JPEG', 'webp', 'WEBP', 'gif', 'GIF'];
       
-      if (savedAvatar) {
-        setAvatarUrl(savedAvatar);
-        return; // Use cached version
+      for (const format of formats) {
+        const filePath = `${user.id}/avatar/avatar.${format}`;
+        
+        // Use signed URL for proper authentication
+        const { data: signedUrlData, error: urlError } = await supabase.storage
+          .from('progress-images')
+          .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
+        
+        if (urlError) {
+          continue;
+        }
+        
+        if (signedUrlData?.signedUrl) {
+          try {
+            const response = await fetch(signedUrlData.signedUrl, { method: 'HEAD' });
+            if (response.ok) {
+              setAvatarUrl(signedUrlData.signedUrl);
+              return;
+            }
+          } catch (fetchError) {
+            // Continue to next format
+          }
+        }
       }
-
-      // If not in localStorage, try to load from database
-      const { data, error } = await supabase
-        .from('daily_metrics')
-        .select('notes')
-        .eq('user_id', user.id)
-        .eq('metric_name', 'avatar_data')
-        .order('date', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!error && data?.notes) {
-        const avatarData = data.notes;
-        setAvatarUrl(avatarData);
-        // Cache it in localStorage for next time
-        localStorage.setItem(avatarKey, avatarData);
-      }
+      
     } catch (error) {
-      console.log('No avatar found, using fallback');
+      // Silent error handling
     }
   };
 
@@ -220,57 +226,44 @@ const Profile = () => {
     
     setIsUploadingAvatar(true);
     try {
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64String = e.target?.result as string;
-        
-        try {
-          // Store avatar in database using daily_metrics table (creative solution!)
-          const { error } = await supabase
-            .from('daily_metrics')
-            .upsert({
-              user_id: user.id,
-              date: new Date().toISOString().split('T')[0], // Today's date
-              metric_name: 'avatar_data',
-              value: 1, // Dummy numeric value (required field)
-              notes: base64String, // Store base64 in notes field (text field)
-            });
+      // Always use .jpg extension for consistency (Supabase will handle conversion)
+      const fileName = `avatar.jpg`;
+      const filePath = `${user.id}/avatar/${fileName}`;
 
-          if (error) {
-            console.error('Error saving avatar to database:', error);
-            // Fall back to localStorage
-            const avatarKey = `avatar_${user.id}`;
-            localStorage.setItem(avatarKey, base64String);
-            toast.success('Avatar updated successfully (stored locally)');
-          } else {
-            // Also store in localStorage for faster loading
-            const avatarKey = `avatar_${user.id}`;
-            localStorage.setItem(avatarKey, base64String);
-            toast.success('Avatar updated successfully');
-          }
-        } catch (dbError) {
-          console.error('Database error:', dbError);
-          // Fall back to localStorage only
-          const avatarKey = `avatar_${user.id}`;
-          localStorage.setItem(avatarKey, base64String);
-          toast.success('Avatar updated successfully (stored locally)');
-        }
-        
-        // Update state to show new avatar
-        setAvatarUrl(base64String);
-        setIsUploadingAvatar(false);
-      };
+
+
+      // Upload to Supabase Storage (using existing progress-images bucket with user folder)
+      const { data, error: uploadError } = await supabase.storage
+        .from('progress-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true // This will replace existing avatar
+        });
+
+      if (uploadError) {
+        console.error('Error uploading avatar:', uploadError);
+        toast.error(`Failed to upload avatar: ${uploadError.message}`);
+        return;
+      }
+
+      // Get signed URL for the uploaded avatar
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from('progress-images')
+        .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
+
+      if (urlError || !signedUrlData?.signedUrl) {
+        toast.error('Failed to get avatar URL');
+        return;
+      }
+
+      // Update state to show new avatar
+      setAvatarUrl(signedUrlData.signedUrl);
       
-      reader.onerror = () => {
-        toast.error('Failed to process image');
-        setIsUploadingAvatar(false);
-      };
-      
-      reader.readAsDataURL(file);
+      toast.success('Avatar updated successfully');
     } catch (error) {
       console.error('Error in uploadAvatar:', error);
       toast.error('Failed to upload avatar');
+    } finally {
       setIsUploadingAvatar(false);
     }
   };
@@ -333,10 +326,10 @@ const Profile = () => {
   }
 
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center justify-between">
+          <div>
           <h2 className="text-3xl font-bold tracking-tight">Profile</h2>
           <p className="text-muted-foreground">Manage your account information and preferences</p>
         </div>
@@ -416,14 +409,14 @@ const Profile = () => {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Personal Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5" />
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserIcon className="h-5 w-5" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
@@ -445,19 +438,19 @@ const Profile = () => {
                   placeholder="Enter your last name"
                 />
               </div>
-            </div>
-            
+              </div>
+              
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={user?.email || ""} 
-                disabled 
-                className="bg-muted"
-              />
-            </div>
-            
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={user?.email || ""} 
+                  disabled 
+                  className="bg-muted"
+                />
+              </div>
+              
             <div className="space-y-2">
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
               <Input 
@@ -511,8 +504,8 @@ const Profile = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
+              </div>
+              
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="height">Height</Label>
@@ -566,8 +559,8 @@ const Profile = () => {
                   </Select>
                 </div>
               </div>
-            </div>
-
+              </div>
+              
             {isEditing && (
               <Button 
                 onClick={saveProfile} 
@@ -577,21 +570,21 @@ const Profile = () => {
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
 
 
         {/* Account & Security */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
               <ShieldIcon className="h-5 w-5" />
               Account & Security
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between py-2">
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between py-2">
               <div>
                 <span className="text-sm font-medium">Email Verified</span>
                 <p className="text-xs text-muted-foreground">Your email address has been verified</p>
@@ -602,19 +595,19 @@ const Profile = () => {
             </div>
             
             <Separator />
-            
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium">Last Sign In</span>
-              <span className="text-sm text-muted-foreground">
-                {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "N/A"}
-              </span>
-            </div>
-
+              
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm font-medium">Last Sign In</span>
+                <span className="text-sm text-muted-foreground">
+                  {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "N/A"}
+                </span>
+              </div>
+              
             <div className="pt-2 space-y-2">
               <Button variant="outline" className="w-full flex items-center gap-2">
                 <KeyIcon className="h-4 w-4" />
-                Change Password
-              </Button>
+                  Change Password
+                </Button>
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -638,11 +631,11 @@ const Profile = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
   );
 };
 
