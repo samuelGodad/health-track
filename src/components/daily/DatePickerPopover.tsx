@@ -13,13 +13,11 @@ import { Calendar } from "@/components/ui/calendar";
 interface DatePickerPopoverProps {
   selectedDate: Date;
   onChange: (date: Date) => void;
-  disabled?: boolean;
 }
 
 export function DatePickerPopover({
   selectedDate,
   onChange,
-  disabled,
 }: DatePickerPopoverProps) {
   return (
     <Popover>
@@ -30,7 +28,6 @@ export function DatePickerPopover({
             "w-[240px] justify-start text-left font-normal",
             !selectedDate && "text-muted-foreground"
           )}
-          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
@@ -40,7 +37,7 @@ export function DatePickerPopover({
         <Calendar
           mode="single"
           selected={selectedDate}
-          onSelect={(date) => date && !disabled && onChange(date)}
+          onSelect={(date) => date && onChange(date)}
           initialFocus
           className={cn("p-3 pointer-events-auto")}
         />

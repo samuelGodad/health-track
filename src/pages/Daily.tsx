@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { DatePickerPopover } from "@/components/daily/DatePickerPopover";
 import { PhysicalMetricsCard } from "@/components/daily/PhysicalMetricsCard";
 import { NutritionCard } from "@/components/daily/NutritionCard";
-import { MetricsSavedMessage } from "@/components/daily/MetricsSavedMessage";
 import { dailyMetricsService, DailyMetrics } from "@/services/dailyMetricsService";
 import { toast } from "sonner";
 
@@ -20,17 +19,33 @@ const Daily = () => {
     fats: '',
     calories: ''
   });
-  const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Ref to track if calories were autofilled or edited by user
   const caloriesAutofilled = useRef(true);
+
+  // Smart debounce timer for autosave
+  const autosaveTimer = useRef<NodeJS.Timeout>();
+  
+  // Track which fields have changed since last save
+  const changedFields = useRef<Set<string>>(new Set());
 
   // Load existing data when date changes
   useEffect(() => {
     loadMetricsForDate(selectedDate);
   }, [selectedDate]);
+
+  // Cleanup autosave timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) {
+        clearTimeout(autosaveTimer.current);
+      }
+    };
+  }, []);
 
   const loadMetricsForDate = async (date: Date) => {
     try {
@@ -53,12 +68,8 @@ const Daily = () => {
 
       setMetrics(stringMetrics);
       
-      // Check if data exists for this date
-      const hasData = await dailyMetricsService.hasMetricsForDate(date);
-      setIsSaved(hasData);
-      
       // Reset calories autofill flag if user has data
-      if (hasData) {
+      if (Object.values(stringMetrics).some(value => value !== '')) {
         caloriesAutofilled.current = false;
       }
     } catch (error) {
@@ -77,7 +88,6 @@ const Daily = () => {
         fats: '',
         calories: ''
       });
-      setIsSaved(false);
     } finally {
       setIsLoadingData(false);
     }
@@ -122,6 +132,53 @@ const Daily = () => {
     }
 
     setMetrics(newMetrics);
+    
+    // Mark this field as changed
+    changedFields.current.add(field);
+    setHasUnsavedChanges(true);
+    
+    // Smart autosave: only save after user stops typing for 2 seconds
+    if (autosaveTimer.current) {
+      clearTimeout(autosaveTimer.current);
+    }
+    
+    autosaveTimer.current = setTimeout(() => {
+      // Only save if there are actual changes and user has stopped typing
+      if (changedFields.current.size > 0) {
+        autosaveMetrics(newMetrics);
+      }
+    }, 2000); // 2 second delay - more reasonable for autosave
+  };
+
+
+
+  const autosaveMetrics = async (metricsToSave: typeof metrics) => {
+    try {
+      // Convert string values to numbers and filter out empty values
+      const metricsData: DailyMetrics = {};
+      
+      Object.entries(metricsToSave).forEach(([key, value]) => {
+        if (value && value.trim() !== '') {
+          const numValue = parseFloat(value);
+          if (!isNaN(numValue)) {
+            metricsData[key as keyof DailyMetrics] = numValue;
+          }
+        }
+      });
+
+      // Only save if there are metrics to save
+      if (Object.keys(metricsData).length > 0) {
+        await dailyMetricsService.saveDailyMetrics(selectedDate, metricsData);
+        setLastSaved(new Date());
+        
+        // Clear changed fields and update UI
+        changedFields.current.clear();
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Autosave error:', error);
+      // Don't show error toast for autosave - just log it
+    }
   };
 
   const handleSave = async () => {
@@ -147,8 +204,12 @@ const Daily = () => {
 
       await dailyMetricsService.saveDailyMetrics(selectedDate, metricsToSave);
       
-      setIsSaved(true);
+      setLastSaved(new Date());
       toast.success('Daily metrics saved successfully!');
+      
+      // Clear changed fields after manual save
+      changedFields.current.clear();
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving metrics:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to save metrics');
@@ -157,14 +218,15 @@ const Daily = () => {
     }
   };
 
-  const handleEdit = () => {
-    setIsSaved(false);
-  };
-
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
     // Reset calories autofill when changing dates
     caloriesAutofilled.current = true;
+    // Clear last saved timestamp when changing dates
+    setLastSaved(null);
+    // Clear changed fields when changing dates
+    changedFields.current.clear();
+    setHasUnsavedChanges(false);
   };
 
   return (
@@ -179,7 +241,6 @@ const Daily = () => {
           <DatePickerPopover
             selectedDate={selectedDate}
             onChange={handleDateChange}
-            disabled={isSaved}
           />
         </div>
 
@@ -190,10 +251,28 @@ const Daily = () => {
               <p className="text-muted-foreground">Loading metrics...</p>
             </div>
           </div>
-        ) : isSaved ? (
-          <MetricsSavedMessage selectedDate={selectedDate} onEdit={handleEdit} />
         ) : (
           <>
+            {/* Autosave status indicator */}
+            {lastSaved && !hasUnsavedChanges && (
+              <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-sm text-green-700">
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </span>
+              </div>
+            )}
+            
+            {/* Unsaved changes indicator */}
+            {hasUnsavedChanges && (
+              <div className="flex items-center justify-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
+                <span className="text-sm text-yellow-700">
+                  Saving changes automatically... ({changedFields.current.size} field{changedFields.current.size !== 1 ? 's' : ''} modified)
+                </span>
+              </div>
+            )}
+
             <div className="grid gap-6 md:grid-cols-2">
               <PhysicalMetricsCard
                 metrics={{
@@ -217,7 +296,10 @@ const Daily = () => {
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                Data saves automatically 2 seconds after you stop typing
+              </div>
               <button
                 onClick={handleSave}
                 disabled={isLoading}
@@ -230,7 +312,7 @@ const Daily = () => {
                     Saving...
                   </>
                 ) : (
-                  'Save Daily Metrics'
+                  'Save Now'
                 )}
               </button>
             </div>
