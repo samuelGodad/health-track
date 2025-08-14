@@ -142,10 +142,10 @@ const Onboarding = () => {
             preferenceCount: metricPreferences?.length || 0
           });
 
-          // If user has both complete profile AND metric preferences, redirect to dashboard
+          // If user has both complete profile AND metric preferences, redirect to daily
           if (metricPreferences && metricPreferences.length > 0) {
-            console.log('User has complete profile and metric preferences, redirecting to dashboard');
-            navigate('/dashboard');
+            console.log('User has complete profile and metric preferences, redirecting to daily');
+            navigate('/daily');
           }
           // If no metric preferences, stay on onboarding to complete them
         }

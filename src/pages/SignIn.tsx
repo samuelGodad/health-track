@@ -34,8 +34,8 @@ const SignIn = () => {
           variant: "destructive",
         });
       } else {
-        // Auth successful, redirect to dashboard
-        navigate("/dashboard");
+        // Auth successful, redirect to daily
+        navigate("/daily");
       }
     } catch (err: any) {
       console.error("Sign in error:", err);

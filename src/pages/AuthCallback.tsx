@@ -76,10 +76,10 @@ const AuthCallback = () => {
               console.error('Error checking metric preferences:', metricError);
             }
 
-            // If user has both complete profile AND metric preferences, go to dashboard
+            // If user has both complete profile AND metric preferences, go to daily
             if (metricPreferences && metricPreferences.length > 0) {
-              console.log('User has complete profile and metric preferences, redirecting to dashboard');
-              navigate('/dashboard');
+              console.log('User has complete profile and metric preferences, redirecting to daily');
+              navigate('/daily');
             } else {
               // User has profile but no metric preferences, go to onboarding
               console.log('User has profile but no metric preferences, redirecting to onboarding');

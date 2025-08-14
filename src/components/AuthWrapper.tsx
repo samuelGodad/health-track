@@ -15,7 +15,7 @@ const AuthWrapper = ({ children }: AuthWrapperProps) => {
   // Redirect logic for authenticated users
   useEffect(() => {
     if (user && location.pathname === '/') {
-      navigate('/dashboard');
+      navigate('/daily');
     }
   }, [user, location.pathname, navigate]);
 
