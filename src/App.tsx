@@ -23,6 +23,7 @@ import AuthWrapper from "./components/AuthWrapper";
 import CyclePlanner from "./pages/CyclePlanner";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { CycleProvider } from "@/contexts/CycleContext";
+import { UploadProvider } from "@/contexts/UploadContext";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +34,8 @@ function App() {
         <Toaster />
         <Sonner position="top-center" />
         <BrowserRouter>
-          <Routes>
+          <UploadProvider>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
@@ -145,6 +147,7 @@ function App() {
             
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </UploadProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

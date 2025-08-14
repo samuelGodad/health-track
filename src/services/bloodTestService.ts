@@ -1,6 +1,7 @@
 import { supabase } from '../integrations/supabase/client';
 import { Database } from '../integrations/supabase/types';
-import { createHash } from 'crypto'; 
+import { createHash } from 'crypto';
+import { parsePDF } from './apiService'; 
 
 type Tables = Database['public']['Tables'];
 type BloodTestResultTable = Tables['blood_test_results'];
@@ -237,17 +238,8 @@ class BloodTestService {
       const formData = new FormData();
       formData.append('file', fileToProcess);
 
-      const response = await fetch('https://health-track-1-x8k4.onrender.com/api/parse-pdf', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server returned ${response.status}: ${response.statusText}`);
-      }
-
-      const result: ParsePdfResponse = await response.json();
+      // Use the centralized apiService instead of hardcoded fetch
+      const result = await parsePDF(fileToProcess);
       
       if (!result.success) {
         throw new Error('Failed to parse PDF: ' + (result.error || 'Unknown error'));

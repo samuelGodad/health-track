@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import GlobalUploadStatus from './GlobalUploadStatus';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+      <GlobalUploadStatus />
     </SidebarProvider>
   );
 }

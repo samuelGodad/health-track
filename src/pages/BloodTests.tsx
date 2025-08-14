@@ -1,49 +1,32 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  FileIcon,
   Loader2Icon,
   FileTextIcon,
-  AlertCircleIcon,
   UploadIcon,
   PlusIcon,
-  DownloadIcon,
-  InfoIcon,
-  CheckCircleIcon
+  InfoIcon
 } from 'lucide-react';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { useUpload } from "@/contexts/UploadContext";
+import { bloodTestService } from '@/services/bloodTestService';
 import { 
   Alert,
   AlertTitle,
   AlertDescription 
 } from '@/components/ui/alert';
-import { bloodTestService } from '@/services/bloodTestService';
 
 import BloodTestsByDate from '@/components/bloodTests/BloodTestsByDate';
-import BloodTestTimeline from '@/components/bloodTests/BloodTestTimeline';
-import DateSpecificResults from '@/components/bloodTests/DateSpecificResults';
 
 const BloodTests = () => {
   const { user } = useAuth();
+  const { uploadFiles, isUploading, isProcessing } = useUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showAIProcessing, setShowAIProcessing] = useState(false);
   const [bloodTestResults, setBloodTestResults] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState("by-date");
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [processingProgress, setProcessingProgress] = useState(0);
-  const [successfullyProcessed, setSuccessfullyProcessed] = useState<string[]>([]);
-  const [failedToProcess, setFailedToProcess] = useState<string[]>([]);
-  const [duplicateFiles, setDuplicateFiles] = useState<string[]>([]);
-  const [processingStatus, setProcessingStatus] = useState<Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>>({});
 
   useEffect(() => {
     if (user) {
@@ -86,155 +69,31 @@ const BloodTests = () => {
       
       if (pdfFiles.length > 0) {
         setSelectedFiles(pdfFiles);
-        setShowAIProcessing(true);
-        setUploadError(null);
         toast.success(`${pdfFiles.length} PDF file(s) selected`);
       }
     }
   };
 
-  const uploadFiles = async () => {
-    if (!user) {
-      toast.error('You must be logged in to upload files');
-      return;
-    }
-    
+  const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       toast.error('Please select PDF files to upload');
       return;
     }
     
-    setIsUploading(true);
-    setUploadError(null);
-    
     try {
-      const uploadPromises = selectedFiles.map(async (file) => {
-        const timestamp = new Date().getTime();
-        const filePath = `${user.id}/${timestamp}-${file.name}`;
-        
-        const { data, error } = await supabase.storage
-          .from('blood-test-pdfs')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true
-          });
-        
-        if (error) throw error;
-        
-        const { data: publicUrlData } = supabase.storage
-          .from('blood-test-pdfs')
-          .getPublicUrl(filePath);
-          
-        return {
-          name: file.name,
-          url: publicUrlData.publicUrl,
-          path: filePath
-        };
-      });
-      
-      const uploadedFiles = await Promise.all(uploadPromises);
-      
-      toast.success(`Successfully uploaded ${uploadedFiles.length} file(s)`);
-      
-      // Always process files with AI after upload
-      await processFilesWithAI(uploadedFiles);
-      
-      fetchBloodTestResults();
-    } catch (error) {
-      console.error('Error uploading files:', error);
-      setUploadError('Failed to upload files. Please try again.');
-      toast.error('Failed to upload files. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const processFilesWithAI = async (files: Array<{name: string, url: string, path: string}>) => {
-    if (!files.length) {
-      toast.error('Please select files to process');
-      return;
-    }
-
-    setProcessing(true);
-    setProcessingProgress(0);
-    setSuccessfullyProcessed([]);
-    setFailedToProcess([]);
-    setDuplicateFiles([]);
-    
-    const initialStatus = files.reduce((acc, file) => {
-      acc[file.name] = 'pending';
-      return acc;
-    }, {} as Record<string, 'pending' | 'processing' | 'success' | 'error' | 'duplicate'>);
-    setProcessingStatus(initialStatus);
-
-    // Use local counters for immediate toast messages
-    let successfulCount = 0;
-    let duplicateCount = 0;
-    let failedCount = 0;
-
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const progress = ((i + 1) / files.length) * 100;
-        setProcessingProgress(progress);
-
-        try {
-          setProcessingStatus(prev => ({ ...prev, [file.name]: 'processing' }));
-
-          const originalFile = selectedFiles.find(f => f.name === file.name);
-          if (!originalFile) {
-            throw new Error(`Original file not found for ${file.name}`);
-          }
-
-          const results = await bloodTestService.processBloodTestPDF(originalFile);
-          if (results && results.length > 0) {
-            setSuccessfullyProcessed(prev => [...prev, file.name]);
-            setProcessingStatus(prev => ({ ...prev, [file.name]: 'success' }));
-            successfulCount++;
-          } else {
-            setFailedToProcess(prev => [...prev, file.name]);
-            setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
-            failedCount++;
-          }
-        } catch (error) {
-          console.error(`Error processing file ${file.name}:`, error);
-          if (error instanceof Error) {
-            if (error.message === 'This PDF has already been processed and results exist') {
-              setDuplicateFiles(prev => [...prev, file.name]);
-              setProcessingStatus(prev => ({ ...prev, [file.name]: 'duplicate' }));
-              duplicateCount++;
-            } else {
-              setFailedToProcess(prev => [...prev, file.name]);
-              setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }));
-              toast.error(`Failed to process ${file.name}: ${error.message}`);
-              failedCount++;
-            }
-          }
-        }
-      }
-
-      // Show summary toasts using file names (single file upload)
-      if (successfullyProcessed.length > 0) {
-        toast.success(`${successfullyProcessed[0]} was processed successfully`);
-      }
-      if (duplicateFiles.length > 0) {
-        toast.warning(`${duplicateFiles[0]} was already processed and has existing results`);
-      }
-      if (failedToProcess.length > 0) {
-        toast.error(`Failed to process ${failedToProcess[0]}`);
-      }
-    } catch (error) {
-      console.error('Error processing files:', error);
-      toast.error('An error occurred while processing files');
-    } finally {
-      setProcessing(false);
-      setProcessingProgress(0);
+      await uploadFiles(selectedFiles);
+      setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      setSelectedFiles([]);
+      fetchBloodTestResults();
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.error('Failed to upload files. Please try again.');
     }
   };
+
+
 
   return (
     <div>
@@ -271,8 +130,18 @@ const BloodTests = () => {
                     disabled={isUploading || isProcessing}
                   >
                     <UploadIcon className="h-4 w-4 mr-2" />
-                    <span>{isUploading ? "Uploading..." : "Upload Test Results PDF"}</span>
+                    <span>Select PDF Files</span>
                   </Button>
+                  {selectedFiles.length > 0 && (
+                    <Button 
+                      className="flex-1" 
+                      onClick={handleUpload}
+                      disabled={isUploading || isProcessing}
+                    >
+                      <UploadIcon className="h-4 w-4 mr-2" />
+                      <span>{isUploading ? "Uploading..." : isProcessing ? "Processing..." : `Upload ${selectedFiles.length} File(s)`}</span>
+                    </Button>
+                  )}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -287,13 +156,7 @@ const BloodTests = () => {
                   </Button>
                 </div>
                 
-                {uploadError && (
-                  <Alert variant="destructive" className="bg-red-50 border border-red-100">
-                    <AlertCircleIcon className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{uploadError}</AlertDescription>
-                  </Alert>
-                )}
+
                 
                 <Alert className="bg-blue-50 border border-blue-100 text-blue-800">
                   <InfoIcon className="h-4 w-4" />
@@ -308,50 +171,20 @@ const BloodTests = () => {
                 {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {selectedFiles.map((file, index) => (
-                      <div 
-                        key={index} 
-                        className={`p-3 rounded-md flex items-center justify-between ${
-                          processingStatus[file.name] === 'success' ? 'bg-green-50 border border-green-100' :
-                          processingStatus[file.name] === 'error' ? 'bg-red-50 border border-red-100' :
-                          processingStatus[file.name] === 'duplicate' ? 'bg-amber-50 border border-amber-100' :
-                          processingStatus[file.name] === 'processing' ? 'bg-blue-50 border border-blue-100' :
-                          'bg-muted'
-                        }`}
-                      >
-                        <div className="flex items-center">
-                          <FileTextIcon className="h-4 w-4 mr-2" />
-                          <p className="text-sm">{file.name}</p>
-                          {processingStatus[file.name] === 'processing' && (
-                            <span className="ml-2 text-xs text-blue-600">
-                              <Loader2Icon className="h-3 w-3 animate-spin inline mr-1" />
-                              Processing...
-                            </span>
-                          )}
-                          {processingStatus[file.name] === 'success' && (
-                            <span className="ml-2 text-xs text-green-600">
-                              <CheckCircleIcon className="h-3 w-3 inline mr-1" />
-                              Processed successfully
-                            </span>
-                          )}
-                          {processingStatus[file.name] === 'error' && (
-                            <span className="ml-2 text-xs text-red-600">
-                              <AlertCircleIcon className="h-3 w-3 inline mr-1" />
-                              Failed to process
-                            </span>
-                          )}
-                          {processingStatus[file.name] === 'duplicate' && (
-                            <span className="ml-2 text-xs text-amber-600">
-                              <InfoIcon className="h-3 w-3 inline mr-1" />
-                              Already processed
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                                          <div 
+                      key={index} 
+                      className="p-3 rounded-md flex items-center justify-between bg-muted"
+                    >
+                      <div className="flex items-center">
+                        <FileTextIcon className="h-4 w-4 mr-2" />
+                        <p className="text-sm">{file.name}</p>
                       </div>
+                      <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                    </div>
                     ))}
                     
                     <Button 
-                      onClick={uploadFiles}
+                      onClick={handleUpload}
                       disabled={isUploading || isProcessing}
                       className="w-full mt-2"
                     >
