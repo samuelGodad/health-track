@@ -40,3 +40,89 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Large Desktop Screen Optimizations */
+@media (min-width: 1920px) {
+  /* Analytics page specific improvements */
+  .analytics-chart-container {
+    min-height: 320px;
+  }
+  
+  .analytics-reference-text {
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Improve chart spacing on large screens */
+  .recharts-cartesian-axis-tick text {
+    font-size: 11px !important;
+  }
+  
+  /* Better spacing for reference range text */
+  .chart-reference-info {
+    padding-top: 2.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  /* Ultra-wide screen optimizations */
+  .analytics-chart-container {
+    min-height: 360px;
+  }
+  
+  .analytics-reference-text {
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Larger text for ultra-wide screens */
+  .recharts-cartesian-axis-tick text {
+    font-size: 12px !important;
+  }
+  
+  /* Enhanced spacing for ultra-wide */
+  .chart-reference-info {
+    padding-top: 3rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Better grid spacing on ultra-wide */
+  .analytics-grid {
+    gap: 2.5rem;
+  }
+}
+
+/* Prevent text overlap in charts on all screen sizes */
+.recharts-cartesian-axis-tick text {
+  dominant-baseline: middle;
+  text-anchor: end;
+}
+
+/* Ensure reference lines don't overlap with text */
+.recharts-reference-line-label {
+  dominant-baseline: middle;
+}
+
+/* Improve tooltip positioning */
+.recharts-tooltip-wrapper {
+  pointer-events: none;
+}
+
+/* Better chart container responsiveness */
+.chart-responsive-container {
+  min-height: 280px;
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .chart-responsive-container {
+    min-height: 320px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .chart-responsive-container {
+    min-height: 360px;
+  }
+}

@@ -33,6 +33,26 @@ export function LineChart({
   referenceMin,
   referenceMax,
 }: LineChartProps) {
+  const [screenSize, setScreenSize] = React.useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080
+  });
+
+  // Listen for window resize events
+  React.useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
   if (!data || data.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center border border-dashed rounded-lg">
@@ -40,6 +60,54 @@ export function LineChart({
       </div>
     );
   }
+
+  // --- Responsive Margins for Large Screens ---
+  const getResponsiveMargins = () => {
+    const isLargeScreen = screenSize.width >= 1920; // 4K and large desktop
+    const isExtraLargeScreen = screenSize.width >= 2560; // Ultra-wide
+    
+    if (isExtraLargeScreen) {
+      return { top: 30, right: 50, left: 80, bottom: 250 };
+    } else if (isLargeScreen) {
+      return { top: 25, right: 40, left: 70, bottom: 220 };
+    }
+    
+    // Default margins for standard screens
+    return { top: 20, right: 30, left: 60, bottom: 200 };
+  };
+
+  // --- Dynamic X-Axis Configuration for Large Screens ---
+  const getXAxisConfig = () => {
+    const isLargeScreen = screenSize.width >= 1920;
+    const isExtraLargeScreen = screenSize.width >= 2560;
+    
+    if (isExtraLargeScreen) {
+      return {
+        angle: -30, // Less aggressive angle for ultra-wide
+        height: 160,
+        dy: 40,
+        fontSize: 12,
+        interval: 0
+      };
+    } else if (isLargeScreen) {
+      return {
+        angle: -35, // Moderate angle for large screens
+        height: 150,
+        dy: 35,
+        fontSize: 11,
+        interval: 0
+      };
+    }
+    
+    // Default configuration for standard screens
+    return {
+      angle: -45,
+      height: 140,
+      dy: 30,
+      fontSize: 10,
+      interval: 0
+    };
+  };
 
   // --- Y-Axis Domain Calculation ---
   const getYAxisDomain = () => {
@@ -77,6 +145,10 @@ export function LineChart({
     return [min, max];
   };
 
+  // Get responsive configurations
+  const margins = getResponsiveMargins();
+  const xAxisConfig = getXAxisConfig();
+
   return (
     <ChartContainer
       className={className}
@@ -90,7 +162,7 @@ export function LineChart({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={data}
-          margin={{ top: 20, right: 30, left: 60, bottom: 200 }}
+          margin={margins}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
           <XAxis
@@ -98,12 +170,12 @@ export function LineChart({
             stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: 10 }}
-            angle={-45}
+            tick={{ fontSize: xAxisConfig.fontSize }}
+            angle={xAxisConfig.angle}
             textAnchor="end"
-            height={140}
-            interval={0}
-            dy={30}
+            height={xAxisConfig.height}
+            interval={xAxisConfig.interval}
+            dy={xAxisConfig.dy}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"

@@ -253,7 +253,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3 xl:gap-8 2xl:gap-10 analytics-grid">
           {/* Left Sidebar - Test List */}
           <div className="lg:col-span-1">
             <Card>
@@ -320,7 +320,7 @@ const Analytics = () => {
                   Select tests from the left to compare their trends over time
                 </p>
               </CardHeader>
-              <CardContent className="space-y-8 p-6">
+              <CardContent className="space-y-8 p-6 xl:p-8 2xl:p-10">
                 {/* Selected Tests Display */}
                 {(selectedTest1 || selectedTest2) && (
                   <div className="space-y-2">
@@ -355,9 +355,9 @@ const Analytics = () => {
 
                 {/* Charts */}
                 {selectedTest1 && chartData1.length > 0 && (
-                  <div className="space-y-4 mb-16">
+                  <div className="space-y-4 mb-16 xl:mb-20 2xl:mb-24">
                     <h4 className="font-medium text-sm">{selectedTest1}</h4>
-                    <div className="h-[280px] w-full">
+                    <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
                       <LineChart
                         data={chartData1}
                         dataKey="value"
@@ -368,7 +368,7 @@ const Analytics = () => {
                         referenceMax={test1Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground pt-8 pb-4">
+                    <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
                       Reference Range: {test1Details.min !== null && test1Details.max !== null 
                         ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
                         : 'No reference range available'} | {chartData1.length} data points
@@ -379,7 +379,7 @@ const Analytics = () => {
                 {selectedTest2 && chartData2.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="font-medium text-sm">{selectedTest2}</h4>
-                    <div className="h-[280px] w-full">
+                    <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
                       <LineChart
                         data={chartData2}
                         dataKey="value"
@@ -390,7 +390,7 @@ const Analytics = () => {
                         referenceMax={test2Details.max}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground pt-8 pb-4">
+                    <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
                       Reference Range: {test2Details.min !== null && test2Details.max !== null 
                         ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
                         : 'No reference range available'} | {chartData2.length} data points
@@ -400,7 +400,7 @@ const Analytics = () => {
 
                 {/* Empty State */}
                 {!selectedTest1 && !selectedTest2 && (
-                  <div className="h-[400px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                  <div className="h-[400px] w-full xl:h-[450px] 2xl:h-[500px] flex items-center justify-center border border-dashed rounded-lg">
                     <div className="text-center">
                       <BarChart3Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">Click on tests from the left to view and compare trends</p>
