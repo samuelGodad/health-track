@@ -12,6 +12,7 @@ export interface DailyMetrics {
   carbs?: number;
   fats?: number;
   calories?: number;
+  waterIntake?: number;
 }
 
 export interface DailyMetricsWithDate extends DailyMetrics {
