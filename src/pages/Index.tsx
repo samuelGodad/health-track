@@ -31,10 +31,10 @@ const Index = () => {
         <ContainerScroll
           titleComponent={
             <div className="space-y-6 pt-16 md:pt-24 text-center">
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
                 The First Health App Built for Enhanced Athletes
               </h1>
-              <p className="mx-auto max-w-[800px] text-lg md:text-xl text-muted-foreground">
+              <p className="mx-auto max-w-[700px] text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
                 Bodybuilding's silent killer isn't overtraining — it's untracked bloodwork. Get peace of mind and push your limits safely.
               </p>
               <div className="pt-4">
@@ -55,11 +55,11 @@ const Index = () => {
         {/* The Villain Section */}
         <section className="w-full py-16 md:py-24 bg-muted/50">
           <div className="container px-4 md:px-6">
-            <div className="text-center max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">
                 Until now, enhanced athletes tracked health in messy spreadsheets, emails, and half-baked notes.
               </h2>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
                 Critical risks went unnoticed. Careers and lives cut short.
               </p>
             </div>
@@ -69,11 +69,11 @@ const Index = () => {
         {/* The Hero Section (Unique Mechanism) */}
         <section className="w-full py-16 md:py-24">
           <div className="container px-4 md:px-6">
-            <div className="text-center max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-6 leading-tight">
                 EnhancedHealth brings all your bloodwork into one clean, AI-powered dashboard.
               </h2>
-              <p className="text-xl text-muted-foreground mb-8">
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
                 No more digging through files. No more guessing. Just clarity and control.
               </p>
               <div className="mx-auto max-w-3xl">
@@ -91,15 +91,15 @@ const Index = () => {
             <div className="grid gap-12 md:grid-cols-2 items-center max-w-6xl mx-auto">
               <div className="text-center">
                 <ShieldIcon className="h-16 w-16 text-primary mx-auto mb-6" />
-                <h3 className="text-2xl md:text-3xl font-bold mb-4">Peace of Mind</h3>
-                <p className="text-lg text-muted-foreground">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 leading-tight">Peace of Mind</h3>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                   Know what's happening inside your body before it's too late.
                 </p>
               </div>
               <div className="text-center">
                 <TrendingUpIcon className="h-16 w-16 text-primary mx-auto mb-6" />
-                <h3 className="text-2xl md:text-3xl font-bold mb-4">Performance Longevity</h3>
-                <p className="text-lg text-muted-foreground">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 leading-tight">Performance Longevity</h3>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                   Push harder, longer — without pushing your luck.
                 </p>
               </div>
@@ -111,36 +111,36 @@ const Index = () => {
         <section className="w-full py-16 md:py-24">
           <div className="container px-4 md:px-6">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-12 leading-tight">
                 Everything you need, nothing you don't
               </h2>
               <div className="grid gap-8 md:grid-cols-2">
                 <div className="flex gap-4">
                   <BrainIcon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">AI-Powered Insights</h3>
-                    <p className="text-muted-foreground">Your labs, translated into clear, actionable health signals.</p>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">AI-Powered Insights</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Your labs, translated into clear, actionable health signals.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <CheckIcon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">One Dashboard</h3>
-                    <p className="text-muted-foreground">All results in one place. No more spreadsheets.</p>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">One Dashboard</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">All results in one place. No more spreadsheets.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <ShieldIcon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Risk Alerts</h3>
-                    <p className="text-muted-foreground">Get flagged before small problems become career-ending.</p>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">Risk Alerts</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Get flagged before small problems become career-ending.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <TrendingUpIcon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Performance Tracking</h3>
-                    <p className="text-muted-foreground">See trends across cycles, off-seasons, and peak prep.</p>
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">Performance Tracking</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">See trends across cycles, off-seasons, and peak prep.</p>
                   </div>
                 </div>
               </div>
@@ -162,8 +162,8 @@ const Index = () => {
         {/* Call to Action Section */}
         <section className="w-full py-16 md:py-24">
           <div className="container px-4 md:px-6">
-            <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
                 Sign up free today. Gain clarity. Extend your career.
               </h2>
               <div className="mb-6">
@@ -185,11 +185,11 @@ const Index = () => {
         {/* Closing Section */}
         <section className="w-full py-16 md:py-24 bg-primary text-primary-foreground">
           <div className="container px-4 md:px-6">
-            <div className="text-center max-w-4xl mx-auto space-y-8">
-              <h2 className="text-2xl md:text-3xl font-bold">
+            <div className="text-center max-w-3xl mx-auto space-y-8">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight">
                 One more thing...
               </h2>
-              <p className="text-lg md:text-xl opacity-90">
+              <p className="text-base sm:text-lg md:text-xl opacity-90 leading-relaxed">
                 This isn't just about bloodwork. It's about giving enhanced athletes the chance to live longer, perform better, and control their health like never before. The future of bodybuilding health starts here.
               </p>
               <Button 
