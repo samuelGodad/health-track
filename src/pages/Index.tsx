@@ -89,14 +89,14 @@ const Index = () => {
         <section className="w-full py-16 md:py-24 bg-muted/30">
           <div className="container px-4 md:px-6">
             <div className="grid gap-12 md:grid-cols-2 items-center max-w-6xl mx-auto">
-              <div className="text-center">
+              <div className="text-center bg-primary/5 rounded-2xl p-8 border border-primary/10 hover-scale">
                 <ShieldIcon className="h-16 w-16 text-primary mx-auto mb-6" />
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 leading-tight">Peace of Mind</h3>
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                   Know what's happening inside your body before it's too late.
                 </p>
               </div>
-              <div className="text-center">
+              <div className="text-center bg-primary/5 rounded-2xl p-8 border border-primary/10 hover-scale">
                 <TrendingUpIcon className="h-16 w-16 text-primary mx-auto mb-6" />
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 leading-tight">Performance Longevity</h3>
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
