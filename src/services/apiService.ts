@@ -18,6 +18,7 @@ export interface LabResult {
 
 export interface ParsePdfResponse {
   data: LabResult[];
+  error?: string;
   debug?: {
     fileInfo: {
       size: number;

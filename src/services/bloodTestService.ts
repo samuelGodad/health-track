@@ -8,7 +8,6 @@ type BloodTestResultTable = Tables['blood_test_results'];
 type BloodTestResultInsert = BloodTestResultTable['Insert'];
 
 interface ParsePdfResponse {
-  success: boolean;
   data: LabResult[];
   error?: string;
   debug?: {
@@ -241,21 +240,17 @@ class BloodTestService {
       // Use the centralized apiService instead of hardcoded fetch
       const result = await parsePDF(fileToProcess);
       
-      if (!result.success) {
-        throw new Error('Failed to parse PDF: ' + (result.error || 'Unknown error'));
-      }
-
       if (!result.data || result.data.length === 0) {
-        throw new Error('No results found in PDF');
+        throw new Error(result.error || 'No results found in PDF');
       }
 
       // First, save extracted tests to metadata table if not already present
       console.log('About to save tests to metadata...');
-      await this.saveTestsToMetadata(result.data);
+      await this.saveTestsToMetadata(result.data as any);
       console.log('Finished saving tests to metadata');
 
       // Transform and save results
-      const transformedResults = await this.transformResults(result.data, fileHash);
+      const transformedResults = await this.transformResults(result.data as any, fileHash);
       
       try {
         // Save results first

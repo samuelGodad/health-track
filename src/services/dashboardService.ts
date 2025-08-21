@@ -657,12 +657,12 @@ class DashboardService {
       );
 
       // Calculate health score trend (simplified)
-      const healthScoreTrend = this.calculateHealthScoreTrend(bloodTests || []);
+      const healthScoreTrend = this.calculateHealthScoreTrend(bloodTests || [] as any);
 
       return {
-        bloodTestTrend,
+        bloodTestTrend: bloodTestTrend as any,
         healthScoreTrend,
-        abnormalTestsTrend
+        abnormalTestsTrend: abnormalTestsTrend as any
       };
     } catch (error) {
       console.error('Error getting dashboard trends:', error);
