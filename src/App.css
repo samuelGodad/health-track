@@ -41,6 +41,51 @@
   color: #888;
 }
 
+/* Prevent text overlap in charts on all screen sizes */
+.recharts-cartesian-axis-tick text {
+  dominant-baseline: middle;
+  text-anchor: end;
+}
+
+/* Mobile-specific chart optimizations */
+@media (max-width: 768px) {
+  .analytics-chart-container {
+    min-height: 250px;
+    margin-bottom: 1rem;
+  }
+  
+  .chart-responsive-container {
+    overflow: hidden;
+  }
+  
+  /* Ensure mobile charts don't overflow */
+  .recharts-wrapper {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  /* Mobile-friendly text sizes */
+  .recharts-cartesian-axis-tick text {
+    font-size: 10px !important;
+  }
+  
+  /* Mobile chart margins */
+  .recharts-cartesian-axis-tick {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Tablet-specific optimizations */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .analytics-chart-container {
+    min-height: 280px;
+  }
+  
+  .recharts-cartesian-axis-tick text {
+    font-size: 10px !important;
+  }
+}
+
 /* Large Desktop Screen Optimizations */
 @media (min-width: 1920px) {
   /* Analytics page specific improvements */
@@ -91,12 +136,6 @@
   .analytics-grid {
     gap: 2.5rem;
   }
-}
-
-/* Prevent text overlap in charts on all screen sizes */
-.recharts-cartesian-axis-tick text {
-  dominant-baseline: middle;
-  text-anchor: end;
 }
 
 /* Ensure reference lines don't overlap with text */

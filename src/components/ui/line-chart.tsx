@@ -61,12 +61,18 @@ export function LineChart({
     );
   }
 
-  // --- Responsive Margins for Large Screens ---
+  // --- Responsive Margins for All Screen Sizes ---
   const getResponsiveMargins = () => {
-    const isLargeScreen = screenSize.width >= 1920; // 4K and large desktop
-    const isExtraLargeScreen = screenSize.width >= 2560; // Ultra-wide
+    const isMobile = screenSize.width <= 768;
+    const isTablet = screenSize.width <= 1024;
+    const isLargeScreen = screenSize.width >= 1920;
+    const isExtraLargeScreen = screenSize.width >= 2560;
     
-    if (isExtraLargeScreen) {
+    if (isMobile) {
+      return { top: 15, right: 20, left: 40, bottom: 80 };
+    } else if (isTablet) {
+      return { top: 20, right: 25, left: 50, bottom: 120 };
+    } else if (isExtraLargeScreen) {
       return { top: 30, right: 50, left: 80, bottom: 250 };
     } else if (isLargeScreen) {
       return { top: 25, right: 40, left: 70, bottom: 220 };
@@ -76,18 +82,39 @@ export function LineChart({
     return { top: 20, right: 30, left: 60, bottom: 200 };
   };
 
-  // --- Dynamic X-Axis Configuration for Large Screens ---
+  // --- Dynamic X-Axis Configuration for All Screen Sizes ---
   const getXAxisConfig = () => {
+    const isMobile = screenSize.width <= 768;
+    const isTablet = screenSize.width <= 1024;
     const isLargeScreen = screenSize.width >= 1920;
     const isExtraLargeScreen = screenSize.width >= 2560;
     
-    if (isExtraLargeScreen) {
+    if (isMobile) {
+      return {
+        angle: 0, // No angle on mobile for better readability
+        height: 60,
+        dy: 15,
+        fontSize: 10,
+        interval: Math.ceil(data.length / 4), // Show fewer labels on mobile
+        textAnchor: 'middle' as const
+      };
+    } else if (isTablet) {
+      return {
+        angle: -15, // Slight angle on tablet
+        height: 80,
+        dy: 25,
+        fontSize: 10,
+        interval: Math.ceil(data.length / 6),
+        textAnchor: 'end' as const
+      };
+    } else if (isExtraLargeScreen) {
       return {
         angle: -30, // Less aggressive angle for ultra-wide
         height: 160,
         dy: 40,
         fontSize: 12,
-        interval: 0
+        interval: 0,
+        textAnchor: 'end' as const
       };
     } else if (isLargeScreen) {
       return {
@@ -95,62 +122,54 @@ export function LineChart({
         height: 150,
         dy: 35,
         fontSize: 11,
-        interval: 0
+        interval: 0,
+        textAnchor: 'end' as const
       };
     }
     
     // Default configuration for standard screens
     return {
-      angle: -45,
-      height: 140,
+      angle: -45, // Standard angle for desktop
+      height: 120,
       dy: 30,
       fontSize: 10,
-      interval: 0
+      interval: 0,
+      textAnchor: 'end' as const
     };
   };
 
-  // --- Y-Axis Domain Calculation ---
-  const getYAxisDomain = () => {
-    let allValues = data.map((d) => d[dataKey]);
-    let min = Math.min(...allValues);
-    let max = Math.max(...allValues);
-
-    // Optionally include min/max from reference if present 
-    if (referenceMin !== null && referenceMin !== undefined) {
-      min = Math.min(min, referenceMin);
+  // --- Dynamic Y-Axis Configuration ---
+  const getYAxisConfig = () => {
+    const isMobile = screenSize.width <= 768;
+    const isTablet = screenSize.width <= 1024;
+    
+    if (isMobile) {
+      return {
+        width: 35,
+        fontSize: 10,
+        tickFormatter: (value: number) => value.toFixed(1)
+      };
+    } else if (isTablet) {
+      return {
+        width: 40,
+        fontSize: 10,
+        tickFormatter: (value: number) => value.toFixed(1)
+      };
     }
-    if (referenceMax !== null && referenceMax !== undefined) {
-      max = Math.max(max, referenceMax);
-    }
-
-    // If there is only 1 data point, pad above/below for visual centering
-    if (min === max) {
-      if (min === 0) { max = 1; } // guard for 0
-      else {
-        min = min - Math.abs(min) * 0.1;
-        max = max + Math.abs(max) * 0.1;
-      }
-    } else {
-      // pad slightly for multi-point charts
-      const range = max - min;
-      min = min - range * 0.05;
-      max = max + range * 0.05;
-    }
-
-    // Prevent min/max being exactly the same (would throw recharts warning)
-    if (min === max) {
-      max = min + 1;
-    }
-
-    return [min, max];
+    
+    return {
+      width: 60,
+      fontSize: 11,
+      tickFormatter: (value: number) => value.toFixed(1)
+    };
   };
 
-  // Get responsive configurations
   const margins = getResponsiveMargins();
   const xAxisConfig = getXAxisConfig();
+  const yAxisConfig = getYAxisConfig();
 
   return (
-    <ChartContainer
+    <ChartContainer 
       className={className}
       config={{
         [dataKey]: {
@@ -164,92 +183,101 @@ export function LineChart({
           data={data}
           margin={margins}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke="hsl(var(--muted))"
+            opacity={0.3}
+          />
+          
           <XAxis
             dataKey="date"
             stroke="hsl(var(--muted-foreground))"
+            fontSize={xAxisConfig.fontSize}
+            angle={xAxisConfig.angle}
+            height={xAxisConfig.height}
+            dy={xAxisConfig.dy}
+            interval={xAxisConfig.interval}
+            textAnchor={xAxisConfig.textAnchor}
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: xAxisConfig.fontSize }}
-            angle={xAxisConfig.angle}
-            textAnchor="end"
-            height={xAxisConfig.height}
-            interval={xAxisConfig.interval}
-            dy={xAxisConfig.dy}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
           />
+          
           <YAxis
             stroke="hsl(var(--muted-foreground))"
+            fontSize={yAxisConfig.fontSize}
+            width={yAxisConfig.width}
+            tickFormatter={yAxisConfig.tickFormatter}
             tickLine={false}
             axisLine={false}
-            tickFormatter={valueFormatter}
-            tick={{ fontSize: 10 }}
-            width={80}
-            domain={getYAxisDomain()}
-            dx={-10}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
           />
+          
           <Tooltip
-            content={({
-              active,
-              payload,
-              label,
-            }: {
-              active?: boolean;
-              payload?: Array<{ value: number }>;
-              label?: string;
-            }) => (
-              <ChartTooltipContent
-                active={active}
-                payload={payload}
-                label={label}
-                formatter={(value) => valueFormatter(Number(value))}
-              />
-            )}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <ChartTooltipContent
+                    active={active}
+                    payload={payload}
+                    label={label}
+                    formatter={(value) => valueFormatter(Number(value))}
+                  />
+                );
+              }
+              return null;
+            }}
           />
-          {showLegend && <Legend />}
-          {referenceMin !== null && referenceMin !== undefined && (
-            <ReferenceLine
-              y={referenceMin}
-              label={{ 
-                value: 'Min', 
-                position: 'right', 
-                fill: 'hsl(var(--warning))', 
-                fontSize: 10
-              }}
-              stroke="hsl(var(--warning))"
-              strokeDasharray="3 3"
-              opacity={0.7}
+          
+          {showLegend && (
+            <Legend 
+              verticalAlign="top" 
+              height={36}
+              iconType="circle"
+              iconSize={8}
             />
           )}
-          {referenceMax !== null && referenceMax !== undefined && (
-            <ReferenceLine
-              y={referenceMax}
-              label={{ 
-                value: 'Max', 
-                position: 'right', 
-                fill: 'hsl(var(--warning))', 
-                fontSize: 10
-              }}
-              stroke="hsl(var(--warning))"
-              strokeDasharray="3 3"
-              opacity={0.7}
-            />
-          )}
+          
           <Line
             type="monotone"
             dataKey={dataKey}
             stroke={color}
             strokeWidth={2}
-            dot={{ 
-              fill: color, 
-              strokeWidth: 2, 
-              r: 4 
-            }}
-            activeDot={{ 
-              r: 6, 
-              strokeWidth: 2,
-              fill: color
-            }}
+            dot={{ fill: color, strokeWidth: 2, r: 4 }}
+            activeDot={{ r: 6, strokeWidth: 2 }}
+            connectNulls={false}
           />
+          
+          {/* Reference Lines */}
+          {referenceMin !== null && (
+            <ReferenceLine
+              y={referenceMin}
+              stroke="hsl(var(--warning))"
+              strokeDasharray="3 3"
+              strokeWidth={1}
+              label={{
+                value: `Min: ${referenceMin}`,
+                position: 'insideBottomLeft',
+                fontSize: 10,
+                fill: 'hsl(var(--warning))'
+              }}
+            />
+          )}
+          
+          {referenceMax !== null && (
+            <ReferenceLine
+              y={referenceMax}
+              stroke="hsl(var(--destructive))"
+              strokeDasharray="3 3"
+              strokeWidth={1}
+              label={{
+                value: `Max: ${referenceMax}`,
+                position: 'insideTopLeft',
+                fontSize: 10,
+                fill: 'hsl(var(--destructive))'
+              }}
+            />
+          )}
         </RechartsLineChart>
       </ResponsiveContainer>
     </ChartContainer>

@@ -6,6 +6,8 @@ import {
   TrendingUpIcon,
   ActivityIcon,
   PieChartIcon,
+  SmartphoneIcon,
+  MonitorIcon,
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from "@/providers/SupabaseAuthProvider";
@@ -19,17 +21,21 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { format, parseISO } from 'date-fns';
+import { useMediaQuery } from "@/hooks/use-mobile";
 
 const Analytics = () => {
   const { user } = useAuth();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
   const [bloodTestResults, setBloodTestResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTest1, setSelectedTest1] = useState<string | null>(null);
   const [selectedTest2, setSelectedTest2] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showMobileChart, setShowMobileChart] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -69,7 +75,6 @@ const Analytics = () => {
       }
     });
     const sortedCategories = Array.from(categories).sort();
-    console.log('Available categories from database:', sortedCategories);
     return sortedCategories;
   }, [bloodTestResults]);
 
@@ -91,111 +96,74 @@ const Analytics = () => {
   const filteredTests = useMemo(() => {
     const uniqueTests = new Map();
     
-    console.log('Filtering tests:', {
-      selectedCategory,
-      searchQuery,
-      totalTests: bloodTestResults.length
-    });
-    
     bloodTestResults.forEach(test => {
-      // Use the actual category field from the database instead of categorizing test names
-      const matchesCategory = selectedCategory === 'all' || test.category === selectedCategory;
-      const matchesSearch = searchQuery === '' || test.test_name.toLowerCase().includes(searchQuery.toLowerCase());
+      // Apply category filter
+      if (selectedCategory !== "all" && test.category !== selectedCategory) {
+        return;
+      }
       
-      if (matchesCategory && matchesSearch) {
-        if (!uniqueTests.has(test.test_name)) {
-          // Get the latest result for this test
-          const latestTest = bloodTestResults
-            .filter(t => t.test_name === test.test_name)
-            .sort((a, b) => new Date(b.test_date).getTime() - new Date(a.test_date).getTime())[0];
-          
-          // Calculate change (mock for now)
-          const previousResults = bloodTestResults
-            .filter(t => t.test_name === test.test_name && t.test_date !== latestTest.test_date)
-            .sort((a, b) => new Date(b.test_date).getTime() - new Date(a.test_date).getTime());
-          
-          let change = 0;
-          let changePercent = 0;
-          
-          if (previousResults.length > 0) {
-            const previousValue = previousResults[0].result;
-            change = latestTest.result - previousValue;
-            changePercent = ((change / previousValue) * 100);
-          }
-          
-          uniqueTests.set(test.test_name, {
-            ...latestTest,
-            change,
-            changePercent,
-            isPositive: change >= 0
-          });
-        }
+      // Apply search filter
+      if (searchQuery && !test.test_name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return;
+      }
+      
+      // Group by test name and keep the most recent result
+      if (!uniqueTests.has(test.test_name) || 
+          new Date(test.test_date) > new Date(uniqueTests.get(test.test_name).test_date)) {
+        uniqueTests.set(test.test_name, test);
       }
     });
     
-    const filteredArray = Array.from(uniqueTests.values());
-    console.log('Filtered tests result:', {
-      selectedCategory,
-      filteredCount: filteredArray.length,
-      tests: filteredArray.map(t => ({ name: t.test_name, category: t.category }))
-    });
-    
-    return filteredArray;
+    return Array.from(uniqueTests.values()).sort((a, b) => a.test_name.localeCompare(b.test_name));
   }, [bloodTestResults, selectedCategory, searchQuery]);
 
-  // Create chart data for selected tests
-  const createChartData = (testName: string) => {
-    if (!testName) return [];
+  // Get chart data for selected tests
+  const chartData1 = useMemo(() => {
+    if (!selectedTest1) return [];
     
-    const relevantTests = bloodTestResults
-      .filter(test => test.test_name === testName);
-    
-    const deduplicated = new Map<string, any>();
-    
-    const sortedTests = [...relevantTests].sort((a, b) => 
-      new Date(b.id).getTime() - new Date(a.id).getTime()
-    );
-    
-    sortedTests.forEach(test => {
-      if (!deduplicated.has(test.test_date)) {
-        deduplicated.set(test.test_date, test);
-      }
-    });
-    
-    return Array.from(deduplicated.values())
+    return bloodTestResults
+      .filter(test => test.test_name === selectedTest1)
       .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
-      .map(test => {
-        let formattedDate;
-        try {
-          formattedDate = format(parseISO(test.test_date), 'MMM d, yyyy');
-        } catch (e) {
-          formattedDate = test.test_date;
-        }
-        
-        return {
-          date: formattedDate,
-          value: test.result
-        };
-      });
-  };
+      .map(test => ({
+        date: format(new Date(test.test_date), 'MMM dd'),
+        value: parseFloat(test.result),
+        fullDate: test.test_date
+      }));
+  }, [bloodTestResults, selectedTest1]);
 
-  const chartData1 = createChartData(selectedTest1 || '');
-  const chartData2 = createChartData(selectedTest2 || '');
-
-  // Get test details for selected tests
-  const getTestDetails = (testName: string) => {
-    if (!testName) return { unit: '', min: null, max: null };
+  const chartData2 = useMemo(() => {
+    if (!selectedTest2) return [];
     
-    const test = bloodTestResults.find(t => t.test_name === testName);
+    return bloodTestResults
+      .filter(test => test.test_name === selectedTest2)
+      .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime())
+      .map(test => ({
+        date: format(new Date(test.test_date), 'MMM dd'),
+        value: parseFloat(test.result),
+        fullDate: test.test_date
+      }));
+  }, [bloodTestResults, selectedTest2]);
+
+  // Get test details for reference ranges
+  const test1Details = useMemo(() => {
+    if (!selectedTest1) return { unit: '', min: null, max: null };
+    const test = bloodTestResults.find(t => t.test_name === selectedTest1);
     return {
       unit: test?.unit || '',
-      min: test?.reference_min || null,
-      max: test?.reference_max || null
+      min: test?.reference_min ? parseFloat(test.reference_min) : null,
+      max: test?.reference_max ? parseFloat(test.reference_max) : null
     };
-  };
+  }, [bloodTestResults, selectedTest1]);
 
-  const test1Details = getTestDetails(selectedTest1 || '');
-  const test2Details = getTestDetails(selectedTest2 || '');
+  const test2Details = useMemo(() => {
+    if (!selectedTest2) return { unit: '', min: null, max: null };
+    const test = bloodTestResults.find(t => t.test_name === selectedTest2);
+    return {
+      unit: test?.unit || '',
+      min: test?.reference_min ? parseFloat(test.reference_min) : null,
+      max: test?.reference_max ? parseFloat(test.reference_max) : null
+    };
+  }, [bloodTestResults, selectedTest2]);
 
   const handleTestClick = (testName: string) => {
     if (!selectedTest1) {
@@ -207,6 +175,11 @@ const Analytics = () => {
       setSelectedTest1(testName);
       setSelectedTest2(null);
     }
+    
+    // On mobile, show the chart after selecting a test
+    if (isMobile) {
+      setShowMobileChart(true);
+    }
   };
 
   const clearTestSelection = (testNumber: 1 | 2) => {
@@ -215,23 +188,108 @@ const Analytics = () => {
     } else {
       setSelectedTest2(null);
     }
+    
+    // Hide mobile chart if no tests are selected
+    if (isMobile && !selectedTest1 && !selectedTest2) {
+      setShowMobileChart(false);
+    }
   };
+
+  const clearAllSelections = () => {
+    setSelectedTest1(null);
+    setSelectedTest2(null);
+    setShowMobileChart(false);
+  };
+
+  // Mobile-friendly test card component
+  const MobileTestCard = ({ test, isSelected, onClick }: any) => (
+    <div 
+      className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+        isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-sm truncate">{test.test_name}</h4>
+          <p className="text-xs text-muted-foreground">{test.category}</p>
+        </div>
+        <div className="w-6 h-6 bg-muted rounded flex items-center justify-center ml-2">
+          <BarChart3Icon className="w-3 h-3" />
+        </div>
+      </div>
+      
+      <div className="space-y-1">
+        <div className="text-base font-bold">
+          {test.result} {test.unit}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(test.test_date).toLocaleDateString()}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Desktop test card component
+  const DesktopTestCard = ({ test, isSelected, onClick }: any) => (
+    <div 
+      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+        isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex-1">
+          <h4 className="font-medium text-sm">{test.test_name}</h4>
+          <p className="text-xs text-muted-foreground">{test.category}</p>
+        </div>
+        <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+          <BarChart3Icon className="w-4 h-4" />
+        </div>
+      </div>
+      
+      <div className="space-y-1">
+        <div className="text-lg font-bold">
+          {test.result} {test.unit}
+        </div>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <div>Updated: {new Date(test.test_date).toLocaleDateString()}</div>
+          {test.reference_min && test.reference_max && (
+            <div>Range: {test.reference_min} - {test.reference_max}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      {/* Page content only, NO header/hamburger/sidebar here */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Blood Analytics</h2>
             <p className="text-muted-foreground">Deep dive into your blood test data patterns and insights.</p>
           </div>
+          
+          {/* Mobile Chart Toggle */}
+          {isMobile && (selectedTest1 || selectedTest2) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMobileChart(!showMobileChart)}
+              className="flex items-center gap-2"
+            >
+              {showMobileChart ? <MonitorIcon className="w-4 h-4" /> : <SmartphoneIcon className="w-4 h-4" />}
+              {showMobileChart ? 'Hide Chart' : 'Show Chart'}
+            </Button>
+          )}
         </div>
 
         {/* Category Selection and Search */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -253,76 +311,62 @@ const Analytics = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 xl:gap-8 2xl:gap-10 analytics-grid">
-          {/* Left Sidebar - Test List */}
-          <div className="lg:col-span-1">
+        {/* Mobile Layout */}
+        {isMobile ? (
+          <div className="space-y-4">
+            {/* Test List */}
             <Card>
               <CardHeader>
-                <CardTitle>{bloodTestCategories[selectedCategory as keyof typeof bloodTestCategories]}</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  {bloodTestCategories[selectedCategory as keyof typeof bloodTestCategories]}
+                  {(selectedTest1 || selectedTest2) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllSelections}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+              <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
                 {isLoading ? (
-                  <div className="text-center text-muted-foreground">Loading...</div>
+                  <div className="text-center text-muted-foreground py-8">Loading...</div>
                 ) : filteredTests.length === 0 ? (
-                  <div className="text-center text-muted-foreground">No tests in this category</div>
+                  <div className="text-center text-muted-foreground py-8">No tests in this category</div>
                 ) : (
                   filteredTests.map((test) => (
-                    <div 
-                      key={test.id} 
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedTest1 === test.test_name || selectedTest2 === test.test_name
-                          ? 'bg-primary/10 border-primary' 
-                          : 'hover:bg-muted/50'
-                      }`}
+                    <MobileTestCard
+                      key={test.id}
+                      test={test}
+                      isSelected={selectedTest1 === test.test_name || selectedTest2 === test.test_name}
                       onClick={() => handleTestClick(test.test_name)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{test.test_name}</h4>
-                          <p className="text-xs text-muted-foreground">{test.category}</p>
-                        </div>
-                        <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                          <BarChart3Icon className="w-4 h-4" />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-lg font-bold">
-                          {test.result} {test.unit}
-                        </div>
-                        <div className={`text-sm flex items-center gap-1 ${
-                          test.isPositive ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          <span>{test.isPositive ? '+' : ''}{test.change.toFixed(2)}</span>
-                          <span>({test.changePercent.toFixed(2)}%)</span>
-                        </div>
-                        
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <div>Updated: {new Date(test.test_date).toLocaleDateString()}</div>
-                          {test.reference_min && test.reference_max && (
-                            <div>Range: {test.reference_min} - {test.reference_max}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    />
                   ))
                 )}
               </CardContent>
             </Card>
-          </div>
 
-          {/* Right Side - Chart Area */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Test Trends</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select tests from the left to compare their trends over time
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-8 p-6 xl:p-8 2xl:p-10">
-                {/* Selected Tests Display */}
-                {(selectedTest1 || selectedTest2) && (
+            {/* Mobile Chart Area */}
+            {showMobileChart && (selectedTest1 || selectedTest2) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Test Trends
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowMobileChart(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Selected Tests Display */}
                   <div className="space-y-2">
                     {selectedTest1 && (
                       <div className="flex items-center justify-between bg-primary/10 rounded p-2">
@@ -333,7 +377,7 @@ const Analytics = () => {
                           onClick={() => clearTestSelection(1)}
                           className="h-6 w-6 p-0"
                         >
-                          ×
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     )}
@@ -346,72 +390,200 @@ const Analytics = () => {
                           onClick={() => clearTestSelection(2)}
                           className="h-6 w-6 p-0"
                         >
-                          ×
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     )}
                   </div>
-                )}
 
-                {/* Charts */}
-                {selectedTest1 && chartData1.length > 0 && (
-                  <div className="space-y-4 mb-16 xl:mb-20 2xl:mb-24">
-                    <h4 className="font-medium text-sm">{selectedTest1}</h4>
-                    <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
-                      <LineChart
-                        data={chartData1}
-                        dataKey="value"
-                        color="hsl(var(--primary))"
-                        tooltipLabel={selectedTest1}
-                        valueFormatter={(value) => `${value} ${test1Details.unit}`}
-                        referenceMin={test1Details.min}
-                        referenceMax={test1Details.max}
-                      />
+                  {/* Charts */}
+                  {selectedTest1 && chartData1.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">{selectedTest1}</h4>
+                      <div className="h-[250px] w-full">
+                        <LineChart
+                          data={chartData1}
+                          dataKey="value"
+                          color="hsl(var(--primary))"
+                          tooltipLabel={selectedTest1}
+                          valueFormatter={(value) => `${value} ${test1Details.unit}`}
+                          referenceMin={test1Details.min}
+                          referenceMax={test1Details.max}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Reference: {test1Details.min !== null && test1Details.max !== null 
+                          ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
+                          : 'No reference range'} | {chartData1.length} data points
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
-                      Reference Range: {test1Details.min !== null && test1Details.max !== null 
-                        ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
-                        : 'No reference range available'} | {chartData1.length} data points
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedTest2 && chartData2.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm">{selectedTest2}</h4>
-                    <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
-                      <LineChart
-                        data={chartData2}
-                        dataKey="value"
-                        color="hsl(var(--destructive))"
-                        tooltipLabel={selectedTest2}
-                        valueFormatter={(value) => `${value} ${test2Details.unit}`}
-                        referenceMin={test2Details.min}
-                        referenceMax={test2Details.max}
-                      />
+                  {selectedTest2 && chartData2.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">{selectedTest2}</h4>
+                      <div className="h-[250px] w-full">
+                        <LineChart
+                          data={chartData2}
+                          dataKey="value"
+                          color="hsl(var(--destructive))"
+                          tooltipLabel={selectedTest2}
+                          valueFormatter={(value) => `${value} ${test2Details.unit}`}
+                          referenceMin={test2Details.min}
+                          referenceMax={test2Details.max}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Reference: {test2Details.min !== null && test2Details.max !== null 
+                          ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
+                          : 'No reference range'} | {chartData2.length} data points
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
-                      Reference Range: {test2Details.min !== null && test2Details.max !== null 
-                        ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
-                        : 'No reference range available'} | {chartData2.length} data points
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Empty State */}
-                {!selectedTest1 && !selectedTest2 && (
-                  <div className="h-[400px] w-full xl:h-[450px] 2xl:h-[500px] flex items-center justify-center border border-dashed rounded-lg">
-                    <div className="text-center">
-                      <BarChart3Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Click on tests from the left to view and compare trends</p>
-                      <p className="text-xs text-muted-foreground mt-2">You can select up to 2 tests for comparison</p>
+                  {/* Empty State */}
+                  {!selectedTest1 && !selectedTest2 && (
+                    <div className="h-[200px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                      <div className="text-center">
+                        <BarChart3Icon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">Select tests to view trends</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </div>
+        ) : (
+          /* Desktop Layout */
+          <div className="grid gap-6 lg:grid-cols-3 xl:gap-8 2xl:gap-10 analytics-grid">
+            {/* Left Sidebar - Test List */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{bloodTestCategories[selectedCategory as keyof typeof bloodTestCategories]}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+                  {isLoading ? (
+                    <div className="text-center text-muted-foreground py-8">Loading...</div>
+                  ) : filteredTests.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">No tests in this category</div>
+                  ) : (
+                    filteredTests.map((test) => (
+                      <DesktopTestCard
+                        key={test.id}
+                        test={test}
+                        isSelected={selectedTest1 === test.test_name || selectedTest2 === test.test_name}
+                        onClick={() => handleTestClick(test.test_name)}
+                      />
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Side - Chart Area */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Test Trends</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Select tests from the left to compare their trends over time
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-8 p-6 xl:p-8 2xl:p-10">
+                  {/* Selected Tests Display */}
+                  {(selectedTest1 || selectedTest2) && (
+                    <div className="space-y-2">
+                      {selectedTest1 && (
+                        <div className="flex items-center justify-between bg-primary/10 rounded p-2">
+                          <span className="text-sm font-medium">Test 1: {selectedTest1}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => clearTestSelection(1)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {selectedTest2 && (
+                        <div className="flex items-center justify-between bg-secondary/10 rounded p-2">
+                          <span className="text-sm font-medium">Test 2: {selectedTest2}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => clearTestSelection(2)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Charts */}
+                  {selectedTest1 && chartData1.length > 0 && (
+                    <div className="space-y-4 mb-16 xl:mb-20 2xl:mb-24">
+                      <h4 className="font-medium text-sm">{selectedTest1}</h4>
+                      <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
+                        <LineChart
+                          data={chartData1}
+                          dataKey="value"
+                          color="hsl(var(--primary))"
+                          tooltipLabel={selectedTest1}
+                          valueFormatter={(value) => `${value} ${test1Details.unit}`}
+                          referenceMin={test1Details.min}
+                          referenceMax={test1Details.max}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
+                        Reference Range: {test1Details.min !== null && test1Details.max !== null 
+                          ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
+                          : 'No reference range available'} | {chartData1.length} data points
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedTest2 && chartData2.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-sm">{selectedTest2}</h4>
+                      <div className="h-[280px] w-full xl:h-[320px] 2xl:h-[360px] analytics-chart-container chart-responsive-container">
+                        <LineChart
+                          data={chartData2}
+                          dataKey="value"
+                          color="hsl(var(--destructive))"
+                          tooltipLabel={selectedTest2}
+                          valueFormatter={(value) => `${value} ${test2Details.unit}`}
+                          referenceMin={test2Details.min}
+                          referenceMax={test2Details.max}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground pt-8 pb-4 xl:pt-10 xl:pb-6 2xl:pt-12 2xl:pb-8 chart-reference-info analytics-reference-text">
+                        Reference Range: {test2Details.min !== null && test2Details.max !== null 
+                          ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
+                          : 'No reference range available'} | {chartData2.length} data points
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {!selectedTest1 && !selectedTest2 && (
+                    <div className="h-[400px] w-full xl:h-[450px] 2xl:h-[500px] flex items-center justify-center border border-dashed rounded-lg">
+                      <div className="text-center">
+                        <BarChart3Icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">Click on tests from the left to view and compare trends</p>
+                        <p className="text-xs text-muted-foreground mt-2">You can select up to 2 tests for comparison</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
