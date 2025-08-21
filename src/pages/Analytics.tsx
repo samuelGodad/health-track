@@ -314,7 +314,7 @@ const Analytics = () => {
         {/* Mobile Layout */}
         {isMobile ? (
           <div className="space-y-4">
-            {/* Test List */}
+            {/* Test List - Always visible and scrollable */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -336,6 +336,12 @@ const Analytics = () => {
                     Tap on tests to view trends in a slide-up chart
                   </p>
                 )}
+                {/* Mobile hint when charts are visible */}
+                {(selectedTest1 || selectedTest2) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    📊 Charts visible below • Scroll to see more tests
+                  </p>
+                )}
               </CardHeader>
               <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
                 {isLoading ? (
@@ -343,54 +349,57 @@ const Analytics = () => {
                 ) : filteredTests.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">No tests in this category</div>
                 ) : (
-                  filteredTests.map((test) => (
-                    <MobileTestCard
-                      key={test.id}
-                      test={test}
-                      isSelected={selectedTest1 === test.test_name || selectedTest2 === test.test_name}
-                      onClick={() => handleTestClick(test.test_name)}
-                    />
-                  ))
+                  <>
+                    {filteredTests.map((test) => (
+                      <MobileTestCard
+                        key={test.id}
+                        test={test}
+                        isSelected={selectedTest1 === test.test_name || selectedTest2 === test.test_name}
+                        onClick={() => handleTestClick(test.test_name)}
+                      />
+                    ))}
+                    {/* Scroll indicator when charts are visible */}
+                    {(selectedTest1 || selectedTest2) && filteredTests.length > 3 && (
+                      <div className="text-center py-2 text-xs text-muted-foreground/60">
+                        ↕️ Scroll for more tests
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
 
-            {/* Mobile Chart Overlay - Slides up from bottom */}
+            {/* Mobile Chart Overlay - Positioned lower and doesn't block test list */}
             {showMobileChart && (selectedTest1 || selectedTest2) && (
-              <div className="fixed inset-0 z-50 chart-backdrop">
-                {/* Backdrop - Click to close */}
-                <div 
-                  className="absolute inset-0 bg-black/20"
-                  onClick={() => setShowMobileChart(false)}
-                />
-                
-                <div className="absolute bottom-0 left-0 right-0 bg-background chart-overlay-content mobile-chart-overlay max-h-[85vh] overflow-hidden">
+              <div className="fixed inset-0 z-40 pointer-events-none">
+                {/* Chart Overlay - Positioned at bottom but not full height */}
+                <div className="absolute bottom-0 left-0 right-0 bg-background chart-overlay-content mobile-chart-overlay max-h-[60vh] overflow-hidden pointer-events-auto border-t border-border/50 shadow-2xl">
                   {/* Drag Handle */}
                   <div className="flex justify-center pt-3 pb-2 chart-drag-handle">
                     <div className="w-12 h-1 bg-muted-foreground/30 rounded-full"></div>
                   </div>
                   
-                  {/* Chart Header */}
-                  <div className="px-4 pb-4 border-b border-border/50">
+                  {/* Chart Header - Compact */}
+                  <div className="px-4 pb-3 border-b border-border/50">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Test Trends</h3>
+                      <h3 className="text-base font-semibold">Test Trends</h3>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowMobileChart(false)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 p-0"
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                     
-                    {/* Selected Tests Display */}
-                    <div className="space-y-2 mt-3">
+                    {/* Selected Tests Display - Compact */}
+                    <div className="space-y-2 mt-2">
                       {selectedTest1 && (
-                        <div className="flex items-center justify-between bg-primary/10 rounded-lg p-3">
+                        <div className="flex items-center justify-between bg-primary/10 rounded-lg p-2">
                           <div className="flex-1 min-w-0">
-                            <span className="text-sm font-medium text-primary">Test 1: {selectedTest1}</span>
-                            <div className="text-xs text-muted-foreground mt-1">
+                            <span className="text-xs font-medium text-primary">Test 1: {selectedTest1}</span>
+                            <div className="text-xs text-muted-foreground mt-0.5">
                               {test1Details.min !== null && test1Details.max !== null 
                                 ? `Range: ${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
                                 : 'No reference range'}
@@ -400,17 +409,17 @@ const Analytics = () => {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => clearTestSelection(1)}
-                            className="h-6 w-6 p-0 ml-2"
+                            className="h-5 w-5 p-0 ml-2"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3 h-3" />
                           </Button>
                         </div>
                       )}
                       {selectedTest2 && (
-                        <div className="flex items-center justify-between bg-secondary/10 rounded-lg p-3">
+                        <div className="flex items-center justify-between bg-secondary/10 rounded-lg p-2">
                           <div className="flex-1 min-w-0">
-                            <span className="text-sm font-medium text-secondary">Test 2: {selectedTest2}</span>
-                            <div className="text-xs text-muted-foreground mt-1">
+                            <span className="text-xs font-medium text-secondary">Test 2: {selectedTest2}</span>
+                            <div className="text-xs text-muted-foreground mt-0.5">
                               {test2Details.min !== null && test2Details.max !== null 
                                 ? `Range: ${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
                                 : 'No reference range'}
@@ -420,22 +429,22 @@ const Analytics = () => {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => clearTestSelection(2)}
-                            className="h-6 w-6 p-0 ml-2"
+                            className="h-5 w-5 p-0 ml-2"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3 h-3" />
                           </Button>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Charts Content */}
-                  <div className="px-4 py-4 overflow-y-auto max-h-[60vh]">
+                  {/* Charts Content - Compact and scrollable */}
+                  <div className="px-4 py-3 overflow-y-auto max-h-[40vh]">
                     {/* Charts */}
                     {selectedTest1 && chartData1.length > 0 && (
-                      <div className="space-y-3 mb-6">
-                        <h4 className="font-medium text-sm text-primary">{selectedTest1}</h4>
-                        <div className="h-[200px] w-full bg-muted/20 rounded-lg p-2">
+                      <div className="space-y-2 mb-4">
+                        <h4 className="font-medium text-xs text-primary">{selectedTest1}</h4>
+                        <div className="h-[150px] w-full bg-muted/20 rounded-lg p-2">
                           <LineChart
                             data={chartData1}
                             dataKey="value"
@@ -453,9 +462,9 @@ const Analytics = () => {
                     )}
 
                     {selectedTest2 && chartData2.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-sm text-secondary">{selectedTest2}</h4>
-                        <div className="h-[200px] w-full bg-muted/20 rounded-lg p-2">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-xs text-secondary">{selectedTest2}</h4>
+                        <div className="h-[150px] w-full bg-muted/20 rounded-lg p-2">
                           <LineChart
                             data={chartData2}
                             dataKey="value"
@@ -474,10 +483,10 @@ const Analytics = () => {
 
                     {/* Empty State */}
                     {!selectedTest1 && !selectedTest2 && (
-                      <div className="h-[200px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                      <div className="h-[150px] w-full flex items-center justify-center border border-dashed rounded-lg">
                         <div className="text-center">
-                          <BarChart3Icon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-muted-foreground text-sm">Select tests to view trends</p>
+                          <BarChart3Icon className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground text-xs">Select tests to view trends</p>
                         </div>
                       </div>
                     )}

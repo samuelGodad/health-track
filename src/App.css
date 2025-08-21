@@ -96,6 +96,23 @@
     border-top-right-radius: 1rem;
   }
   
+  /* Mobile chart overlay - lower positioning */
+  .mobile-chart-overlay {
+    z-index: 40;
+    pointer-events: auto;
+  }
+  
+  /* Ensure test list remains scrollable */
+  .mobile-test-list {
+    z-index: 30;
+    pointer-events: auto;
+  }
+  
+  /* Chart overlay shadow for better separation */
+  .chart-overlay-shadow {
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
   /* Drag handle styling */
   .chart-drag-handle {
     cursor: grab;
@@ -105,6 +122,17 @@
   
   .chart-drag-handle:active {
     cursor: grabbing;
+  }
+  
+  /* Compact mobile charts */
+  .mobile-chart-compact {
+    max-height: 60vh;
+    overflow: hidden;
+  }
+  
+  .mobile-chart-content {
+    max-height: 40vh;
+    overflow-y: auto;
   }
 }
 
