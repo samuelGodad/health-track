@@ -315,8 +315,8 @@ const Analytics = () => {
         {isMobile ? (
           <div className="space-y-4">
             {/* Test List - Always visible and scrollable */}
-            <Card>
-              <CardHeader>
+            <Card className="mobile-layout-transition">
+              <CardHeader className={`transition-all duration-300 ${showMobileChart ? 'pb-2' : 'pb-4'}`}>
                 <CardTitle className="flex items-center justify-between">
                   {bloodTestCategories[selectedCategory as keyof typeof bloodTestCategories]}
                   {(selectedTest1 || selectedTest2) && (
@@ -330,20 +330,31 @@ const Analytics = () => {
                     </Button>
                   )}
                 </CardTitle>
-                {/* Mobile hint */}
-                {!selectedTest1 && !selectedTest2 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Tap on tests to view trends in a slide-up chart
-                  </p>
+                {/* Mobile hint - only show when charts are hidden */}
+                {!showMobileChart && (
+                  <>
+                    {!selectedTest1 && !selectedTest2 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tap on tests to view trends in a slide-up chart
+                      </p>
+                    )}
+                    {(selectedTest1 || selectedTest2) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📊 Tap to show charts • Scroll to see more tests
+                      </p>
+                    )}
+                  </>
                 )}
-                {/* Mobile hint when charts are visible */}
-                {(selectedTest1 || selectedTest2) && (
+                {/* Compact hint when charts are visible */}
+                {showMobileChart && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    📊 Charts visible below • Scroll to see more tests
+                    📊 Charts visible • Scroll tests above
                   </p>
                 )}
               </CardHeader>
-              <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+              <CardContent className={`space-y-3 overflow-y-auto transition-all duration-300 ${
+                showMobileChart ? 'max-h-[300px]' : 'max-h-[400px]'
+              }`}>
                 {isLoading ? (
                   <div className="text-center text-muted-foreground py-8">Loading...</div>
                 ) : filteredTests.length === 0 ? (
@@ -359,7 +370,7 @@ const Analytics = () => {
                       />
                     ))}
                     {/* Scroll indicator when charts are visible */}
-                    {(selectedTest1 || selectedTest2) && filteredTests.length > 3 && (
+                    {showMobileChart && filteredTests.length > 3 && (
                       <div className="text-center py-2 text-xs text-muted-foreground/60">
                         ↕️ Scroll for more tests
                       </div>
@@ -369,34 +380,34 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Mobile Chart Overlay - Positioned lower and doesn't block test list */}
+            {/* Mobile Chart Overlay - More compact and doesn't block test list */}
             {showMobileChart && (selectedTest1 || selectedTest2) && (
               <div className="fixed inset-0 z-40 pointer-events-none">
-                {/* Chart Overlay - Positioned at bottom but not full height */}
-                <div className="absolute bottom-0 left-0 right-0 bg-background chart-overlay-content mobile-chart-overlay max-h-[60vh] overflow-hidden pointer-events-auto border-t border-border/50 shadow-2xl">
+                {/* Chart Overlay - More compact positioning */}
+                <div className="absolute bottom-0 left-0 right-0 bg-background chart-overlay-content mobile-chart-overlay max-h-[50vh] overflow-hidden pointer-events-auto border-t border-border/50 shadow-2xl">
                   {/* Drag Handle */}
-                  <div className="flex justify-center pt-3 pb-2 chart-drag-handle">
+                  <div className="flex justify-center pt-2 pb-1 chart-drag-handle">
                     <div className="w-12 h-1 bg-muted-foreground/30 rounded-full"></div>
                   </div>
                   
-                  {/* Chart Header - Compact */}
-                  <div className="px-4 pb-3 border-b border-border/50">
+                  {/* Chart Header - Very compact */}
+                  <div className="px-4 pb-2 border-b border-border/50">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold">Test Trends</h3>
+                      <h3 className="text-sm font-semibold">Test Trends</h3>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowMobileChart(false)}
-                        className="h-7 w-7 p-0"
+                        className="h-6 w-6 p-0"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </Button>
                     </div>
                     
-                    {/* Selected Tests Display - Compact */}
-                    <div className="space-y-2 mt-2">
+                    {/* Selected Tests Display - Very compact */}
+                    <div className="space-y-1 mt-1">
                       {selectedTest1 && (
-                        <div className="flex items-center justify-between bg-primary/10 rounded-lg p-2">
+                        <div className="flex items-center justify-between bg-primary/10 rounded-lg p-1.5">
                           <div className="flex-1 min-w-0">
                             <span className="text-xs font-medium text-primary">Test 1: {selectedTest1}</span>
                             <div className="text-xs text-muted-foreground mt-0.5">
@@ -409,14 +420,14 @@ const Analytics = () => {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => clearTestSelection(1)}
-                            className="h-5 w-5 p-0 ml-2"
+                            className="h-4 w-4 p-0 ml-1"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2.5 h-2.5" />
                           </Button>
                         </div>
                       )}
                       {selectedTest2 && (
-                        <div className="flex items-center justify-between bg-secondary/10 rounded-lg p-2">
+                        <div className="flex items-center justify-between bg-secondary/10 rounded-lg p-1.5">
                           <div className="flex-1 min-w-0">
                             <span className="text-xs font-medium text-secondary">Test 2: {selectedTest2}</span>
                             <div className="text-xs text-muted-foreground mt-0.5">
@@ -429,22 +440,22 @@ const Analytics = () => {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => clearTestSelection(2)}
-                            className="h-5 w-5 p-0 ml-2"
+                            className="h-4 w-4 p-0 ml-1"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2.5 h-2.5" />
                           </Button>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Charts Content - Compact and scrollable */}
-                  <div className="px-4 py-3 overflow-y-auto max-h-[40vh]">
+                  {/* Charts Content - More compact and scrollable */}
+                  <div className="px-4 py-2 overflow-y-auto max-h-[35vh]">
                     {/* Charts */}
                     {selectedTest1 && chartData1.length > 0 && (
-                      <div className="space-y-2 mb-4">
+                      <div className="space-y-1.5 mb-3">
                         <h4 className="font-medium text-xs text-primary">{selectedTest1}</h4>
-                        <div className="h-[150px] w-full bg-muted/20 rounded-lg p-2">
+                        <div className="h-[120px] w-full bg-muted/20 rounded-lg p-2">
                           <LineChart
                             data={chartData1}
                             dataKey="value"
@@ -462,9 +473,9 @@ const Analytics = () => {
                     )}
 
                     {selectedTest2 && chartData2.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <h4 className="font-medium text-xs text-secondary">{selectedTest2}</h4>
-                        <div className="h-[150px] w-full bg-muted/20 rounded-lg p-2">
+                        <div className="h-[120px] w-full bg-muted/20 rounded-lg p-2">
                           <LineChart
                             data={chartData2}
                             dataKey="value"
@@ -483,9 +494,9 @@ const Analytics = () => {
 
                     {/* Empty State */}
                     {!selectedTest1 && !selectedTest2 && (
-                      <div className="h-[150px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                      <div className="h-[120px] w-full flex items-center justify-center border border-dashed rounded-lg">
                         <div className="text-center">
-                          <BarChart3Icon className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                          <BarChart3Icon className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
                           <p className="text-muted-foreground text-xs">Select tests to view trends</p>
                         </div>
                       </div>

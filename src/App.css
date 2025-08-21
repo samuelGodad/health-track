@@ -126,13 +126,29 @@
   
   /* Compact mobile charts */
   .mobile-chart-compact {
-    max-height: 60vh;
+    max-height: 50vh;
     overflow: hidden;
   }
   
   .mobile-chart-content {
-    max-height: 40vh;
+    max-height: 35vh;
     overflow-y: auto;
+  }
+  
+  /* Smooth transitions for mobile layout */
+  .mobile-layout-transition {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Compact chart heights for mobile */
+  .mobile-chart-height {
+    height: 120px;
+  }
+  
+  /* Reduced spacing for mobile charts */
+  .mobile-chart-spacing {
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
   }
 }
 
