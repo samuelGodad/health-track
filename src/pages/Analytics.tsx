@@ -330,6 +330,12 @@ const Analytics = () => {
                     </Button>
                   )}
                 </CardTitle>
+                {/* Mobile hint */}
+                {!selectedTest1 && !selectedTest2 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tap on tests to view trends in a slide-up chart
+                  </p>
+                )}
               </CardHeader>
               <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
                 {isLoading ? (
@@ -349,109 +355,135 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Mobile Chart Area */}
+            {/* Mobile Chart Overlay - Slides up from bottom */}
             {showMobileChart && (selectedTest1 || selectedTest2) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    Test Trends
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowMobileChart(false)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Selected Tests Display */}
-                  <div className="space-y-2">
-                    {selectedTest1 && (
-                      <div className="flex items-center justify-between bg-primary/10 rounded p-2">
-                        <span className="text-sm font-medium">Test 1: {selectedTest1}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => clearTestSelection(1)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+              <div className="fixed inset-0 z-50 chart-backdrop">
+                {/* Backdrop - Click to close */}
+                <div 
+                  className="absolute inset-0 bg-black/20"
+                  onClick={() => setShowMobileChart(false)}
+                />
+                
+                <div className="absolute bottom-0 left-0 right-0 bg-background chart-overlay-content mobile-chart-overlay max-h-[85vh] overflow-hidden">
+                  {/* Drag Handle */}
+                  <div className="flex justify-center pt-3 pb-2 chart-drag-handle">
+                    <div className="w-12 h-1 bg-muted-foreground/30 rounded-full"></div>
+                  </div>
+                  
+                  {/* Chart Header */}
+                  <div className="px-4 pb-4 border-b border-border/50">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Test Trends</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowMobileChart(false)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Selected Tests Display */}
+                    <div className="space-y-2 mt-3">
+                      {selectedTest1 && (
+                        <div className="flex items-center justify-between bg-primary/10 rounded-lg p-3">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-primary">Test 1: {selectedTest1}</span>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {test1Details.min !== null && test1Details.max !== null 
+                                ? `Range: ${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
+                                : 'No reference range'}
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => clearTestSelection(1)}
+                            className="h-6 w-6 p-0 ml-2"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {selectedTest2 && (
+                        <div className="flex items-center justify-between bg-secondary/10 rounded-lg p-3">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-secondary">Test 2: {selectedTest2}</span>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {test2Details.min !== null && test2Details.max !== null 
+                                ? `Range: ${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
+                                : 'No reference range'}
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => clearTestSelection(2)}
+                            className="h-6 w-6 p-0 ml-2"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Charts Content */}
+                  <div className="px-4 py-4 overflow-y-auto max-h-[60vh]">
+                    {/* Charts */}
+                    {selectedTest1 && chartData1.length > 0 && (
+                      <div className="space-y-3 mb-6">
+                        <h4 className="font-medium text-sm text-primary">{selectedTest1}</h4>
+                        <div className="h-[200px] w-full bg-muted/20 rounded-lg p-2">
+                          <LineChart
+                            data={chartData1}
+                            dataKey="value"
+                            color="hsl(var(--primary))"
+                            tooltipLabel={selectedTest1}
+                            valueFormatter={(value) => `${value} ${test1Details.unit}`}
+                            referenceMin={test1Details.min}
+                            referenceMax={test1Details.max}
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground text-center">
+                          {chartData1.length} data points
+                        </div>
                       </div>
                     )}
-                    {selectedTest2 && (
-                      <div className="flex items-center justify-between bg-secondary/10 rounded p-2">
-                        <span className="text-sm font-medium">Test 2: {selectedTest2}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => clearTestSelection(2)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+
+                    {selectedTest2 && chartData2.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm text-secondary">{selectedTest2}</h4>
+                        <div className="h-[200px] w-full bg-muted/20 rounded-lg p-2">
+                          <LineChart
+                            data={chartData2}
+                            dataKey="value"
+                            color="hsl(var(--destructive))"
+                            tooltipLabel={selectedTest2}
+                            valueFormatter={(value) => `${value} ${test2Details.unit}`}
+                            referenceMin={test2Details.min}
+                            referenceMax={test2Details.max}
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground text-center">
+                          {chartData2.length} data points
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!selectedTest1 && !selectedTest2 && (
+                      <div className="h-[200px] w-full flex items-center justify-center border border-dashed rounded-lg">
+                        <div className="text-center">
+                          <BarChart3Icon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground text-sm">Select tests to view trends</p>
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Charts */}
-                  {selectedTest1 && chartData1.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">{selectedTest1}</h4>
-                      <div className="h-[250px] w-full">
-                        <LineChart
-                          data={chartData1}
-                          dataKey="value"
-                          color="hsl(var(--primary))"
-                          tooltipLabel={selectedTest1}
-                          valueFormatter={(value) => `${value} ${test1Details.unit}`}
-                          referenceMin={test1Details.min}
-                          referenceMax={test1Details.max}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Reference: {test1Details.min !== null && test1Details.max !== null 
-                          ? `${test1Details.min} - ${test1Details.max} ${test1Details.unit}`
-                          : 'No reference range'} | {chartData1.length} data points
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedTest2 && chartData2.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">{selectedTest2}</h4>
-                      <div className="h-[250px] w-full">
-                        <LineChart
-                          data={chartData2}
-                          dataKey="value"
-                          color="hsl(var(--destructive))"
-                          tooltipLabel={selectedTest2}
-                          valueFormatter={(value) => `${value} ${test2Details.unit}`}
-                          referenceMin={test2Details.min}
-                          referenceMax={test2Details.max}
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Reference: {test2Details.min !== null && test2Details.max !== null 
-                          ? `${test2Details.min} - ${test2Details.max} ${test2Details.unit}`
-                          : 'No reference range'} | {chartData2.length} data points
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Empty State */}
-                  {!selectedTest1 && !selectedTest2 && (
-                    <div className="h-[200px] w-full flex items-center justify-center border border-dashed rounded-lg">
-                      <div className="text-center">
-                        <BarChart3Icon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground text-sm">Select tests to view trends</p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         ) : (

@@ -73,6 +73,62 @@
   .recharts-cartesian-axis-tick {
     margin-bottom: 0.5rem;
   }
+  
+  /* Mobile chart overlay animations */
+  .mobile-chart-overlay {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .mobile-chart-overlay.closing {
+    animation: slideDown 0.3s ease-in;
+  }
+  
+  /* Chart overlay backdrop */
+  .chart-backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  
+  /* Chart overlay content */
+  .chart-overlay-content {
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.15);
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+  }
+  
+  /* Drag handle styling */
+  .chart-drag-handle {
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  
+  .chart-drag-handle:active {
+    cursor: grabbing;
+  }
+}
+
+/* Slide-up animation for mobile charts */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
 }
 
 /* Tablet-specific optimizations */
