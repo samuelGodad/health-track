@@ -7,12 +7,14 @@ interface NavItemProps {
   icon: React.ElementType;
   label: string;
   isActive: boolean;
+  onClick?: () => void;
 }
 
-export const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => {
+export const NavItem = ({ to, icon: Icon, label, isActive, onClick }: NavItemProps) => {
   return (
     <Link 
       to={to} 
+      onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-6 py-3 transition-all duration-300",
         "hover:bg-secondary/80",

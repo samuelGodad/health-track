@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HeartPulseIcon, FlaskConicalIcon, MenuIcon } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
@@ -13,10 +13,30 @@ const Navbar = () => {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileMenuOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   if (!mounted) return null;
 
@@ -65,7 +85,12 @@ const Navbar = () => {
         </div>
       </div>
 
-      <MobileNav isOpen={mobileMenuOpen} currentPath={location.pathname} />
+      <MobileNav 
+        ref={mobileMenuRef}
+        isOpen={mobileMenuOpen} 
+        currentPath={location.pathname} 
+        onNavClick={() => setMobileMenuOpen(false)}
+      />
     </div>
   );
 };
