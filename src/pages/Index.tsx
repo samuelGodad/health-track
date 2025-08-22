@@ -14,7 +14,6 @@ const Index = () => {
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
             <span>Enhanced Health</span>
-            <img src="/logo.svg" alt="Enhanced Health" className="h-6 w-6 flex-shrink-0" />
             <HeartPulseIcon className="h-5 w-5 text-primary flex-shrink-0" />
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
