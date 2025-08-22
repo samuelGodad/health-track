@@ -54,6 +54,7 @@ const Navbar = () => {
             >
               <span className="whitespace-nowrap">Enhanced Health</span>
               <img src="/logo.svg" alt="Enhanced Health" className="h-6 w-6 flex-shrink-0" />
+              <HeartPulseIcon className="h-5 w-5 text-primary flex-shrink-0" />
             </Link>
           </div>
 
