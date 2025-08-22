@@ -13,7 +13,7 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
-            EnhancedHealth
+            Enhanced Health
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
             <Button 
@@ -71,7 +71,7 @@ const Index = () => {
           <div className="container px-4 md:px-6">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-6 leading-tight">
-                EnhancedHealth brings all your bloodwork into one clean, AI-powered dashboard.
+                Enhanced Health brings all your bloodwork into one clean, AI-powered dashboard.
               </h2>
               <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
                 No more digging through files. No more guessing. Just clarity and control.
