@@ -149,10 +149,10 @@ const Index = () => {
         </section>
 
         {/* Social Proof Section */}
-        <section className="w-full py-16 bg-muted/50">
+        <section className="w-full py-20 md:py-28 bg-primary text-primary-foreground">
           <div className="container px-4 md:px-6">
             <div className="text-center">
-              <p className="text-xl md:text-2xl font-semibold text-foreground">
+              <p className="text-2xl md:text-4xl lg:text-5xl font-bold tracking-wide">
                 Built by athletes, for athletes.
               </p>
             </div>
