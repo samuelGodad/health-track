@@ -62,7 +62,7 @@ const SignIn = () => {
         <Card className="overflow-hidden rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm shadow-md">
           <CardContent className="p-6">
             <div className="flex justify-center mb-6">
-              <h1 className="text-2xl font-bold text-primary">Your Vita Health</h1>
+              <h1 className="text-2xl font-bold text-primary">Enhanced Health</h1>
             </div>
             
             <div className="text-center mb-6">
