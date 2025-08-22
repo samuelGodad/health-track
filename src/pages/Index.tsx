@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DashboardPreview from "@/components/DashboardPreview";
-import { CheckIcon, ShieldIcon, TrendingUpIcon, BrainIcon } from "lucide-react";
+import { CheckIcon, ShieldIcon, TrendingUpIcon, BrainIcon, HeartPulseIcon } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -13,7 +13,9 @@ const Index = () => {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
-            Enhanced Health
+            <span>Enhanced Health</span>
+            <img src="/logo.svg" alt="Enhanced Health" className="h-6 w-6 flex-shrink-0" />
+            <HeartPulseIcon className="h-5 w-5 text-primary flex-shrink-0" />
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
             <Button 
