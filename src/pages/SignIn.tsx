@@ -63,7 +63,7 @@ const SignIn = () => {
           <CardContent className="p-6">
             <div className="flex justify-center items-center gap-2 mb-6">
               <h1 className="text-2xl font-bold text-primary">Enhanced Health</h1>
-              <img src="/logo.svg" alt="Enhanced Health Logo" className="h-8 w-8" />
+              <img src="/logo.svg" alt="Enhanced Health Logo" className="h-10 w-10" />
             </div>
             
             <div className="text-center mb-6">
