@@ -16,8 +16,14 @@ type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row']
 
 interface BloodTest extends Omit<BloodTestResult, 'created_at' | 'user_id' | 'processed_by_ai' | 'source_file_path' | 'source_file_type' | 'source_file_url'> {
   unit?: string;
-  normalizedTestName?: string;
   displayName?: string;
+  originalName?: string;
+  standardized?: boolean;
+  confidence_score?: number;
+  units?: string;
+  // Additional fields from backend processing
+  test?: string; // Standardized test name from CSV
+  original_test_name?: string; // Original extracted name
 }
 
 type BloodTestsByDateProps = {
@@ -47,351 +53,38 @@ const normalizeDate = (dateString: string): string => {
   }
 };    
 
-// Utility function to normalize test names by detecting common variations
-const normalizeTestName = (testName: string): string => {
-  if (!testName) return testName;
-  
-  const normalized = testName.toLowerCase().trim();
-  
-  // Common test name variations and aliases
-  const testAliases: Record<string, string> = {
-    // Estrogen variations
-    'estradiol': 'Estradiol',
-    'estradiol e2': 'Estradiol',
-    'e2': 'Estradiol',
-    'estradiol, e2': 'Estradiol',
-    
-    // Testosterone variations
-    'testosterone': 'Testosterone',
-    'testosterone total': 'Testosterone',
-    'total testosterone': 'Testosterone',
-    'testosterone, total': 'Testosterone',
-    
-    // Vitamin D variations
-    'vitamin d': 'Vitamin D',
-    '25-oh vitamin d': 'Vitamin D',
-    '25-hydroxyvitamin d': 'Vitamin D',
-    'vitamin d, 25-oh': 'Vitamin D',
-    '25-oh d': 'Vitamin D',
-    'vitamin d3': 'Vitamin D',
-    
-    // Thyroid variations
-    'tsh': 'TSH',
-    'thyroid stimulating hormone': 'TSH',
-    'thyrotropin': 'TSH',
-    'thyroid stimulating hormone (tsh)': 'TSH',
-    
-    // T4 variations
-    't4': 'T4',
-    'thyroxine': 'T4',
-    'free t4': 'Free T4',
-    'ft4': 'Free T4',
-    'free thyroxine': 'Free T4',
-    
-    // T3 variations
-    't3': 'T3',
-    'triiodothyronine': 'T3',
-    'free t3': 'Free T3',
-    'ft3': 'Free T3',
-    'free triiodothyronine': 'Free T3',
-    
-    // Cholesterol variations
-    'cholesterol': 'Cholesterol',
-    'total cholesterol': 'Cholesterol',
-    'cholesterol, total': 'Cholesterol',
-    
-    // HDL variations
-    'hdl': 'HDL',
-    'hdl cholesterol': 'HDL',
-    'high-density lipoprotein': 'HDL',
-    'hdl-c': 'HDL',
-    
-    // LDL variations
-    'ldl': 'LDL',
-    'ldl cholesterol': 'LDL',
-    'low-density lipoprotein': 'LDL',
-    'ldl-c': 'LDL',
-    
-    // Triglycerides variations
-    'triglycerides': 'Triglycerides',
-    'triglyceride': 'Triglycerides',
-    'trig': 'Triglycerides',
-    
-    // Glucose variations
-    'glucose': 'Glucose',
-    'blood glucose': 'Glucose',
-    'glucose, fasting': 'Glucose',
-    'fasting glucose': 'Glucose',
-    
-    // Hemoglobin variations
-    'hemoglobin': 'Hemoglobin',
-    'hgb': 'Hemoglobin',
-    'hb': 'Hemoglobin',
-    
-    // Hematocrit variations
-    'hematocrit': 'Hematocrit',
-    'hct': 'Hematocrit',
-    
-    // White blood cell variations
-    'white blood cells': 'White Blood Cells',
-    'wbc': 'White Blood Cells',
-    'leukocytes': 'White Blood Cells',
-    
-    // Red blood cell variations
-    'red blood cells': 'Red Blood Cells',
-    'rbc': 'Red Blood Cells',
-    'erythrocytes': 'Red Blood Cells',
-    
-    // Platelet variations
-    'platelets': 'Platelets',
-    'plt': 'Platelets',
-    'thrombocytes': 'Platelets',
-    
-    // Creatinine variations
-    'creatinine': 'Creatinine',
-    'creat': 'Creatinine',
-    'serum creatinine': 'Creatinine',
-    
-    // BUN variations
-    'bun': 'BUN',
-    'blood urea nitrogen': 'BUN',
-    'urea nitrogen': 'BUN',
-    
-    // Sodium variations
-    'sodium': 'Sodium',
-    'na': 'Sodium',
-    'serum sodium': 'Sodium',
-    
-    // Potassium variations
-    'potassium': 'Potassium',
-    'k': 'Potassium',
-    'serum potassium': 'Potassium',
-    
-    // Chloride variations
-    'chloride': 'Chloride',
-    'cl': 'Chloride',
-    'serum chloride': 'Chloride',
-    
-    // CO2 variations
-    'co2': 'CO2',
-    'bicarbonate': 'CO2',
-    'hco3': 'CO2',
-    'total co2': 'CO2',
-    
-    // Calcium variations
-    'calcium': 'Calcium',
-    'ca': 'Calcium',
-    'serum calcium': 'Calcium',
-    'total calcium': 'Calcium',
-    
-    // Magnesium variations
-    'magnesium': 'Magnesium',
-    'mg': 'Magnesium',
-    'serum magnesium': 'Magnesium',
-    
-    // Iron variations
-    'iron': 'Iron',
-    'serum iron': 'Iron',
-    'fe': 'Iron',
-    
-    // Ferritin variations
-    'ferritin': 'Ferritin',
-    'serum ferritin': 'Ferritin',
-    
-    // B12 variations
-    'vitamin b12': 'Vitamin B12',
-    'b12': 'Vitamin B12',
-    'cobalamin': 'Vitamin B12',
-    
-    // Folate variations
-    'folate': 'Folate',
-    'folic acid': 'Folate',
-    'vitamin b9': 'Folate',
-    
-    // PSA variations
-    'psa': 'PSA',
-    'prostate specific antigen': 'PSA',
-    'total psa': 'PSA',
-    
-    // Albumin variations
-    'albumin': 'Albumin',
-    'serum albumin': 'Albumin',
-    
-    // Total protein variations
-    'total protein': 'Total Protein',
-    'protein, total': 'Total Protein',
-    'serum protein': 'Total Protein',
-    
-    // Bilirubin variations
-    'bilirubin': 'Bilirubin',
-    'total bilirubin': 'Bilirubin',
-    'bilirubin, total': 'Bilirubin',
-    
-    // ALT variations
-    'alt': 'ALT',
-    'alanine aminotransferase': 'ALT',
-    'sgpt': 'ALT',
-    
-    // AST variations
-    'ast': 'AST',
-    'aspartate aminotransferase': 'AST',
-    'sgot': 'AST',
-    
-    // Alkaline phosphatase variations
-    'alkaline phosphatase': 'Alkaline Phosphatase',
-    'alp': 'Alkaline Phosphatase',
-    'alk phos': 'Alkaline Phosphatase',
-    
-    // GGT variations
-    'ggt': 'GGT',
-    'gamma-glutamyl transferase': 'GGT',
-    'gamma gt': 'GGT',
-    
-    // LDH variations
-    'ldh': 'LDH',
-    'lactate dehydrogenase': 'LDH',
-    'lactic acid dehydrogenase': 'LDH',
-    
-    // Amylase variations
-    'amylase': 'Amylase',
-    'serum amylase': 'Amylase',
-    
-    // Lipase variations
-    'lipase': 'Lipase',
-    'serum lipase': 'Lipase',
-    
-    // Uric acid variations
-    'uric acid': 'Uric Acid',
-    'serum uric acid': 'Uric Acid',
-    
-    // Cortisol variations
-    'cortisol': 'Cortisol',
-    'serum cortisol': 'Cortisol',
-    
-    // Insulin variations
-    'insulin': 'Insulin',
-    'serum insulin': 'Insulin',
-    'fasting insulin': 'Insulin',
-    
-    // HbA1c variations
-    'hba1c': 'HbA1c',
-    'glycated hemoglobin': 'HbA1c',
-    'a1c': 'HbA1c',
-    'hemoglobin a1c': 'HbA1c',
-    
-    // C-peptide variations
-    'c-peptide': 'C-Peptide',
-    'c peptide': 'C-Peptide',
-    'connecting peptide': 'C-Peptide',
-    
-    // Prolactin variations
-    'prolactin': 'Prolactin',
-    'serum prolactin': 'Prolactin',
-    
-    // FSH variations
-    'fsh': 'FSH',
-    'follicle stimulating hormone': 'FSH',
-    
-    // LH variations
-    'lh': 'LH',
-    'luteinizing hormone': 'LH',
-    
-    // Progesterone variations
-    'progesterone': 'Progesterone',
-    'serum progesterone': 'Progesterone',
-    
-    // DHEA-S variations
-    'dhea-s': 'DHEA-S',
-    'dehydroepiandrosterone sulfate': 'DHEA-S',
-    'dhea sulfate': 'DHEA-S',
-    
-    // IGF-1 variations
-    'igf-1': 'IGF-1',
-    'insulin-like growth factor 1': 'IGF-1',
-    'somatomedin c': 'IGF-1',
-    
-    // Homocysteine variations
-    'homocysteine': 'Homocysteine',
-    'serum homocysteine': 'Homocysteine',
-    
-    // ESR variations
-    'esr': 'ESR',
-    'erythrocyte sedimentation rate': 'ESR',
-    'sed rate': 'ESR',
-    
-    // MCV variations
-    'mcv': 'MCV',
-    'mean corpuscular volume': 'MCV',
-    
-    // MCH variations
-    'mch': 'MCH',
-    'mean corpuscular hemoglobin': 'MCH',
-    
-    // MCHC variations
-    'mchc': 'MCHC',
-    'mean corpuscular hemoglobin concentration': 'MCHC',
-    
-    // RDW variations
-    'rdw': 'RDW',
-    'red cell distribution width': 'RDW',
-    
-    // MPV variations
-    'mpv': 'MPV',
-    'mean platelet volume': 'MPV',
-    
-    // PCT variations
-    'pct': 'PCT',
-    'plateletcrit': 'PCT',
-    
-    // PDW variations
-    'pdw': 'PDW',
-    'platelet distribution width': 'PDW',
-  };
-  
-  // Check for exact matches first
-  if (testAliases[normalized]) {
-    return testAliases[normalized];
-  }
-  
-  // Check for partial matches (e.g., "Estradiol E2" contains "estradiol")
-  for (const [alias, standardName] of Object.entries(testAliases)) {
-    if (normalized.includes(alias) || alias.includes(normalized)) {
-      return standardName;
-    }
-  }
-  
-  // If no match found, return the original name with proper capitalization
-  return testName.charAt(0).toUpperCase() + testName.slice(1).toLowerCase();
-};
-
 const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDateProps) => {
   const { user } = useAuth();
   const [expandedDates, setExpandedDates] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  
+   
   const testsByDate = useMemo(() => {
+    console.log('🔍 BloodTestsByDate: Processing', bloodTestResults.length, 'test results');
+    
     const deduplicated: Record<string, Record<string, BloodTest>> = {};
     
     bloodTestResults.forEach(test => {
       // Normalize the date to ensure consistent grouping
       const normalizedDate = normalizeDate(test.test_date);
-      // Normalize the test name to group similar tests together
-      const normalizedTestName = normalizeTestName(test.test_name);
+      
+      // Use standardized name if available, otherwise use original test name
+      const testNameToUse = test.test || test.test_name;
       
       if (!deduplicated[normalizedDate]) {
         deduplicated[normalizedDate] = {};
       }
       
-      // Use normalized test name for grouping, but keep original name for display
-      const testWithNormalizedName = {
+      // Use the actual test name for grouping (no normalization)
+      const testWithDisplayInfo = {
         ...test,
-        normalizedTestName,
-        displayName: test.test_name // Keep original name for display
+        displayName: testNameToUse, // Use standardized name if available
+        originalName: test.original_test_name || test.test_name // Keep original name for reference
       };
       
-      if (!deduplicated[normalizedDate][normalizedTestName] || 
-          new Date(test.id) > new Date(deduplicated[normalizedDate][normalizedTestName].id)) {
-        deduplicated[normalizedDate][normalizedTestName] = testWithNormalizedName;
+      // If we already have a test with this name on this date, keep the newer one
+      if (!deduplicated[normalizedDate][testNameToUse] || 
+          new Date(test.id) > new Date(deduplicated[normalizedDate][testNameToUse].id)) {
+        deduplicated[normalizedDate][testNameToUse] = testWithDisplayInfo;
       }
     });
     
@@ -400,13 +93,18 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
       grouped[date] = Object.values(tests);
     });
     
-    return Object.entries(grouped)
+    const result = Object.entries(grouped)
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
       .map(([date, tests]) => ({
         date,
         formattedDate: format(new Date(date), 'MMMM d, yyyy'),
-        tests: tests.sort((a, b) => (a.normalizedTestName || a.test_name).localeCompare(b.normalizedTestName || b.test_name))
+        tests: tests.sort((a, b) => (a.displayName || a.test_name).localeCompare(b.displayName || b.test_name))
       }));
+    
+    console.log('🔍 BloodTestsByDate: Final grouped result:', result.map(r => ({ date: r.date, count: r.tests.length })));
+    console.log('🔍 BloodTestsByDate: Total tests after grouping:', result.reduce((sum, r) => sum + r.tests.length, 0));
+    
+    return result;
   }, [bloodTestResults]);
   
   const getCellColor = (value: number, min: number | null, max: number | null) => {
@@ -510,7 +208,7 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Delete Test Result</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Are you sure you want to delete the {test.test_name} test result from {formattedDate}? This action cannot be undone.
+                                          Are you sure you want to delete the {test.displayName || test.test_name} test result from {formattedDate}? This action cannot be undone.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
@@ -541,10 +239,27 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                                     <EditIcon className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
-                                                                 <div>
-                                   <h4 className="font-medium">{test.displayName || test.test_name}</h4>
-                                   <p className="text-xs text-muted-foreground">{test.category}</p>
-                                 </div>
+                                <div className="flex flex-col gap-1">
+                                  <h4 className="font-medium">{test.displayName || test.test_name}</h4>
+                                  {test.standardized && test.originalName && test.originalName !== test.displayName && (
+                                    <div className="text-xs text-muted-foreground">
+                                      <span className="text-green-600">✓ Standardized</span>
+                                      <span className="ml-1">from "{test.originalName}"</span>
+                                      {test.confidence_score && (
+                                        <span className="ml-1 text-blue-600">({test.confidence_score}% match)</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="text-sm text-muted-foreground">
+                                    {test.category} • {test.result}
+                                    {test.units && ` ${test.units}`}
+                                    {test.reference_min !== null && test.reference_max !== null && (
+                                      <span className="ml-2">
+                                        (Ref: {test.reference_min}-{test.reference_max})
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <div className="text-right pl-4 flex flex-col items-end">

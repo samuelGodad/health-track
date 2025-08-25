@@ -1,0 +1,8 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+"Parathyroid Hormone (PTH, intact)",Bone Health,Bone Turnover Panel,Hormone regulating calcium and phosphorus metabolism and bone remodeling.,15.0,65.0,range,pg/mL,Elevated PTH can signal vitamin D deficiency or overtraining; affects bone health and calcium balance.
+Osteocalcin,Bone Health,Bone Turnover Panel,Protein secreted by osteoblasts; marker of bone formation.,9.0,42.0,range,ng/mL,Levels reflect bone formation rate; low values may occur with suppressed bone turnover during steroid use.
+C‑Telopeptide (CTX),Bone Health,Bone Resorption Panel,Fragment from collagen degradation used as marker of bone resorption.,100.0,700.0,range,pg/mL,Elevated CTX indicates increased bone breakdown; monitor when dieting or after intense training.
+N‑Telopeptide (NTX),Bone Health,Bone Resorption Panel,Cross‑linked N‑telopeptide of type I collagen measured in urine.,9.0,60.0,range,nM BCE,High NTX indicates increased bone resorption; may occur with high cortisol or low estrogen.
+Bone‑specific Alkaline Phosphatase,Bone Health,Bone Formation Panel,Isoenzyme of alkaline phosphatase produced by osteoblasts.,10.0,40.0,range,µg/L,Elevated levels reflect bone formation and turnover; used to monitor anabolic bone therapies.
+Tartrate‑Resistant Acid Phosphatase (TRAP 5b),Bone Health,Bone Resorption Panel,Enzyme released by osteoclasts during bone resorption.,1.6,4.6,range,U/L,High TRAP 5b suggests increased osteoclast activity; may require adjustment of training or nutrition to protect bones.

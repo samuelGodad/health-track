@@ -1,0 +1,22 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+Vitamin D (25‑OH),Micronutrients,Vitamins Panel,"Fat‑soluble vitamin important for bone health, immunity and hormone production.",30.0,100.0,range,ng/mL,Adequate vitamin D supports testosterone levels and muscle function; deficiency is common.
+Vitamin B12,Micronutrients,Vitamins Panel,Water‑soluble vitamin needed for red blood cell formation and nervous system health.,200.0,900.0,range,pg/mL,Low B12 causes anemia and fatigue; adequate levels support energy production.
+Folate (serum),Micronutrients,Vitamins Panel,B‑vitamin essential for DNA synthesis and repair.,3.0,17.0,range,ng/mL,Deficiency leads to anemia and elevated homocysteine; important for cell division during growth.
+Vitamin B6 (PLP),Micronutrients,Vitamins Panel,Active form of vitamin B6 involved in amino acid metabolism.,20.0,125.0,range,nmol/L,Supports protein metabolism and neurotransmitter synthesis; deficiency impairs performance.
+Vitamin C (ascorbate),Micronutrients,Vitamins Panel,Water‑soluble antioxidant essential for collagen production and immune function.,23.0,114.0,range,µmol/L,Adequate vitamin C aids recovery and prevents oxidative stress from heavy training.
+Vitamin A (retinol),Micronutrients,Vitamins Panel,"Fat‑soluble vitamin necessary for vision, immune function and cell growth.",0.3,0.8,range,mg/L,Excess vitamin A can be toxic; deficiency impairs immunity and recovery.
+Vitamin E (alpha‑tocopherol),Micronutrients,Vitamins Panel,Fat‑soluble antioxidant that protects cell membranes.,5.0,20.0,range,mg/L,Low vitamin E may lead to oxidative stress; high doses may thin the blood.
+Vitamin K1 (phylloquinone),Micronutrients,Vitamins Panel,Fat‑soluble vitamin essential for blood clotting and bone proteins.,0.2,3.2,range,ng/mL,Deficiency can lead to bruising and impaired bone health; important when dieting.
+Serum Iron,Micronutrients,Iron Panel,Concentration of circulating iron bound to transferrin.,60.0,170.0,range,µg/dL,Low serum iron causes fatigue and reduced endurance; high levels may indicate overload.
+Ferritin,Micronutrients,Iron Panel,Iron storage protein reflecting body iron stores.,30.0,400.0,range,ng/mL,Low ferritin signals depleted iron stores; high ferritin may reflect inflammation or iron overload.
+Total Iron Binding Capacity (TIBC),Micronutrients,Iron Panel,Capacity of transferrin to bind iron.,250.0,450.0,range,µg/dL,High TIBC suggests iron deficiency; low TIBC occurs in chronic inflammation or liver disease.
+Transferrin,Micronutrients,Iron Panel,Main iron transport protein in blood.,200.0,360.0,range,mg/dL,Elevated transferrin indicates iron deficiency; low levels may be seen in malnutrition or liver disease.
+Transferrin Saturation,Micronutrients,Iron Panel,Percentage of transferrin binding sites occupied by iron.,20.0,50.0,range,%,Low saturation indicates iron deficiency; high saturation may signal iron overload.
+Copper (serum),Micronutrients,Minerals Panel,Trace mineral required for enzymes and iron metabolism.,70.0,150.0,range,µg/dL,Both deficiency and excess of copper can impact energy production and connective tissue health.
+Selenium (serum),Micronutrients,Minerals Panel,Trace mineral involved in thyroid function and antioxidant enzymes.,70.0,150.0,range,µg/L,Adequate selenium supports thyroid hormone metabolism and combats oxidative stress.
+Zinc (serum),Micronutrients,Minerals Panel,Trace mineral essential for immune function and hormone production.,70.0,120.0,range,µg/dL,Adequate zinc supports testosterone production; deficiency impairs recovery and immunity.
+Iodine (urine spot),Micronutrients,Minerals Panel,Trace element measured in urine reflecting recent iodine intake.,100.0,199.0,range,µg/L,Supports thyroid hormone synthesis; deficiency can impair metabolism.
+Vitamin D Binding Protein,Micronutrients,Proteins Panel,Protein that transports vitamin D metabolites in blood.,200.0,600.0,range,mg/L,Influences free vitamin D levels; may vary with genetics and liver function.
+Holotranscobalamin (Active B12),Micronutrients,Vitamins Panel,Biologically active fraction of vitamin B12 bound to transcobalamin II.,37.0,142.0,range,pmol/L,Sensitive marker for early vitamin B12 deficiency; important for energy and nerve function.
+Methylmalonic Acid (MMA),Micronutrients,Metabolite Panel,Byproduct of amino acid metabolism; rises when vitamin B12 is deficient.,0.0,0.4,range,µmol/L,High MMA indicates functional B12 deficiency even if serum B12 is normal.

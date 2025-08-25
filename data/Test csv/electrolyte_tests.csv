@@ -1,0 +1,14 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+Sodium,Electrolytes & Minerals,Serum Electrolyte Panel,Primary extracellular cation essential for fluid balance and nerve signaling.,135.0,145.0,range,mmol/L,Maintaining proper sodium prevents cramps and supports blood pressure during intense training.
+Potassium,Electrolytes & Minerals,Serum Electrolyte Panel,Key intracellular cation involved in muscle contraction and heart rhythm.,3.5,5.1,range,mmol/L,Low potassium causes weakness and arrhythmias; high potassium can be life‑threatening.
+Chloride,Electrolytes & Minerals,Serum Electrolyte Panel,Major anion that partners with sodium to maintain acid–base balance.,98.0,107.0,range,mmol/L,Helps evaluate acid–base disorders and hydration status.
+Bicarbonate (CO₂),Electrolytes & Minerals,Serum Electrolyte Panel,"Measure of bicarbonate in blood, a major buffer for acid–base balance.",22.0,29.0,range,mmol/L,Low bicarbonate indicates metabolic acidosis; high may occur with metabolic alkalosis or overuse of antacids.
+Calcium (total),Electrolytes & Minerals,Mineral Panel,"Total calcium in blood, both bound and unbound.",8.6,10.2,range,mg/dL,Essential for muscle contraction and bone strength; abnormal levels affect performance.
+Calcium (ionized),Electrolytes & Minerals,Mineral Panel,Free calcium fraction not bound to proteins; physiologically active.,4.5,5.3,range,mg/dL,More accurate indicator of calcium status; important when albumin levels change.
+Magnesium,Electrolytes & Minerals,Mineral Panel,Mineral required for hundreds of enzymatic reactions and muscle relaxation.,1.7,2.4,range,mg/dL,"Deficiency leads to cramps, fatigue and poor sleep; supplementation aids recovery."
+Phosphate (inorganic),Electrolytes & Minerals,Mineral Panel,Phosphorus in blood important for energy storage and bone health.,2.5,4.5,range,mg/dL,Low phosphate impairs ATP production; high levels may result from kidney issues.
+Calcium:Phosphate Ratio,Electrolytes & Minerals,Electrolyte Ratios Panel,Ratio of calcium to phosphate concentrations.,1.3,2.4,range,ratio,Maintaining balance prevents bone demineralization and supports hormone regulation.
+Sodium:Potassium Ratio,Electrolytes & Minerals,Electrolyte Ratios Panel,Ratio used to assess adrenal and fluid balance.,25.0,45.0,range,ratio,High ratio may signal stress or sodium retention; helps fine‑tune salt and potassium intake.
+RBC Magnesium,Electrolytes & Minerals,Mineral Panel,Magnesium content inside red blood cells; reflects longer‑term stores.,4.2,6.8,range,mg/dL,Low RBC magnesium can cause cramps and fatigue even if serum magnesium is normal.
+RBC Zinc,Electrolytes & Minerals,Mineral Panel,Zinc level inside red cells; a longer‑term indicator than serum zinc.,8.8,14.7,range,mg/L,Zinc supports testosterone production and immune function; low levels impair gains and recovery.

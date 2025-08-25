@@ -1,0 +1,27 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+Total Testosterone,Hormonal,Androgen Panel,"Major male sex hormone supporting muscle, strength, mood and libido.",300.0,1000.0,range,ng/dL,"Influences muscle growth, energy and recovery; low levels limit gains."
+Free Testosterone,Hormonal,Androgen Panel,Fraction of testosterone not bound to proteins and biologically active.,5.0,25.0,range,ng/dL,Better indicator of anabolic status than total testosterone.
+Bioavailable Testosterone,Hormonal,Androgen Panel,Testosterone free or loosely bound to albumin and available to tissues.,110.0,575.0,range,ng/dL,Shows how much testosterone your muscles can actually use.
+Sex Hormone Binding Globulin (SHBG),Hormonal,Androgen Panel,Protein that binds sex hormones; affects the amount of free testosterone.,10.0,57.0,range,nmol/L,High SHBG reduces free testosterone; low may indicate steroid use.
+Luteinizing Hormone (LH),Hormonal,Pituitary Panel,Pituitary hormone that stimulates testes to produce testosterone.,1.5,9.3,range,IU/L,Low LH points to suppressed natural testosterone from steroid cycles.
+Follicle Stimulating Hormone (FSH),Hormonal,Pituitary Panel,Pituitary hormone supporting sperm production.,1.4,18.1,range,IU/L,Low FSH indicates impaired fertility; important for recovery post‑cycle.
+Estradiol (E2),Hormonal,Estrogen Panel,Main estrogen produced via aromatization of testosterone.,10.0,40.0,range,pg/mL,Balanced levels support joints and libido; high levels cause water retention or gynecomastia.
+Estrone (E1),Hormonal,Estrogen Panel,Secondary estrogen formed from androstenedione and adipose conversion.,10.0,60.0,range,pg/mL,Helps evaluate estrogen balance; may rise with obesity or steroid aromatization.
+Progesterone,Hormonal,Steroid Precursors,Precursor hormone influencing mood and neurosteroid balance.,0.1,1.0,range,ng/mL,Low levels may affect mood; high may indicate adrenal issues or steroid misuse.
+Prolactin,Hormonal,Pituitary Panel,Pituitary hormone; high levels reduce libido and suppress testosterone.,2.0,18.0,range,ng/mL,Elevated prolactin can cause erectile dysfunction and gynecomastia; watch when using progestins.
+Dehydroepiandrosterone Sulfate (DHEA‑S),Hormonal,Adrenal Panel,Adrenal androgen precursor to testosterone and estrogen.,80.0,560.0,range,µg/dL,Supports energy and wellbeing; declines with age; supplementation may aid recovery.
+Androstenedione,Hormonal,Adrenal Panel,Intermediate steroid from adrenals and gonads; precursor to testosterone.,0.2,3.3,range,ng/mL,Helps assess adrenal and gonadal steroid production.
+17‑Hydroxyprogesterone,Hormonal,Adrenal Panel,Precursor steroid; high levels may indicate congenital adrenal hyperplasia.,0.2,1.3,range,ng/mL,Assesses adrenal function; may be elevated with certain steroid use.
+Cortisol (AM),Hormonal,Adrenal Panel,Morning cortisol level reflecting stress and adrenal function.,5.0,25.0,range,µg/dL,High cortisol can hinder muscle growth; low may indicate adrenal insufficiency.
+Cortisol (PM),Hormonal,Adrenal Panel,Evening cortisol; normally lower than morning level.,3.0,10.0,range,µg/dL,Shows diurnal rhythm; high evening cortisol impairs sleep and recovery.
+Adrenocorticotropic Hormone (ACTH),Hormonal,Pituitary Panel,Pituitary hormone stimulating cortisol production.,10.0,60.0,range,pg/mL,Evaluates pituitary–adrenal axis; suppressed with exogenous steroids.
+Growth Hormone (GH),Hormonal,Pituitary Panel,Hormone promoting growth and regeneration; released in pulses.,0.0,5.0,range,ng/mL,Supports muscle recovery and fat loss; doping with GH affects doping tests.
+Insulin‑like Growth Factor 1 (IGF‑1),Hormonal,Growth Factor Panel,Marker of average growth hormone secretion; mediates GH effects.,100.0,300.0,range,ng/mL,Higher IGF‑1 associated with anabolic environment; declines with age.
+IGF Binding Protein 3 (IGFBP‑3),Hormonal,Growth Factor Panel,Main carrier of IGF‑1 in blood; used to interpret IGF‑1 levels.,2.5,5.0,range,mg/L,Low IGFBP‑3 may indicate GH deficiency; helps refine IGF‑1 results.
+Human Chorionic Gonadotropin (hCG),Hormonal,Gonadal Panel,Hormone used medically to stimulate testosterone production; produced during pregnancy.,0.0,5.0,range,mIU/mL,Used by some to maintain testicular size during cycles; elevated levels may indicate tumors or doping.
+Dihydrotestosterone (DHT),Hormonal,Androgen Panel,Potent metabolite of testosterone responsible for many male characteristics.,30.0,85.0,range,ng/dL,High DHT may cause hair loss and prostate issues; low suggests enzyme inhibition.
+Anti‑Müllerian Hormone (AMH),Hormonal,Gonadal Panel,Hormone from Sertoli cells; marker of testicular function and fertility.,1.0,10.0,range,ng/mL,Low AMH may indicate impaired spermatogenesis; used to evaluate recovery after cycles.
+FSH:LH Ratio (calculated),Hormonal,Derived Ratios Panel,Ratio of FSH to LH; used to interpret gonadotropin suppression.,0.5,2.0,range,,Helps determine whether suppression is primarily testicular or pituitary.
+Estradiol:Testosterone Ratio (calculated),Hormonal,Derived Ratios Panel,Compares estrogen to testosterone; indicates aromatase activity.,0.0,0.02,less_than,,High ratio suggests excessive aromatization leading to water retention or gyno.
+SHBG:Albumin Ratio (calculated),Hormonal,Derived Ratios Panel,Ratio used to estimate free testosterone.,0.1,0.3,range,,Helps refine free testosterone calculations.

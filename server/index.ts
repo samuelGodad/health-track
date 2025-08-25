@@ -4,6 +4,27 @@ import cors from 'cors';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 
+// Import the fuzzy matching service and CSV data
+import FuzzyMatchingService from './fuzzyMatchingService';
+import { loadAllCSVData } from './csvParser';
+
+// Simple interface for processed test data
+interface ProcessedTest {
+  test: string;
+  category: string;
+  result: string;
+  reference_min: string | null;
+  reference_max: string | null;
+  status: string;
+  test_date: string;
+  processed_by_ai: boolean;
+  source_file_type: string;
+  original_test_name?: string;
+  standardized: boolean;
+  confidence_score: number;
+  units?: string;
+}
+
 dotenv.config();
 
 const app = express();
@@ -34,24 +55,24 @@ function extractJSON(text: string): string {
   return cleaned.trim();
 }
 
-// Standardized test categories
-const STANDARD_CATEGORIES = [
-  "Liver Function",
-  "Kidney Function", 
-  "Electrolytes & Minerals",
-  "Blood Sugar & Metabolism",
-  "Thyroid & Endocrine",
-  "Lipids & Cardiovascular",
-  "Hormonal (Reproductive & Cortisol)",
-  "Cardiac Markers",
-  "Oncology Markers", 
-  "Bone Health",
-  "Micronutrients",
-  "Hematology",
-  "Fluid & Osmotic Balance",
-  "Biochemistry",
-  "Panel Tests"
-];
+// Standardized test categories - REMOVED: No longer needed since CSV files have correct categories
+// const STANDARD_CATEGORIES = [
+//   "Liver Function",
+//   "Kidney Function", 
+//   "Electrolytes & Minerals",
+//   "Blood Sugar & Metabolism",
+//   "Thyroid & Endocrine",
+//   "Lipids & Cardiovascular",
+//   "Hormonal (Reproductive & Cortisol)",
+//   "Cardiac Markers",
+//   "Oncology Markers", 
+//   "Bone Health",
+//   "Micronutrients",
+//   "Hematology",
+//   "Fluid & Osmotic Balance",
+//   "Biochemistry",
+//   "Panel Tests"
+// ];
 
 const SYSTEM_PROMPT = `You are a medical lab report parser. Your task is to extract lab test results from PDF documents.
 You must analyze the content and identify:
@@ -125,88 +146,89 @@ IMPORTANT: When reading dates, look for:
 `;
 
 // Function to map test categories to standardized categories using AI
-async function mapCategoriesToStandard(extractedTests: any[]): Promise<any[]> {
-  if (!extractedTests || extractedTests.length === 0) {
-    return extractedTests;
-  }
+// REMOVED: This function is no longer needed since CSV files already have correct categories
+// async function mapCategoriesToStandard(extractedTests: any[]): Promise<any[]> {
+//   if (!extractedTests || extractedTests.length === 0) {
+//     return extractedTests;
+//   }
 
-  const categoryMappingPrompt = `You are a medical expert. Your task is to map each test to the most appropriate standardized category.
+//   const categoryMappingPrompt = `You are a medical expert. Your task is to map each test to the most appropriate standardized category.
 
-AVAILABLE STANDARD CATEGORIES:
-${STANDARD_CATEGORIES.map(cat => `- ${cat}`).join('\n')}
+// AVAILABLE STANDARD CATEGORIES:
+// ${STANDARD_CATEGORIES.map(cat => `- ${cat}`).join('\n')}
 
-INSTRUCTIONS:
-1. Analyze each test name and its original category
-2. Map it to the most appropriate standard category based on medical knowledge
-3. Consider both the test name and original category when making the decision
-4. Use your medical expertise to determine the best fit
+// INSTRUCTIONS:
+// 1. Analyze each test name and its original category
+// 2. Map it to the most appropriate standard category based on medical knowledge
+// 3. Consider both the test name and original category when making the decision
+// 4. Use your medical expertise to determine the best fit
 
-EXAMPLES:
-- Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function"
-- Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function"
-- Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals"
-- Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism"
-- Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine"
-- Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular"
-- Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal (Reproductive & Cortisol)"
-- Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Cardiac Markers"
-- Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers"
-- Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients"
-- Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Hematology"
-- Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health"
+// EXAMPLES:
+// - Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function"
+// - Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function"
+// - Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals"
+// - Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism"
+// - Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine"
+// - Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular"
+// - Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal (Reproductive & Cortisol)"
+// - Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Cardiac Markers"
+// - Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers"
+// - Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients"
+// - Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Hematology"
+// - Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health"
 
-Return ONLY a JSON array with the same structure as input, but with standardized categories:
-[
-  {
-    "test_name": "string",
-    "category": "STANDARD_CATEGORY_NAME",
-    "result": number,
-    "reference_min": number | null,
-    "reference_max": number | null,
-    "status": "normal" | "high" | "low",
-    "test_date": "YYYY-MM-DD"
-  }
-]`;
+// Return ONLY a JSON array with the same structure as input, but with standardized categories:
+// [
+//   {
+//     "test_name": "string",
+//     "category": "STANDARD_CATEGORY_NAME",
+//     "result": number,
+//     "reference_min": number | null,
+//     "reference_max": number | null,
+//     "status": "normal" | "high" | "low",
+//     "test_date": "YYYY-MM-DD"
+//   }
+// ]`;
 
-  try {
-    console.log('=== Starting Category Mapping ===');
-    console.log('Extracted tests to map:', extractedTests.length);
+//   try {
+//     console.log('=== Starting Category Mapping ===');
+//     console.log('Extracted tests to map:', extractedTests.length);
     
-    const mappingResponse = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "You are a medical expert specializing in laboratory test categorization."
-        },
-        {
-          role: "user",
-          content: categoryMappingPrompt + '\n\nEXTRACTED TESTS:\n' + JSON.stringify(extractedTests, null, 2)
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 4000
-    });
+//     const mappingResponse = await openai.chat.completions.create({
+//       model: "gpt-4",
+//       messages: [
+//         {
+//           role: "system",
+//           content: "You are a medical expert specializing in laboratory test categorization."
+//         },
+//         {
+//           role: "user",
+//           content: categoryMappingPrompt + '\n\nEXTRACTED TESTS:\n' + JSON.stringify(extractedTests, null, 2)
+//         }
+//       ],
+//       temperature: 0.1,
+//       max_tokens: 4000
+//     });
 
-    const mappingText = mappingResponse.choices[0]?.message?.content;
-    if (!mappingText) {
-      console.error('No response from category mapping AI');
-      return extractedTests;
-    }
+//     const mappingText = mappingResponse.choices[0]?.message?.content;
+//     if (!mappingText) {
+//       console.error('No response from category mapping AI');
+//       return extractedTests;
+//     }
 
-    console.log('Category mapping response:', mappingText);
-    const cleanedMappingJSON = extractJSON(mappingText);
-    const mappedData = JSON.parse(cleanedMappingJSON);
+//     console.log('Category mapping response:', mappingText);
+//     const cleanedMappingJSON = extractJSON(mappingText);
+//     const mappedData = JSON.parse(cleanedMappingJSON);
     
-    console.log('Category mapping completed. Mapped tests:', mappedData.length);
+//     console.log('Category mapping completed. Mapped tests:', mappedData.length);
     
-    return mappedData;
-  } catch (error) {
-    console.error('Error in category mapping:', error);
-    // Return original data if mapping fails
-    return extractedTests;
-  }
-}
+//     return mappedData;
+//   } catch (error) {
+//     console.error('Error in category mapping:', error);
+//     // Return original data if mapping fails
+//     return extractedTests;
+//   }
+// }
 
 // Fallback normalization for reference ranges
 function normalizeReferenceRange(item: any): any {
@@ -316,35 +338,193 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
         console.log('Cleaned JSON:', cleanedJSON);
         const parsedData = JSON.parse(cleanedJSON);
 
-        // Step 2: Map categories to standardized categories using AI
-        console.log('=== Step 2: Category Mapping ===');
-        console.log('Original categories found:', [...new Set(parsedData.map((item: any) => item.category))]);
-        const mappedData = await mapCategoriesToStandard(parsedData);
-        console.log('Standardized categories applied:', [...new Set(mappedData.map((item: any) => item.category))]);
+        // Step 2: Category Mapping - SKIPPED
+        // console.log('=== Step 2: Category Mapping ===');
+        // console.log('Original categories found:', [...new Set(parsedData.map((item: any) => item.category))]);
+        // REMOVED: AI category mapping is no longer needed since CSV files already have correct categories
+        
+        // Step 3: Map test names to standardized CSV names using fuzzy matching
+        console.log('=== Step 3: Test Name Mapping ===');
+        const allTests = loadAllCSVData();
+        console.log(`Loaded ${allTests.length} CSV tests for comparison`);
+        console.log('CSV categories available:', [...new Set(allTests.map(test => test.category))]);
+        
+        const processedTests: ProcessedTest[] = parsedData.map((item: any) => {
+          // Try to find a match in our CSV data
+          const match = FuzzyMatchingService.findBestMatch(item.test_name, allTests);
+          
+          if (match && match.confidence >= 70) {
+            console.log(`✓ Mapped "${item.test_name}" to "${match.test.testName}" (${match.confidence}% confidence)`);
+            return {
+              test: match.test.testName, // Use standardized name
+              category: match.test.category, // Use CSV category
+              result: `${item.result}`,
+              reference_min: match.test.referenceRangeMin !== null ? `${match.test.referenceRangeMin}` : null,
+              reference_max: match.test.referenceRangeMax !== null ? `${match.test.referenceRangeMax}` : null,
+              status: item.status,
+              test_date: item.test_date,
+              processed_by_ai: true,
+              source_file_type: 'pdf',
+              // Keep original name for reference
+              original_test_name: item.test_name,
+              standardized: true,
+              confidence_score: match.confidence,
+              units: match.test.units
+            };
+          } else {
+            console.log(`⚠ No confident match found for "${item.test_name}"`);
+            return {
+              test: item.test_name, // Keep original name
+              category: item.category, // Keep original category for now
+              result: `${item.result}`,
+              reference_min: item.reference_min !== null ? `${item.reference_min}` : null,
+              reference_max: item.reference_max !== null ? `${item.reference_max}` : null,
+              status: item.status,
+              test_date: item.test_date,
+              processed_by_ai: true,
+              source_file_type: 'pdf',
+              standardized: false,
+              confidence_score: 0
+            };
+          }
+        });
+        
+        // Step 4: Re-categorize unmatched tests using AI with predefined categories
+        console.log('=== Step 4: AI Re-categorization for Unmatched Tests ===');
+        const unmatchedTests = processedTests.filter((test: ProcessedTest) => !test.standardized);
+        
+        if (unmatchedTests.length > 0) {
+          console.log(`Found ${unmatchedTests.length} unmatched tests that need re-categorization`);
+          
+          const predefinedCategories = [
+            "Haematology",
+            "Biochemistry", 
+            "Bone Health",
+            "Electrolytes & Minerals",
+            "Hormonal",
+            "Kidney Function",
+            "Lipids & Cardiovascular",
+            "Liver Function",
+            "Blood Sugar & Metabolism",
+            "Micronutrients",
+            "Oncology Markers",
+            "Thyroid & Endocrine"
+          ];
+          
+          const reCategorizationPrompt = `You are a medical expert. Your task is to categorize these unmatched lab tests into the most appropriate standardized category.
+
+AVAILABLE CATEGORIES:
+${predefinedCategories.map(cat => `- ${cat}`).join('\n')}
+
+INSTRUCTIONS:
+1. Analyze each test name and its original category
+2. Map it to the most appropriate predefined category based on medical knowledge
+3. Consider both the test name and original category when making the decision
+4. Use your medical expertise to determine the best fit
+
+EXAMPLES:
+- Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function"
+- Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function"
+- Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals"
+- Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism"
+- Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine"
+- Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular"
+- Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal"
+- Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Lipids & Cardiovascular"
+- Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers"
+- Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients"
+- Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Haematology"
+- Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health"
+
+Return ONLY a JSON array with the same structure as input, but with standardized categories:
+[
+  {
+    "test_name": "string",
+    "category": "STANDARD_CATEGORY_NAME",
+    "result": number,
+    "reference_min": number | null,
+    "reference_max": number | null,
+    "status": "normal" | "high" | "low",
+    "test_date": "YYYY-MM-DD"
+  }
+]`;
+
+          try {
+            const reCategorizationResponse = await openai.chat.completions.create({
+              model: "gpt-4",
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a medical expert specializing in laboratory test categorization."
+                },
+                {
+                  role: "user",
+                  content: reCategorizationPrompt + '\n\nUNMATCHED TESTS:\n' + JSON.stringify(unmatchedTests, null, 2)
+                }
+              ],
+              temperature: 0.1,
+              max_tokens: 2000
+            });
+
+            const reCategorizationText = reCategorizationResponse.choices[0]?.message?.content;
+            if (reCategorizationText) {
+              console.log('AI re-categorization response:', reCategorizationText);
+              const cleanedReCategorizationJSON = extractJSON(reCategorizationText);
+              const reCategorizedData = JSON.parse(cleanedReCategorizationJSON);
+              
+              console.log('AI re-categorization completed. Re-categorized tests:', reCategorizedData.length);
+              
+              // Update the unmatched tests with their new categories
+              reCategorizedData.forEach((reCategorizedTest: any) => {
+                const originalTest = processedTests.find((test: ProcessedTest) => test.test === reCategorizedTest.test_name);
+                if (originalTest) {
+                  originalTest.category = reCategorizedTest.category;
+                  originalTest.standardized = true;
+                  originalTest.confidence_score = 75; // AI categorization confidence
+                  console.log(`✓ AI re-categorized "${reCategorizedTest.test_name}" to "${reCategorizedTest.category}"`);
+                }
+              });
+            }
+          } catch (error) {
+            console.error('Error in AI re-categorization:', error);
+            // Continue with original categories if re-categorization fails
+          }
+        }
         
         // Add only the required additional fields and normalize reference ranges
-        const transformedData = mappedData.map((item: any) => {
+        const transformedData = processedTests.map((item: ProcessedTest) => {
           const normalized = normalizeReferenceRange(item);
           
           // Log date extraction for debugging
-          console.log(`Date extraction for ${item.test_name}:`, {
+          console.log(`Date extraction for ${item.test}:`, {
             original_date: item.test_date,
             type: typeof item.test_date,
             is_valid: item.test_date && /^\d{4}-\d{2}-\d{2}$/.test(item.test_date)
           });
           
           return {
-            test: item.test_name,
-            category: item.category, // Now using standardized category
-            result: `${item.result}`,
+            test: item.test,
+            category: item.category,
+            result: item.result,
             reference_min: normalized.reference_min !== null ? `${normalized.reference_min}` : null,
             reference_max: normalized.reference_max !== null ? `${normalized.reference_max}` : null,
             status: item.status,
             test_date: item.test_date,
             processed_by_ai: true,
-            source_file_type: 'pdf'
+            source_file_type: 'pdf',
+            // Additional fields for standardized tests
+            original_test_name: item.original_test_name || null,
+            standardized: item.standardized || false,
+            confidence_score: item.confidence_score || 0,
+            units: item.units || null
           };
         });
+        
+        console.log('\n=== FINAL DATA SUMMARY ===');
+        console.log(`Total tests processed: ${processedTests.length}`);
+        console.log(`Total tests transformed: ${transformedData.length}`);
+        console.log('Sample transformed test:', transformedData[0]);
+        console.log('All test names:', transformedData.map(t => t.test));
         
         res.json({ 
           success: true,
@@ -353,7 +533,7 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
             fileInfo: {
               size: req.file.size,
               pages: 1,
-              totalResults:transformedData.length
+              totalResults: transformedData.length
             }
           }
         });

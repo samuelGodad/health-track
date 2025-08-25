@@ -1,0 +1,14 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+Fasting Glucose,Blood Sugar & Metabolism,Glucose Metabolism Panel,Blood sugar measured after an overnight fast.,70.0,99.0,range,mg/dL,High fasting glucose indicates insulin resistance; impacts muscle growth and fat loss.
+HbA1c,Blood Sugar & Metabolism,Glucose Metabolism Panel,Glycated hemoglobin reflecting average blood glucose over the past three months.,4.0,5.6,range,%,Elevated HbA1c signals chronic high blood sugar; may impair fat loss and recovery.
+Oral Glucose Tolerance – 2h,Blood Sugar & Metabolism,Glucose Metabolism Panel,Glucose level two hours after consuming a glucose drink.,70.0,139.0,range,mg/dL,Measures how well your body clears glucose; high values indicate impaired tolerance.
+HOMA‑IR (calculated),Blood Sugar & Metabolism,Calculated Ratios,Homeostatic Model of Insulin Resistance derived from fasting glucose and insulin.,0.0,2.0,less_than,,Higher HOMA‑IR indicates insulin resistance; affects nutrient partitioning and fat gain.
+Fructosamine,Blood Sugar & Metabolism,Glucose Metabolism Panel,Reflects average glucose over the previous two to three weeks.,200.0,285.0,range,µmol/L,Useful for tracking shorter term changes in glucose control during diet phases.
+Insulin (Fasting),Blood Sugar & Metabolism,Insulin Panel,Hormone produced by the pancreas that regulates glucose uptake.,2.0,10.0,range,µIU/mL,High fasting insulin signals insulin resistance; lower levels improve fat loss and muscle definition.
+C‑Peptide (Fasting),Blood Sugar & Metabolism,Insulin Panel,Fragment released when insulin is produced; reflects endogenous insulin production.,0.26,1.33,range,nmol/L,Helps distinguish between natural insulin secretion and exogenous insulin use.
+Beta‑Hydroxybutyrate (BHB),Blood Sugar & Metabolism,Ketone Panel,Primary ketone body formed during fat metabolism.,0.0,0.6,range,mmol/L,Elevated BHB occurs during ketogenic diets; extreme elevations signal ketoacidosis.
+Insulin 1‑Hour (OGTT),Blood Sugar & Metabolism,Insulin Panel,Insulin level one hour after a glucose challenge.,0.0,60.0,less_than,µIU/mL,High values indicate hyperinsulinemia; early marker of insulin resistance.
+Insulin 2‑Hour (OGTT),Blood Sugar & Metabolism,Insulin Panel,Insulin level two hours after a glucose challenge.,0.0,40.0,less_than,µIU/mL,Persistent elevation indicates insulin resistance; hinders fat loss and muscle definition.
+Lactate (plasma),Blood Sugar & Metabolism,Metabolite Panel,Lactic acid level in blood; a marker of anaerobic metabolism.,0.5,2.2,range,mmol/L,High lactate at rest can indicate poor oxygen utilization or metabolic dysfunction.
+Ammonia (plasma),Blood Sugar & Metabolism,Metabolite Panel,Product of amino acid metabolism requiring liver and kidney clearance.,11.0,51.0,range,µmol/L,Elevated ammonia causes fatigue and may signal overtraining or liver dysfunction.

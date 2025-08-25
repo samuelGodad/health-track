@@ -66,7 +66,43 @@ const Analytics = () => {
     }
   };
 
-  // Get unique categories from the database
+  // Standardized blood test categories
+  const standardizedCategories = {
+    all: "All Tests",
+    "Haematology": "Haematology",
+    "Biochemistry": "Biochemistry", 
+    "Bone Health": "Bone Health",
+    "Electrolytes & Minerals": "Electrolytes & Minerals",
+    "Hormonal": "Hormonal",
+    "Kidney Function": "Kidney Function",
+    "Lipids & Cardiovascular": "Lipids & Cardiovascular",
+    "Liver Function": "Liver Function",
+    "Blood Sugar & Metabolism": "Blood Sugar & Metabolism",
+    "Micronutrients": "Micronutrients",
+    "Oncology Markers": "Oncology Markers",
+    "Thyroid & Endocrine": "Thyroid & Endocrine"
+  };
+
+  // Category descriptions for better understanding
+  const getCategoryDescription = (category: string): string => {
+    const descriptions: { [key: string]: string } = {
+      "Haematology": "Blood cell counts, hemoglobin, clotting factors",
+      "Biochemistry": "General metabolic markers and enzymes",
+      "Bone Health": "Calcium, phosphorus, vitamin D, bone markers",
+      "Electrolytes & Minerals": "Sodium, potassium, chloride, magnesium",
+      "Hormonal": "Sex hormones, stress hormones, growth factors",
+      "Kidney Function": "Creatinine, BUN, kidney filtration markers",
+      "Lipids & Cardiovascular": "Cholesterol, triglycerides, heart markers",
+      "Liver Function": "Liver enzymes, bilirubin, protein markers",
+      "Blood Sugar & Metabolism": "Glucose, insulin, HbA1c, metabolic markers",
+      "Micronutrients": "Vitamins, minerals, trace elements",
+      "Oncology Markers": "Cancer screening and monitoring markers",
+      "Thyroid & Endocrine": "Thyroid hormones, endocrine function"
+    };
+    return descriptions[category] || "Additional category from database";
+  };
+
+  // Get unique categories from the database for validation
   const availableCategories = useMemo(() => {
     const categories = new Set<string>();
     bloodTestResults.forEach(test => {
@@ -78,15 +114,15 @@ const Analytics = () => {
     return sortedCategories;
   }, [bloodTestResults]);
 
-  // Blood test categories - dynamically generated from available data
+  // Blood test categories - use standardized categories, fallback to available ones
   const bloodTestCategories = useMemo(() => {
-    const categories: { [key: string]: string } = {
-      all: "All Tests"
-    };
+    const categories: { [key: string]: string } = { ...standardizedCategories };
     
-    // Add all available categories from the database
+    // Add any additional categories from the database that aren't in our standardized list
     availableCategories.forEach(category => {
-      categories[category] = category;
+      if (!categories[category]) {
+        categories[category] = category;
+      }
     });
     
     return categories;
@@ -95,6 +131,13 @@ const Analytics = () => {
   // Get unique tests for the selected category and search query
   const filteredTests = useMemo(() => {
     const uniqueTests = new Map();
+    
+    console.log('🔍 Analytics: Filtering tests', {
+      totalTests: bloodTestResults.length,
+      selectedCategory,
+      searchQuery,
+      availableCategories: Array.from(availableCategories)
+    });
     
     bloodTestResults.forEach(test => {
       // Apply category filter
@@ -114,8 +157,16 @@ const Analytics = () => {
       }
     });
     
-    return Array.from(uniqueTests.values()).sort((a, b) => a.test_name.localeCompare(b.test_name));
-  }, [bloodTestResults, selectedCategory, searchQuery]);
+    const filtered = Array.from(uniqueTests.values()).sort((a, b) => a.test_name.localeCompare(b.test_name));
+    
+    console.log('🔍 Analytics: Filtered results', {
+      filteredCount: filtered.length,
+      selectedCategory,
+      searchQuery
+    });
+    
+    return filtered;
+  }, [bloodTestResults, selectedCategory, searchQuery, availableCategories]);
 
   // Get chart data for selected tests
   const chartData1 = useMemo(() => {
@@ -286,6 +337,34 @@ const Analytics = () => {
           )}
         </div>
 
+        {/* Category Summary */}
+        <Card className="bg-muted/30">
+          <CardContent className="pt-4">
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm font-medium text-muted-foreground">Categories:</span>
+              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">✓ Standardized</span>
+              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">DB Database</span>
+              <span className="text-sm text-muted-foreground ml-2">
+                {Object.keys(standardizedCategories).length - 1} standard • {availableCategories.filter(cat => !standardizedCategories[cat as keyof typeof standardizedCategories]).length} additional
+              </span>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              All tests are now categorized using standardized medical categories for consistent analysis and comparison.
+            </div>
+            {selectedCategory !== "all" && (
+              <div className="mt-3 p-2 bg-background rounded border">
+                <div className="text-sm font-medium">{selectedCategory}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {getCategoryDescription(selectedCategory)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {filteredTests.length} tests in this category
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Category Selection and Search */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -293,8 +372,33 @@ const Analytics = () => {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(bloodTestCategories).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
+              {/* Standardized categories first */}
+              <SelectItem value="all">All Tests</SelectItem>
+              
+              {/* Standardized categories with visual indicator */}
+              {Object.entries(standardizedCategories).filter(([key]) => key !== 'all').map(([key, label]) => (
+                <SelectItem key={key} value={key} className="flex items-center">
+                  <div className="flex-1">
+                    <span>{label}</span>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {getCategoryDescription(key)}
+                    </div>
+                  </div>
+                  <span className="text-xs text-green-600 ml-2">✓</span>
+                </SelectItem>
+              ))}
+              
+              {/* Additional categories from database (if any) */}
+              {availableCategories.filter(category => !standardizedCategories[category as keyof typeof standardizedCategories]).map(category => (
+                <SelectItem key={category} value={category} className="flex items-center">
+                  <div className="flex-1">
+                    <span>{category}</span>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {getCategoryDescription(category)}
+                    </div>
+                  </div>
+                  <span className="text-xs text-blue-600 ml-2">DB</span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

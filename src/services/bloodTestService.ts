@@ -1,10 +1,10 @@
-import { supabase } from '../integrations/supabase/client';
-import { Database } from '../integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
+import { apiService } from './apiService';
+import type { Database } from '@/integrations/supabase/types';
 import { createHash } from 'crypto';
-import { parsePDF } from './apiService'; 
 
-type Tables = Database['public']['Tables'];
-type BloodTestResultTable = Tables['blood_test_results'];
+type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row'];
+type BloodTestResultTable = Database['public']['Tables']['blood_test_results'];
 type BloodTestResultInsert = BloodTestResultTable['Insert'];
 
 interface ParsePdfResponse {
@@ -154,21 +154,46 @@ class BloodTestService {
       throw new Error('User not authenticated');
     }
 
-    return results.map(result => ({
-      test_name: result.test,
-      category: result.category,
-      result: parseFloat(result.result),
-      reference_min: result.reference_min ? parseFloat(result.reference_min) : null,
-      reference_max: result.reference_max ? parseFloat(result.reference_max) : null,
-      status: result.status,
-      test_date: result.test_date,
-      test_code: result.payor_code || null,
-      created_at: new Date().toISOString(),
-      processed_by_ai: true,
-      source_file_type: 'pdf',
-      source_file_hash: fileHash,
-      user_id: user.id
-    }));
+    console.log('\n=== Frontend transformResults ===');
+    console.log(`Received ${results.length} results from backend`);
+    console.log('Sample result from backend:', results[0]);
+
+    const transformed = results.map(result => {
+      // Validate result field
+      const resultValue = parseFloat(result.result);
+      if (isNaN(resultValue)) {
+        console.warn(`⚠️ Invalid result value for ${result.test}: "${result.result}" -> NaN`);
+      }
+      
+      return {
+        test_name: result.test,
+        category: result.category,
+        result: resultValue,
+        reference_min: result.reference_min ? parseFloat(result.reference_min) : null,
+        reference_max: result.reference_max ? parseFloat(result.reference_max) : null,
+        status: result.status,
+        test_date: result.test_date,
+        test_code: result.payor_code || null,
+        created_at: new Date().toISOString(),
+        processed_by_ai: true,
+        source_file_type: 'pdf',
+        source_file_hash: fileHash,
+        user_id: user.id
+      };
+    });
+
+    // Filter out any tests with invalid result values
+    const validTransformed = transformed.filter(result => !isNaN(result.result));
+    
+    if (validTransformed.length !== transformed.length) {
+      console.warn(`⚠️ Filtered out ${transformed.length - validTransformed.length} tests with invalid result values`);
+    }
+
+    console.log(`Transformed ${transformed.length} results, ${validTransformed.length} valid`);
+    console.log('Sample transformed result:', validTransformed[0]);
+    console.log('All test names:', validTransformed.map(t => t.test_name));
+
+    return validTransformed;
   }
 
   private async saveResults(results: BloodTestResultInsert[]): Promise<void> {
@@ -238,7 +263,7 @@ class BloodTestService {
       formData.append('file', fileToProcess);
 
       // Use the centralized apiService instead of hardcoded fetch
-      const result = await parsePDF(fileToProcess);
+      const result = await apiService.parsePDF(fileToProcess);
       
       if (!result.data || result.data.length === 0) {
         throw new Error(result.error || 'No results found in PDF');
@@ -280,6 +305,8 @@ class BloodTestService {
       throw new Error('User not authenticated');
     }
 
+    console.log('\n=== Fetching blood test results from database ===');
+
     const { data, error } = await supabase
       .from('blood_test_results')
       .select('*')
@@ -287,13 +314,20 @@ class BloodTestService {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Database error:', error);
       throw error;
     }
 
     const results = data || [];
+    console.log(`Fetched ${results.length} results from database`);
+    console.log('Sample database result:', results[0]);
+    console.log('All test names from database:', results.map(r => r.test_name));
 
     // Apply metadata fallback for missing reference ranges during display
-    return this.applyMetadataFallbackForDisplay(results);
+    const resultsWithFallback = await this.applyMetadataFallbackForDisplay(results);
+    console.log(`Returning ${resultsWithFallback.length} results after metadata fallback`);
+    
+    return resultsWithFallback;
   }
 
   // Method to apply metadata fallback specifically for display purposes

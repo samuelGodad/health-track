@@ -1,0 +1,13 @@
+
+Test Name,Category,Panel,Description,Reference Range Min,Reference Range Max,Reference Range Type,Units,Why It Matters for Bodybuilders
+Thyroid Stimulating Hormone (TSH),Thyroid & Endocrine,Thyroid Function Panel,Pituitary hormone that regulates thyroid hormone production.,0.4,4.0,range,mIU/L,High TSH indicates underactive thyroid; low TSH may reflect overactive thyroid or hormone use.
+Free T4,Thyroid & Endocrine,Thyroid Function Panel,Unbound thyroxine; primary hormone secreted by the thyroid.,0.8,1.8,range,ng/dL,Low free T4 leads to sluggish metabolism; high levels may cause muscle wasting.
+Free T3,Thyroid & Endocrine,Thyroid Function Panel,Active form of thyroid hormone influencing metabolic rate and energy.,2.3,4.2,range,pg/mL,Supports energy levels and fat loss; low levels cause fatigue and weight gain.
+Total T4,Thyroid & Endocrine,Thyroid Function Panel,"Total thyroxine, including bound and unbound.",4.5,12.5,range,µg/dL,Helps assess thyroid gland output; influenced by binding proteins and medications.
+Total T3,Thyroid & Endocrine,Thyroid Function Panel,Total triiodothyronine; includes bound and free fractions.,80.0,200.0,range,ng/dL,Low total T3 may signal poor conversion of T4 to T3; high T3 indicates hyperthyroidism or hormone use.
+Reverse T3 (rT3),Thyroid & Endocrine,Thyroid Function Panel,Inactive form of T3 produced during stress or illness.,8.0,25.0,range,ng/dL,High rT3 can slow metabolism and reflect stress or overtraining.
+Thyroid Peroxidase Antibodies (TPOAb),Thyroid & Endocrine,Thyroid Antibody Panel,Autoantibodies targeting thyroid peroxidase enzyme.,0.0,35.0,less_than,IU/mL,High TPO antibodies suggest autoimmune thyroid disease such as Hashimoto’s.
+Thyroglobulin Antibodies (TgAb),Thyroid & Endocrine,Thyroid Antibody Panel,Autoantibodies against thyroglobulin protein.,0.0,40.0,less_than,IU/mL,Elevated Tg antibodies indicate autoimmune thyroid disease or inflammation.
+TSH Receptor Antibodies (TRAb),Thyroid & Endocrine,Thyroid Antibody Panel,Autoantibodies that stimulate or block the TSH receptor.,0.0,1.75,less_than,IU/L,"High TRAb indicates Graves’ disease, causing hyperthyroidism and weight loss."
+T3 Uptake,Thyroid & Endocrine,Thyroid Function Panel,Estimate of thyroid hormone binding capacity based on resin uptake test.,24.0,39.0,range,%,Used with total T4 to calculate Free Thyroxine Index; influenced by binding proteins.
+Free Thyroxine Index (FTI),Thyroid & Endocrine,Thyroid Function Panel,Calculated index of free thyroxine based on total T4 and T3 uptake.,1.2,4.9,range,µg/dL,Provides estimate of free hormone when direct free T4 measurement is unavailable.

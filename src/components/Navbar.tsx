@@ -35,6 +35,7 @@ const Navbar = () => {
 
   // Close mobile menu when route changes
   useEffect(() => {
+    console.log('Route changed to:', location.pathname, 'Closing mobile menu. Current state:', mobileMenuOpen);
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
@@ -89,7 +90,10 @@ const Navbar = () => {
         ref={mobileMenuRef}
         isOpen={mobileMenuOpen} 
         currentPath={location.pathname} 
-        onNavClick={() => setMobileMenuOpen(false)}
+        onNavClick={() => {
+          console.log('Mobile nav clicked, closing menu. Current state:', mobileMenuOpen);
+          setMobileMenuOpen(false);
+        }}
       />
     </div>
   );

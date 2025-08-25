@@ -33,38 +33,53 @@ export interface FileInfo {
   path: string;
 }
 
-// const API_URL = 'http://localhost:3000';
-const API_URL = 'https://health-track-1-x8k4.onrender.com'; // Use deployed backend
+// Base URL for API calls
+const API_BASE_URL = 'http://localhost:3000'; // Local development
 
-export const parsePDF = async (file: File | FileInfo): Promise<ParsePdfResponse> => {
-  const formData = new FormData();
-  
-  if (file instanceof File) {
-    formData.append('file', file);
-  } else {
-    // If it's a FileInfo object, fetch the file first
-    const response = await fetch(file.url);
-    const blob = await response.blob();
-    const fileObject = new File([blob], file.name, { type: 'application/pdf' });
-    formData.append('file', fileObject);
-  }
-  
-  try {
-    const response = await fetch(`${API_URL}/api/parse-pdf`, {
-      method: 'POST',
-      body: formData, 
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to process PDF');
+export const apiService = {
+  // Parse PDF using the backend API
+  async parsePDF(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file); // Changed from 'pdf' to 'file' to match backend
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/parse-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error parsing PDF:', error);
+      throw error;
     }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
-  }
+  },
+
+  // Process blood test PDF - this is the main method used by the upload context
+  async processBloodTestPDF(file: File): Promise<any> {
+    try {
+      // Parse the PDF to extract test data using the backend
+      const parseResult = await this.parsePDF(file);
+      
+      if (!parseResult.success || !parseResult.data) {
+        throw new Error(parseResult.error || 'Failed to parse PDF');
+      }
+
+      // Return the parsed data for further processing by bloodTestService
+      // The bloodTestService will handle saving to both processed_files and blood_test_results tables
+      return parseResult.data;
+    } catch (error) {
+      console.error('Error processing blood test PDF:', error);
+      throw error;
+    }
+  },
+
+  // Add other API methods here as needed
 };
 
 export const saveLabResultsToSupabase = async (results: LabResult[]): Promise<LabResult[]> => {

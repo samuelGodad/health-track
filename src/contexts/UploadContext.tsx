@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +35,7 @@ export const useUpload = () => {
 };
 
 interface UploadProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const UploadProvider: React.FC<UploadProviderProps> = ({ children }) => {
