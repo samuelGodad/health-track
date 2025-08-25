@@ -53,8 +53,9 @@ const Navbar = () => {
               to="/" 
               className="flex items-center gap-2 text-xl font-semibold text-foreground"
             >
-              <HeartPulseIcon className="h-6 w-6 text-primary flex-shrink-0" />
-              <span className="whitespace-nowrap">Your Vita Health</span>
+              <span className="whitespace-nowrap">Enhanced Health</span>
+              <img src="/logo.svg" alt="Enhanced Health" className="h-6 w-6 flex-shrink-0" />
+              <HeartPulseIcon className="h-5 w-5 text-primary flex-shrink-0" />
             </Link>
           </div>
 

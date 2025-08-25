@@ -79,7 +79,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
           <HeartPulseIcon className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold">Vita Health</span>
+          <span className="text-lg font-semibold">Enhanced Health</span>
         </div>
       </SidebarHeader>
       
@@ -129,7 +129,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground">
-          © 2024 Vita Health
+          © 2024 Enhanced Health
         </div>
       </SidebarFooter>
     </Sidebar>
