@@ -348,9 +348,6 @@ const Analytics = () => {
                 {Object.keys(standardizedCategories).length - 1} standard • {availableCategories.filter(cat => !standardizedCategories[cat as keyof typeof standardizedCategories]).length} additional
               </span>
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              All tests are now categorized using standardized medical categories for consistent analysis and comparison.
-            </div>
             {selectedCategory !== "all" && (
               <div className="mt-3 p-2 bg-background rounded border">
                 <div className="text-sm font-medium">{selectedCategory}</div>

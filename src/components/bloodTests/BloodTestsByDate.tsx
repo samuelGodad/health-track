@@ -7,10 +7,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Info } from 'lucide-react';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { Loader2 } from 'lucide-react';
 import { EditIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type BloodTestResult = Database['public']['Tables']['blood_test_results']['Row'];
 
@@ -24,6 +25,7 @@ interface BloodTest extends Omit<BloodTestResult, 'created_at' | 'user_id' | 'pr
   // Additional fields from backend processing
   test?: string; // Standardized test name from CSV
   original_test_name?: string; // Original extracted name
+  description?: string; // CSV description for tooltips
 }
 
 type BloodTestsByDateProps = {
@@ -240,7 +242,38 @@ const BloodTestsByDate = ({ bloodTestResults, onDataUpdate }: BloodTestsByDatePr
                                   </Button>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                  <h4 className="font-medium">{test.displayName || test.test_name}</h4>
+                                                                                                    <div className="flex items-center gap-2">
+                                    <h4 className="font-medium">{test.displayName || test.test_name}</h4>
+                                    {test.description && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-5 w-5 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 opacity-60 hover:opacity-100"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <Info className="h-3 w-3 text-gray-500" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xs p-3">
+                                          <div className="space-y-2">
+                                            <h4 className="font-semibold text-sm">{test.displayName || test.test_name}</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                              {test.description}
+                                            </p>
+                                            {test.reference_min && test.reference_max && (
+                                              <div className="text-xs text-gray-500">
+                                                <span className="font-medium">Reference Range:</span> {test.reference_min} - {test.reference_max} {test.units || test.unit || ''}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
                                   {test.standardized && test.originalName && test.originalName !== test.displayName && (
                                     <div className="text-xs text-muted-foreground">
                                       <span className="text-green-600">✓ Standardized</span>

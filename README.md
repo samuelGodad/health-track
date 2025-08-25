@@ -106,7 +106,7 @@ NODE_ENV=development
 cd server
 npm start
 ```
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:3000` (local development) or use the deployed version at `https://health-track-1-x8n4.onrender.com`
 
 **Frontend (Development):**
 ```bash

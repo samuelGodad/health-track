@@ -28,6 +28,12 @@ interface LabResult {
   payor_code?: string;
   status: string;
   test_date: string;
+  units?: string;
+  description?: string;
+  // Additional fields from backend
+  original_test_name?: string;
+  standardized?: boolean;
+  confidence_score?: number;
 }
 
 interface FileInfo {
@@ -269,8 +275,15 @@ class BloodTestService {
         throw new Error(result.error || 'No results found in PDF');
       }
 
-      // First, save extracted tests to metadata table if not already present
-      console.log('About to save tests to metadata...');
+      // Debug: Check what descriptions the backend sent
+      console.log('\n=== Backend Response Debug ===');
+      console.log('Backend sent data:', result.data);
+      console.log('Sample result with description:', result.data[0]);
+      console.log('Description field exists:', 'description' in result.data[0]);
+      console.log('Description value:', result.data[0]?.description);
+
+      // Backend returns data with CSV descriptions, now save to metadata
+      console.log('About to save tests to metadata with CSV descriptions...');
       await this.saveTestsToMetadata(result.data as any);
       console.log('Finished saving tests to metadata');
 
@@ -335,54 +348,69 @@ class BloodTestService {
     try {
       console.log('\n=== Applying metadata fallback for display ===');
       
-      // Find tests without reference ranges
-      const testsWithoutRanges = results.filter(test => 
-        test.reference_min === null && test.reference_max === null
-      );
+      // Get ALL test names to fetch metadata (including descriptions)
+      const allTestNames = [...new Set(results.map(test => test.test_name))];
       
-      if (testsWithoutRanges.length === 0) {
-        console.log('No tests without reference ranges found');
-        return results;
-      }
+      console.log(`Fetching metadata for ${allTestNames.length} unique test names`);
       
-      console.log(`Found ${testsWithoutRanges.length} tests without reference ranges for display fallback`);
-      
-      // Get unique test names
-      const testNames = [...new Set(testsWithoutRanges.map(test => test.test_name))];
-      
-      // Query metadata for these tests
+      // Query metadata for all tests to get descriptions and reference ranges
       const { data: metadataResults, error } = await supabase
         .from('blood_test_metadata')
-        .select('test_name, reference_min, reference_max, unit')
-        .in('test_name', testNames);
+        .select('test_name, reference_min, reference_max, unit, description')
+        .in('test_name', allTestNames);
       
       if (error) {
         console.error('Error querying metadata for display fallback:', error);
         return results;
       }
       
-      // Create lookup map
-      const metadataMap = new Map<string, { reference_min: number | null; reference_max: number | null; unit: string | null }>();
+      console.log(`Found ${metadataResults?.length || 0} metadata records`);
+      
+      // Create lookup map for metadata
+      const metadataMap = new Map<string, { 
+        reference_min: number | null; 
+        reference_max: number | null; 
+        unit: string | null;
+        description: string | null;
+      }>();
+      
       metadataResults?.forEach(meta => {
         metadataMap.set(meta.test_name, {
           reference_min: meta.reference_min,
           reference_max: meta.reference_max,
-          unit: meta.unit
+          unit: meta.unit,
+          description: meta.description
         });
       });
       
-      // Apply fallback ranges
+      // Update test results with metadata (reference ranges, units, and descriptions)
       const updatedResults = results.map(test => {
-        if (test.reference_min === null && test.reference_max === null) {
-          const metadata = metadataMap.get(test.test_name);
-          if (metadata && (metadata.reference_min !== null || metadata.reference_max !== null)) {
-            console.log(`Applied metadata fallback for ${test.test_name}:`, 
-              `${metadata.reference_min} - ${metadata.reference_max}`);
-            return {
-              ...test,
-              reference_min: metadata.reference_min,
-              reference_max: metadata.reference_max,
-            };
+        const metadata = metadataMap.get(test.test_name);
+        if (metadata) {
+          const updates: any = {};
+          
+          // Add description if available
+          if (metadata.description) {
+            (test as any).description = metadata.description;
+          }
+          
+          // Add units if available and not already present
+          if (metadata.unit && !(test as any).units) {
+            (test as any).units = metadata.unit;
+          }
+          
+          // Apply reference range fallback if missing
+          if (test.reference_min === null && test.reference_max === null) {
+            if (metadata.reference_min !== null || metadata.reference_max !== null) {
+              console.log(`Applied metadata fallback for ${test.test_name}:`, 
+                `${metadata.reference_min} - ${metadata.reference_max}`);
+              updates.reference_min = metadata.reference_min;
+              updates.reference_max = metadata.reference_max;
+            }
+          }
+          
+          if (Object.keys(updates).length > 0) {
+            return { ...test, ...updates };
           }
         }
         return test;
@@ -390,10 +418,12 @@ class BloodTestService {
       
       const updatedCount = updatedResults.filter((test, index) => 
         test.reference_min !== results[index].reference_min || 
-        test.reference_max !== results[index].reference_max
+        test.reference_max !== results[index].reference_max ||
+        (test as any).description !== (results[index] as any).description ||
+        (test as any).units !== (results[index] as any).units
       ).length;
       
-      console.log(`Applied metadata fallback to ${updatedCount} tests for display`);
+      console.log(`Updated ${updatedCount} tests with metadata (ranges, units, descriptions)`);
       
       return updatedResults;
       
@@ -416,8 +446,8 @@ class BloodTestService {
             category: result.category,
             reference_min: result.reference_min && result.reference_min !== 'null' ? parseFloat(result.reference_min) : null,
             reference_max: result.reference_max && result.reference_max !== 'null' ? parseFloat(result.reference_max) : null,
-            unit: null, // We can add unit detection later
-            description: 'Auto-added from PDF extraction'
+            unit: result.units || null, // Use units from CSV if available
+            description: result.description || 'Auto-added from PDF extraction' // Backend now provides CSV descriptions
           });
         }
         return acc;

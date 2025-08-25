@@ -23,6 +23,7 @@ interface ProcessedTest {
   standardized: boolean;
   confidence_score: number;
   units?: string;
+  description?: string; // CSV description for tooltips
 }
 
 dotenv.config();
@@ -35,6 +36,8 @@ app.use(express.json());
 
 const openai = new OpenAI({  apiKey: process.env.OPENAI_API_KEY,
 });
+
+
 
 // Function to clean response text and extract JSON
 function extractJSON(text: string): string {
@@ -369,7 +372,8 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
               original_test_name: item.test_name,
               standardized: true,
               confidence_score: match.confidence,
-              units: match.test.units
+              units: match.test.units,
+              description: match.test.description // Include CSV description for tooltips
             };
           } else {
             console.log(`⚠ No confident match found for "${item.test_name}"`);
@@ -411,7 +415,7 @@ app.post('/api/parse-pdf', upload.single('file'), async (req, res) => {
             "Thyroid & Endocrine"
           ];
           
-          const reCategorizationPrompt = `You are a medical expert. Your task is to categorize these unmatched lab tests into the most appropriate standardized category.
+          const reCategorizationPrompt = `You are a medical expert. Your task is to categorize these unmatched lab tests into the most appropriate standardized category AND provide a brief description for each test.
 
 AVAILABLE CATEGORIES:
 ${predefinedCategories.map(cat => `- ${cat}`).join('\n')}
@@ -421,22 +425,23 @@ INSTRUCTIONS:
 2. Map it to the most appropriate predefined category based on medical knowledge
 3. Consider both the test name and original category when making the decision
 4. Use your medical expertise to determine the best fit
+5. Provide a brief, clear description of what each test measures
 
 EXAMPLES:
-- Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function"
-- Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function"
-- Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals"
-- Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism"
-- Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine"
-- Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular"
-- Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal"
-- Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Lipids & Cardiovascular"
-- Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers"
-- Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients"
-- Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Haematology"
-- Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health"
+- Test: "ALT", Original Category: "Liver Panel" → Standard Category: "Liver Function", Description: "Liver enzyme that indicates liver health"
+- Test: "Creatinine", Original Category: "Renal Function" → Standard Category: "Kidney Function", Description: "Waste product filtered by kidneys, indicates kidney function"
+- Test: "Sodium", Original Category: "Electrolytes" → Standard Category: "Electrolytes & Minerals", Description: "Essential electrolyte for fluid balance and nerve function"
+- Test: "Glucose", Original Category: "Metabolic Panel" → Standard Category: "Blood Sugar & Metabolism", Description: "Primary sugar in blood, indicates metabolic health"
+- Test: "TSH", Original Category: "Thyroid Tests" → Standard Category: "Thyroid & Endocrine", Description: "Thyroid stimulating hormone, regulates thyroid function"
+- Test: "Cholesterol", Original Category: "Lipid Panel" → Standard Category: "Lipids & Cardiovascular", Description: "Fat molecule important for cell membranes and hormone production"
+- Test: "Testosterone", Original Category: "Hormone Panel" → Standard Category: "Hormonal", Description: "Primary male sex hormone, affects muscle mass and libido"
+- Test: "Troponin", Original Category: "Cardiac Tests" → Standard Category: "Lipids & Cardiovascular", Description: "Protein released during heart muscle damage"
+- Test: "PSA", Original Category: "Cancer Screening" → Standard Category: "Oncology Markers", Description: "Prostate-specific antigen, screens for prostate cancer"
+- Test: "Vitamin D", Original Category: "Vitamins" → Standard Category: "Micronutrients", Description: "Essential vitamin for bone health and immune function"
+- Test: "Hemoglobin", Original Category: "CBC" → Standard Category: "Haematology", Description: "Protein in red blood cells that carries oxygen"
+- Test: "Calcium", Original Category: "Mineral Panel" → Standard Category: "Bone Health", Description: "Essential mineral for bones, muscles, and nerve function"
 
-Return ONLY a JSON array with the same structure as input, but with standardized categories:
+Return ONLY a JSON array with the same structure as input, but with standardized categories AND descriptions:
 [
   {
     "test_name": "string",
@@ -445,7 +450,8 @@ Return ONLY a JSON array with the same structure as input, but with standardized
     "reference_min": number | null,
     "reference_max": number | null,
     "status": "normal" | "high" | "low",
-    "test_date": "YYYY-MM-DD"
+    "test_date": "YYYY-MM-DD",
+    "description": "Brief description of what this test measures"
   }
 ]`;
 
@@ -474,14 +480,21 @@ Return ONLY a JSON array with the same structure as input, but with standardized
               
               console.log('AI re-categorization completed. Re-categorized tests:', reCategorizedData.length);
               
-              // Update the unmatched tests with their new categories
+              // Update the unmatched tests with their new categories and descriptions
               reCategorizedData.forEach((reCategorizedTest: any) => {
                 const originalTest = processedTests.find((test: ProcessedTest) => test.test === reCategorizedTest.test_name);
                 if (originalTest) {
                   originalTest.category = reCategorizedTest.category;
                   originalTest.standardized = true;
                   originalTest.confidence_score = 75; // AI categorization confidence
-                  console.log(`✓ AI re-categorized "${reCategorizedTest.test_name}" to "${reCategorizedTest.category}"`);
+                  
+                  // Add AI-generated description if available
+                  if (reCategorizedTest.description) {
+                    originalTest.description = reCategorizedTest.description;
+                    console.log(`✓ AI re-categorized "${reCategorizedTest.test_name}" to "${reCategorizedTest.category}" with description: "${reCategorizedTest.description}"`);
+                  } else {
+                    console.log(`✓ AI re-categorized "${reCategorizedTest.test_name}" to "${reCategorizedTest.category}"`);
+                  }
                 }
               });
             }
@@ -516,7 +529,8 @@ Return ONLY a JSON array with the same structure as input, but with standardized
             original_test_name: item.original_test_name || null,
             standardized: item.standardized || false,
             confidence_score: item.confidence_score || 0,
-            units: item.units || null
+            units: item.units || null,
+            description: item.description || null // Include CSV description for tooltips
           };
         });
         
@@ -525,6 +539,17 @@ Return ONLY a JSON array with the same structure as input, but with standardized
         console.log(`Total tests transformed: ${transformedData.length}`);
         console.log('Sample transformed test:', transformedData[0]);
         console.log('All test names:', transformedData.map(t => t.test));
+        
+        // Debug: Check descriptions for all tests
+        console.log('\n=== DESCRIPTION STATUS ===');
+        processedTests.forEach((test, index) => {
+          const hasDescription = test.description && test.description !== 'Auto-added from PDF extraction';
+          const source = test.standardized ? 'CSV' : 'AI';
+          console.log(`${index + 1}. ${test.test}: ${hasDescription ? '✅' : '❌'} (${source})`);
+          if (hasDescription) {
+            console.log(`   Description: "${test.description}"`);
+          }
+        });
         
         res.json({ 
           success: true,

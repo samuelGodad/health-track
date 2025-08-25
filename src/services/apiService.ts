@@ -34,7 +34,7 @@ export interface FileInfo {
 }
 
 // Base URL for API calls
-const API_BASE_URL = 'http://localhost:3000'; // Local development
+const API_BASE_URL = 'https://health-track-1-x8k4.onrender.com'; // Deployed backend
 
 export const apiService = {
   // Parse PDF using the backend API
